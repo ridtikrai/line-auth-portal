@@ -9,7 +9,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 
-  <!-- ==================== 1. UI โหลด & แจ้งเตือน ==================== -->
+  <!-- ==================== UI โหลด & แจ้งเตือน ==================== -->
   <div id="loadingUI" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
     <div class="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-blue-600 mb-4"></div>
     <p class="text-slate-500 font-medium" id="loadingText">กำลังตรวจสอบสิทธิ์...</p>
@@ -18,14 +18,14 @@
   <div id="unauthorizedUI" class="hidden fixed inset-0 bg-slate-50 flex items-center justify-center z-40 px-4">
     <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-red-500 text-center max-w-sm w-full">
       <h2 class="text-xl font-bold text-red-600 mb-2">ไม่มีสิทธิ์เข้าถึง</h2>
-      <p class="text-slate-500 mb-4">เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถใช้งานหน้านี้ได้</p>
-      <button onclick="window.location.href='index.html'" class="bg-slate-200 text-slate-700 py-2 px-6 rounded-lg font-bold">กลับหน้า Portal</button>
+      <p class="text-slate-500 mb-4" id="errorMsgText">เฉพาะผู้ดูแลระบบ (ADMIN) เท่านั้นที่ใช้งานหน้านี้ได้</p>
+      <button onclick="window.location.href='index.html'" class="bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 px-6 rounded-lg font-bold transition">กลับหน้า Portal</button>
     </div>
   </div>
 
-  <!-- ==================== 2. UI หลักของ Admin Dashboard ==================== -->
+  <!-- ==================== UI หลักของ Admin Dashboard ==================== -->
   <div id="appUI" class="hidden min-h-screen flex flex-col">
-    <!-- Navbar (เพิ่มปุ่มกลับหน้าหลักที่นี่) -->
+    <!-- Navbar (มีปุ่มกลับหน้าหลัก) -->
     <nav class="bg-slate-900 text-white shadow-md">
       <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <h1 class="text-xl font-bold flex items-center gap-2">
@@ -33,19 +33,13 @@
           Admin Dashboard
         </h1>
         <div class="flex flex-wrap items-center justify-center gap-2">
-          <!-- กลุ่มปุ่มจัดการข้อมูล -->
           <div class="flex gap-2 bg-slate-800 p-1 rounded-lg">
             <button onclick="switchTab('users')" id="tab-users" class="px-4 py-2 rounded-md bg-blue-600 text-white font-medium text-sm transition">ผู้ใช้งาน</button>
             <button onclick="switchTab('permissions')" id="tab-permissions" class="px-4 py-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 font-medium text-sm transition">จัดการสิทธิ์</button>
           </div>
-          
-          <!-- ขีดแบ่ง (ซ่อนในมือถือ) -->
           <div class="hidden md:block w-px h-8 bg-slate-700 mx-2"></div>
-          
-          <!-- ปุ่มกลับหน้าเมนูหลัก -->
           <button onclick="window.location.href='index.html'" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white font-medium text-sm transition flex items-center gap-2 border border-slate-600">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            กลับหน้าหลัก
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg> กลับหน้าหลัก
           </button>
         </div>
       </div>
@@ -59,7 +53,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="p-4 border-b bg-slate-50 flex justify-between items-center">
             <h2 class="font-bold text-slate-700">รายชื่อผู้ใช้งานระบบ</h2>
-            <button onclick="loadAdminData()" class="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg transition">
+            <button onclick="loadAdminData()" class="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> รีเฟรชข้อมูล
             </button>
           </div>
@@ -92,16 +86,15 @@
     </main>
   </div>
 
-  <!-- ==================== 3. Modals ==================== -->
-  
-  <!-- Modal: User -->
+  <!-- ==================== Modals ==================== -->
   <div id="userModal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center z-50 px-4">
     <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl">
       <h3 class="text-lg font-bold mb-4">แก้ไขผู้ใช้งาน</h3>
       <input type="hidden" id="eUserId">
       <div class="mb-4">
         <label class="block text-xs font-bold text-slate-500 mb-1">กลุ่มผู้ใช้ (Role)</label>
-        <input type="text" id="eRole" class="w-full border rounded-lg p-2.5 outline-none focus:border-blue-500">
+        <!-- ค่าที่กรอกจะถูกบันทึกลง Sheet (เช่น ADMIN) -->
+        <input type="text" id="eRole" class="w-full border rounded-lg p-2.5 outline-none focus:border-blue-500 uppercase">
       </div>
       <div class="mb-6">
         <label class="block text-xs font-bold text-slate-500 mb-1">สถานะ</label>
@@ -117,12 +110,11 @@
     </div>
   </div>
 
-  <!-- Modal: Permission -->
   <div id="permModal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center z-50 px-4">
     <div class="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
       <h3 class="text-lg font-bold mb-4" id="permTitle">ตั้งค่าระบบ</h3>
       <div class="grid grid-cols-2 gap-4 mb-4">
-        <div><label class="block text-xs font-bold text-slate-500 mb-1">กลุ่ม (Role)</label><input type="text" id="pRole" class="w-full border rounded-lg p-2 outline-none focus:border-blue-500"></div>
+        <div><label class="block text-xs font-bold text-slate-500 mb-1">กลุ่ม (Role)</label><input type="text" id="pRole" class="w-full border rounded-lg p-2 outline-none focus:border-blue-500 uppercase"></div>
         <div><label class="block text-xs font-bold text-slate-500 mb-1">ระบบ (SystemName)</label><input type="text" id="pSystem" class="w-full border rounded-lg p-2 outline-none focus:border-blue-500"></div>
       </div>
       <div class="mb-4">
@@ -146,16 +138,15 @@
     </div>
   </div>
 
-
-  <!-- ==================== SCRIPT (ควบคุมระบบ) ==================== -->
+  <!-- ==================== SCRIPT ==================== -->
   <script>
-        const LIFF_ID = "2011487100-dldPQItq"; // แทนที่ด้วย LIFF ID ของคุณ
-    const CENTRAL_AUTH_API = "https://script.google.com/macros/s/AKfycbyQJWRWPgoI-3YMuD596c7Uv7t2y6z25HLjwuvtIAdGnyxK3pPO7bFOqYg-QBeGic5Q/exec"; // นำ URL Apps Script ตัวที่รวมสิทธิ์แอดมินมาใส่
+    // ⚠️ ใส่ค่าของคุณตรงนี้ให้เรียบร้อย
+    const LIFF_ID = "2011487100-dldPQItq"; // แทนที่ด้วย LIFF ID ของคุณ
+    const CENTRAL_AUTH_API = "https://script.google.com/macros/s/AKfycbyQJWRWPgoI-3YMuD596c7Uv7t2y6z25HLjwuvtIAdGnyxK3pPO7bFOqYg-QBeGic5Q/exec";
     
     let MY_USER_ID = "";
     let globalData = { users: [], permissions: [] };
 
-    // 1. Initial Load
     async function initApp() {
       try {
         await liff.init({ liffId: LIFF_ID });
@@ -170,16 +161,16 @@
       }
     }
 
-    // 2. Core Fetch Function
     async function fetchAPI(action, extraPayload = {}) {
       const payload = { action: action, userId: MY_USER_ID, ...extraPayload };
       const res = await fetch(CENTRAL_AUTH_API, { method: "POST", body: JSON.stringify(payload) });
       const data = await res.json();
-      if (data.status === 'error' || !data.allowed && action === 'checkAccess') throw new Error(data.message);
+      if (data.status === 'error' || (!data.allowed && action === 'checkAccess')) {
+        throw new Error(data.message || "ไม่มีสิทธิ์เข้าถึง");
+      }
       return data;
     }
 
-    // 3. Load & Render Data
     async function loadAdminData() {
       document.getElementById("loadingUI").classList.remove("hidden");
       document.getElementById("loadingText").innerText = "กำลังดึงข้อมูลฐานข้อมูล...";
@@ -196,6 +187,7 @@
       } catch (err) {
         document.getElementById("loadingUI").classList.add("hidden");
         document.getElementById("unauthorizedUI").classList.remove("hidden");
+        document.getElementById("errorMsgText").innerText = err.message;
       }
     }
 
@@ -207,7 +199,7 @@
           <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2 py-1 rounded-md text-xs font-bold border border-slate-200">${u.role}</span></td>
           <td class="p-4"><span class="px-2 py-1 rounded-md text-xs font-bold ${u.status==='ACTIVE'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${u.status}</span></td>
           <td class="p-4 text-xs text-slate-500">${u.lastLogin || '-'}</td>
-          <td class="p-4"><button onclick="openUserModal('${u.userId}','${u.role}','${u.status}')" class="text-blue-600 font-bold hover:underline bg-blue-50 px-3 py-1 rounded-md">แก้ไข</button></td>
+          <td class="p-4"><button onclick="openUserModal('${u.userId}','${u.role}','${u.status}')" class="text-blue-600 font-bold hover:underline bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition">แก้ไข</button></td>
         </tr>
       `).join('');
     }
@@ -228,12 +220,10 @@
       `).join('');
     }
 
-    // 4. Tab & Modals UI
     function switchTab(tab) {
       document.getElementById('section-users').style.display = tab === 'users' ? 'block' : 'none';
       document.getElementById('section-permissions').style.display = tab === 'permissions' ? 'block' : 'none';
       
-      // Update Tab Styles
       const btnUsers = document.getElementById('tab-users');
       const btnPerms = document.getElementById('tab-permissions');
       
@@ -247,7 +237,9 @@
     }
 
     function openUserModal(id, role, status) {
-      document.getElementById('eUserId').value = id; document.getElementById('eRole').value = role; document.getElementById('eStatus').value = status;
+      document.getElementById('eUserId').value = id; 
+      document.getElementById('eRole').value = role; 
+      document.getElementById('eStatus').value = status;
       document.getElementById('userModal').classList.remove('hidden');
     }
 
@@ -258,7 +250,7 @@
       document.getElementById('pRole').readOnly = isEdit; document.getElementById('pSystem').readOnly = isEdit;
       
       if(isEdit) {
-        const p = globalData.permissions.find(x => x.role === role && x.systemName === sys);
+        const p = globalData.permissions.find(x => String(x.role).toUpperCase() === String(role).toUpperCase() && String(x.systemName).toUpperCase() === String(sys).toUpperCase());
         document.getElementById('pUrl').value = p.menuUrl || '';
         ['Read','Create','Edit','Delete','Approve'].forEach(k => {
           document.getElementById('p'+k).checked = (p['can'+k] === true || String(p['can'+k]).toUpperCase() === 'TRUE');
@@ -272,12 +264,15 @@
 
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    // 5. CRUD Actions
     async function saveUser() {
       closeModal('userModal');
       document.getElementById("loadingUI").classList.remove("hidden");
       try {
-        await fetchAPI("adminUpdateUser", { targetUserId: document.getElementById('eUserId').value, newRole: document.getElementById('eRole').value, newStatus: document.getElementById('eStatus').value });
+        await fetchAPI("adminUpdateUser", { 
+          targetUserId: document.getElementById('eUserId').value, 
+          newRole: document.getElementById('eRole').value.trim().toUpperCase(), // เปลี่ยนเป็น Upper Case ป้องกันพิมพ์ผิด
+          newStatus: document.getElementById('eStatus').value 
+        });
         await loadAdminData();
       } catch(e) { alert(e.message); document.getElementById("loadingUI").classList.add("hidden"); }
     }
@@ -288,8 +283,14 @@
       document.getElementById("loadingUI").classList.remove("hidden");
       
       const formData = {
-        role: document.getElementById('pRole').value, systemName: document.getElementById('pSystem').value, menuUrl: document.getElementById('pUrl').value,
-        canRead: document.getElementById('pRead').checked, canCreate: document.getElementById('pCreate').checked, canEdit: document.getElementById('pEdit').checked, canDelete: document.getElementById('pDelete').checked, canApprove: document.getElementById('pApprove').checked
+        role: document.getElementById('pRole').value.trim().toUpperCase(), 
+        systemName: document.getElementById('pSystem').value.trim(), 
+        menuUrl: document.getElementById('pUrl').value,
+        canRead: document.getElementById('pRead').checked, 
+        canCreate: document.getElementById('pCreate').checked, 
+        canEdit: document.getElementById('pEdit').checked, 
+        canDelete: document.getElementById('pDelete').checked, 
+        canApprove: document.getElementById('pApprove').checked
       };
       
       try {
