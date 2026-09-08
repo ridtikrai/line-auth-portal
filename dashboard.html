@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบงานปลายทาง (GAS Web App)</title>
+  
+  <!-- โหลด Tailwind CSS และ LIFF SDK -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    /* ซ่อนเนื้อหาแอปพลิเคชันไว้ก่อน เพื่อป้องกันคนเห็นก่อนเช็คสิทธิ์เสร็จ */
+    #appContent {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+  <!-- ========================================== -->
+  <!-- 1. ส่วนรักษาความปลอดภัย (Security Wrappers) -->
+  <!-- ========================================== -->
+
+  <!-- 1.1 หน้าจอโหลด (Loading) -->
+  <div id="loadingUI" class="flex flex-col items-center justify-center h-screen absolute inset-0 bg-white z-50">
+    <div class="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-blue-600 mb-4"></div>
+    <p class="text-slate-500">กำลังตรวจสอบสิทธิ์ผู้ใช้งาน...</p>
+  </div>
+
+  <!-- 1.2 หน้าจอไม่มีสิทธิ์ (Unauthorized) -->
+  <div id="unauthorizedUI" class="hidden flex flex-col items-center justify-center h-screen absolute inset-0 bg-slate-50 z-40 px-4 text-center">
+    <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-red-500 max-w-md w-full">
+      <h2 id="errorMsg" class="text-xl font-bold text-red-600 mb-2">ไม่มีสิทธิ์เข้าถึงระบบ</h2>
+      <p class="text-slate-500 mb-4">กรุณาเข้าใช้งานผ่านหน้า Main Portal</p>
+      <!-- เปลี่ยน URL_PORTAL เป็น URL ของ Vercel Portal ของคุณ -->
+      <a href="URL_PORTAL_ของ_VERCEL" target="_top" class="inline-block bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-6 rounded-lg transition-colors">
+        กลับหน้าหลัก (Portal)
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- 2. เนื้อหาแอปพลิเคชัน (App Content) -->
+  <!-- ========================================== -->
+  <div id="appContent" class="max-w-5xl mx-auto py-8 px-4">
+    
+    <!-- แถบด้านบน (Header) -->
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex justify-between items-center border border-slate-200">
+      <div>
+        <h1 class="text-xl font-bold text-blue-700" id="displaySystemName">ชื่อระบบ...</h1>
+        <p class="text-sm text-slate-500">ผู้ใช้งาน: <span id="userName" class="font-bold"></span></p>
+      </div>
+      <!-- โลโก้ หรือ รููปโปรไฟล์ -->
+      <img id="userImage" src="" class="w-10 h-10 rounded-full border border-slate-200">
+    </div>
+
+    <!-- 
+      ********************************************************
+      นำ HTML ระบบเดิมของคุณ มาใส่ในพื้นที่นี้ได้เลยครับ! 
+      ********************************************************
+    -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <h2 class="text-lg font-bold mb-4 border-b pb-2">ตารางจัดการข้อมูล</h2>
+      
+      <div class="flex gap-2 mb-4">
+        <!-- ตั้ง ID ให้ปุ่มต่างๆ เพื่อนำไปเช็คสิทธิ์ด้านล่าง -->
+        <button id="btnCreate" class="bg-green-600 text-white px-4 py-2 rounded-md">เพิ่มข้อมูล (Create)</button>
+        <button id="btnEdit" class="bg-amber-500 text-white px-4 py-2 rounded-md">แก้ไขข้อมูล (Edit)</button>
+        <button id="btnDelete" class="bg-red-600 text-white px-4 py-2 rounded-md">ลบ (Delete)</button>
+      </div>
+
+      <div id="approveSection" class="p-4 bg-blue-50 border border-blue-200 rounded-lg mt-6">
+        <h3 class="font-bold text-blue-800">ส่วนหัวหน้างาน (Approve)</h3>
+        <p class="text-sm text-blue-600">แสดงข้อมูลสำหรับผู้อนุมัติ</p>
+      </div>
+    </div>
+    <!-- ******************************************************** -->
+
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- 3. สคริปต์ตรวจสอบสิทธิ์ (Auth Script) -->
+  <!-- ========================================== -->
+  <script>
+    // --------------------------------------------------
+    // การตั้งค่าระบบ (ต้องตรงกับ API กลาง)
+    // --------------------------------------------------
+    const LIFF_ID = "2011487100-dldPQItq";       // LIFF ID (สร้างใหม่ หรือใช้ของ Portal ก็ได้)
+    const CENTRAL_AUTH_API = "https://script.google.com/macros/s/AKfycbyQJWRWPgoI-3YMuD596c7Uv7t2y6z25HLjwuvtIAdGnyxK3pPO7bFOqYg-QBeGic5Q/exec"; // URL ของ Central Auth API (ตัวแรกที่เราทำ)
+    const SYSTEM_NAME = "Dashboard";            // ชื่อระบบให้ตรงกับในคอลัมน์ systemName ของ Sheet
+    // --------------------------------------------------
+
+    async function initApp() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        // ถ้าต้องการให้แสดงรูปโปรไฟล์
+        const userImg = document.getElementById('userImage');
+        if (userImg) userImg.src = profile.pictureUrl;
+        
+        // ยิงไปถาม Central API กลาง ว่าคนนี้มีสิทธิ์ไหม?
+        checkPermissions(profile.userId);
+
+      } catch (err) {
+        console.error("LIFF Init Error:", err);
+        showUnauthorized("เกิดข้อผิดพลาดในการเชื่อมต่อกับ LINE");
+      }
+    }
+
+    async function checkPermissions(userId) {
+      try {
+        // Fetch ไปยัง Google Apps Script อีกตัว (API กลาง)
+        const response = await fetch(CENTRAL_AUTH_API, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "checkAccess",
+            userId: userId,
+            systemName: SYSTEM_NAME 
+          })
+        });
+        
+        const result = await response.json();
+        
+        // เอาหน้าจอ Loading ออก
+        document.getElementById("loadingUI").style.display = "none";
+
+        if (result.allowed) {
+          // ==========================================
+          // 🟢 อนุญาตให้เข้าถึง (canRead = TRUE)
+          // ==========================================
+          document.getElementById("appContent").style.display = "block";
+          
+          if(document.getElementById("userName")) document.getElementById("userName").innerText = result.user.name;
+          if(document.getElementById("displaySystemName")) document.getElementById("displaySystemName").innerText = SYSTEM_NAME;
+
+          // ==========================================
+          // 🎛️ จัดการสิทธิ์การมองเห็นปุ่ม (RBAC)
+          // ==========================================
+          const perms = result.permissions;
+
+          if (!perms.create && document.getElementById("btnCreate")) {
+            document.getElementById("btnCreate").style.display = "none";
+          }
+          if (!perms.edit && document.getElementById("btnEdit")) {
+            document.getElementById("btnEdit").style.display = "none";
+          }
+          if (!perms.delete && document.getElementById("btnDelete")) {
+            document.getElementById("btnDelete").style.display = "none";
+          }
+          if (!perms.approve && document.getElementById("approveSection")) {
+            document.getElementById("approveSection").style.display = "none";
+          }
+
+          // ** สามารถเรียกฟังก์ชันดึงข้อมูล (google.script.run) ของโปรเจกต์นี้ตรงนี้ได้เลย **
+          // loadMyData();
+
+        } else {
+          // 🔴 ไม่มีสิทธิ์เข้าถึงระบบ
+          showUnauthorized(result.message);
+        }
+      } catch (error) {
+        console.error("Auth Fetch Error:", error);
+        document.getElementById("loadingUI").style.display = "none";
+        showUnauthorized("ไม่สามารถตรวจสอบสิทธิ์ได้ในขณะนี้");
+      }
+    }
+
+    function showUnauthorized(msg) {
+      document.getElementById("unauthorizedUI").classList.remove("hidden");
+      document.getElementById("errorMsg").innerText = msg;
+    }
+
+    // เริ่มทำงานเมื่อเปิดหน้าเว็บ
+    window.onload = initApp;
+  </script>
+</body>
+</html>
