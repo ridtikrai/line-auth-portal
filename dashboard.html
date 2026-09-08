@@ -3,185 +3,287 @@
 <head>
   <base target="_top">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบงานปลายทาง (GAS Web App)</title>
-  
-  <!-- โหลด Tailwind CSS และ LIFF SDK -->
+  <title>Admin Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-  <style>
-    /* ซ่อนเนื้อหาแอปพลิเคชันไว้ก่อน เพื่อป้องกันคนเห็นก่อนเช็คสิทธิ์เสร็จ */
-    #appContent {
-      display: none;
-    }
-  </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="bg-slate-100 font-sans text-slate-800">
 
-  <!-- ========================================== -->
-  <!-- 1. ส่วนรักษาความปลอดภัย (Security Wrappers) -->
-  <!-- ========================================== -->
-
-  <!-- 1.1 หน้าจอโหลด (Loading) -->
-  <div id="loadingUI" class="flex flex-col items-center justify-center h-screen absolute inset-0 bg-white z-50">
-    <div class="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-blue-600 mb-4"></div>
-    <p class="text-slate-500">กำลังตรวจสอบสิทธิ์ผู้ใช้งาน...</p>
-  </div>
-
-  <!-- 1.2 หน้าจอไม่มีสิทธิ์ (Unauthorized) -->
-  <div id="unauthorizedUI" class="hidden flex flex-col items-center justify-center h-screen absolute inset-0 bg-slate-50 z-40 px-4 text-center">
-    <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-red-500 max-w-md w-full">
-      <h2 id="errorMsg" class="text-xl font-bold text-red-600 mb-2">ไม่มีสิทธิ์เข้าถึงระบบ</h2>
-      <p class="text-slate-500 mb-4">กรุณาเข้าใช้งานผ่านหน้า Main Portal</p>
-      <!-- เปลี่ยน URL_PORTAL เป็น URL ของ Vercel Portal ของคุณ -->
-      <a href="URL_PORTAL_ของ_VERCEL" target="_top" class="inline-block bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-6 rounded-lg transition-colors">
-        กลับหน้าหลัก (Portal)
-      </a>
+  <!-- Navbar -->
+  <nav class="bg-blue-700 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold">Admin Dashboard ⚙️</h1>
+      <div class="flex gap-4">
+        <button onclick="switchTab('users')" id="tab-users" class="px-4 py-2 rounded-md bg-blue-800 hover:bg-blue-600 font-medium transition">จัดการผู้ใช้ (Users)</button>
+        <button onclick="switchTab('permissions')" id="tab-permissions" class="px-4 py-2 rounded-md hover:bg-blue-600 font-medium transition">ตั้งค่าสิทธิ์ (Permissions)</button>
+      </div>
     </div>
+  </nav>
+
+  <!-- แจ้งเตือน Loading -->
+  <div id="loading" class="text-center py-10">
+    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700 mx-auto"></div>
+    <p class="mt-2 text-slate-500">กำลังโหลดข้อมูล...</p>
   </div>
 
-
-  <!-- ========================================== -->
-  <!-- 2. เนื้อหาแอปพลิเคชัน (App Content) -->
-  <!-- ========================================== -->
-  <div id="appContent" class="max-w-5xl mx-auto py-8 px-4">
+  <main class="max-w-7xl mx-auto px-4 py-8 hidden" id="mainContent">
     
-    <!-- แถบด้านบน (Header) -->
-    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex justify-between items-center border border-slate-200">
-      <div>
-        <h1 class="text-xl font-bold text-blue-700" id="displaySystemName">ชื่อระบบ...</h1>
-        <p class="text-sm text-slate-500">ผู้ใช้งาน: <span id="userName" class="font-bold"></span></p>
+    <!-- ==================== ส่วนจัดการ Users ==================== -->
+    <section id="section-users">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 border-b bg-slate-50"><h2 class="text-lg font-bold">รายชื่อผู้ใช้งานทั้งหมด</h2></div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm whitespace-nowrap">
+            <thead class="bg-slate-100 text-slate-600">
+              <tr>
+                <th class="p-4">UserID</th>
+                <th class="p-4">ชื่อ (Display Name)</th>
+                <th class="p-4">Role</th>
+                <th class="p-4">สถานะ (Status)</th>
+                <th class="p-4">เข้าใช้งานล่าสุด</th>
+                <th class="p-4">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
       </div>
-      <!-- โลโก้ หรือ รููปโปรไฟล์ -->
-      <img id="userImage" src="" class="w-10 h-10 rounded-full border border-slate-200">
+    </section>
+
+    <!-- ==================== ส่วนจัดการ Permissions ==================== -->
+    <section id="section-permissions" class="hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-slate-700">รายการสิทธิ์การใช้งาน (Role Permissions)</h2>
+        <button onclick="openPermissionModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">+ เพิ่มสิทธิ์ระบบใหม่</button>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm whitespace-nowrap">
+            <thead class="bg-slate-100 text-slate-600">
+              <tr>
+                <th class="p-4">กลุ่มผู้ใช้ (Role)</th>
+                <th class="p-4">ชื่อระบบ (System)</th>
+                <th class="p-4 text-center">อ่าน</th>
+                <th class="p-4 text-center">เพิ่ม</th>
+                <th class="p-4 text-center">แก้</th>
+                <th class="p-4 text-center">ลบ</th>
+                <th class="p-4 text-center">อนุมัติ</th>
+                <th class="p-4">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="permissionTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== Modal แก้ไข User ==================== -->
+  <div id="userModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-96 shadow-lg">
+      <h3 class="text-lg font-bold mb-4">จัดการผู้ใช้งาน</h3>
+      <input type="hidden" id="editUserId">
+      <div class="mb-4">
+        <label class="block text-sm text-slate-600 mb-1">กลุ่มสิทธิ์ (Role)</label>
+        <input type="text" id="editRole" class="w-full border rounded-md p-2" placeholder="เช่น Admin, User, Auditor">
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm text-slate-600 mb-1">สถานะ</label>
+        <select id="editStatus" class="w-full border rounded-md p-2">
+          <option value="ACTIVE">ACTIVE (ใช้งานได้)</option>
+          <option value="INACTIVE">INACTIVE (ระงับ/รออนุมัติ)</option>
+        </select>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeModal('userModal')" class="px-4 py-2 bg-slate-200 rounded-md">ยกเลิก</button>
+        <button onclick="saveUser()" class="px-4 py-2 bg-blue-600 text-white rounded-md">บันทึก</button>
+      </div>
     </div>
-
-    <!-- 
-      ********************************************************
-      นำ HTML ระบบเดิมของคุณ มาใส่ในพื้นที่นี้ได้เลยครับ! 
-      ********************************************************
-    -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-      <h2 class="text-lg font-bold mb-4 border-b pb-2">ตารางจัดการข้อมูล</h2>
-      
-      <div class="flex gap-2 mb-4">
-        <!-- ตั้ง ID ให้ปุ่มต่างๆ เพื่อนำไปเช็คสิทธิ์ด้านล่าง -->
-        <button id="btnCreate" class="bg-green-600 text-white px-4 py-2 rounded-md">เพิ่มข้อมูล (Create)</button>
-        <button id="btnEdit" class="bg-amber-500 text-white px-4 py-2 rounded-md">แก้ไขข้อมูล (Edit)</button>
-        <button id="btnDelete" class="bg-red-600 text-white px-4 py-2 rounded-md">ลบ (Delete)</button>
-      </div>
-
-      <div id="approveSection" class="p-4 bg-blue-50 border border-blue-200 rounded-lg mt-6">
-        <h3 class="font-bold text-blue-800">ส่วนหัวหน้างาน (Approve)</h3>
-        <p class="text-sm text-blue-600">แสดงข้อมูลสำหรับผู้อนุมัติ</p>
-      </div>
-    </div>
-    <!-- ******************************************************** -->
-
   </div>
 
+  <!-- ==================== Modal แก้ไข Permissions ==================== -->
+  <div id="permModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-[500px] shadow-lg max-h-[90vh] overflow-y-auto">
+      <h3 class="text-lg font-bold mb-4" id="permModalTitle">ตั้งค่าสิทธิ์</h3>
+      
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm text-slate-600 mb-1">กลุ่มผู้ใช้ (Role)</label>
+          <input type="text" id="pRole" class="w-full border rounded-md p-2" placeholder="เช่น Admin">
+        </div>
+        <div>
+          <label class="block text-sm text-slate-600 mb-1">ชื่อระบบ (System Name)</label>
+          <input type="text" id="pSystem" class="w-full border rounded-md p-2" placeholder="เช่น AuditApp">
+        </div>
+      </div>
 
-  <!-- ========================================== -->
-  <!-- 3. สคริปต์ตรวจสอบสิทธิ์ (Auth Script) -->
-  <!-- ========================================== -->
+      <div class="mb-4">
+        <label class="block text-sm text-slate-600 mb-1">URL ของแอป (Menu URL)</label>
+        <input type="text" id="pUrl" class="w-full border rounded-md p-2" placeholder="https://...">
+      </div>
+
+      <div class="mb-6 bg-slate-50 p-4 rounded-md border">
+        <p class="font-bold mb-2">กำหนดสิทธิ์ (Checkboxes)</p>
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <label class="flex items-center gap-2"><input type="checkbox" id="pRead"> สามารถเข้าถึง (Read)</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="pCreate"> เพิ่มข้อมูล (Create)</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="pEdit"> แก้ไขข้อมูล (Edit)</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="pDelete"> ลบข้อมูล (Delete)</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="pApprove"> อนุมัติ (Approve)</label>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button onclick="closeModal('permModal')" class="px-4 py-2 bg-slate-200 rounded-md">ยกเลิก</button>
+        <button onclick="savePermissionData()" class="px-4 py-2 bg-blue-600 text-white rounded-md">บันทึกสิทธิ์</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // --------------------------------------------------
-    // การตั้งค่าระบบ (ต้องตรงกับ API กลาง)
-    // --------------------------------------------------
-    const LIFF_ID = "2011487100-NnWPYbMN";       // LIFF ID (สร้างใหม่ หรือใช้ของ Portal ก็ได้)
-    const CENTRAL_AUTH_API = "https://script.google.com/macros/s/AKfycbyQJWRWPgoI-3YMuD596c7Uv7t2y6z25HLjwuvtIAdGnyxK3pPO7bFOqYg-QBeGic5Q/exec"; // URL ของ Central Auth API (ตัวแรกที่เราทำ)
-    const SYSTEM_NAME = "Dashboard";            // ชื่อระบบให้ตรงกับในคอลัมน์ systemName ของ Sheet
-    // --------------------------------------------------
+    let globalData = { users: [], permissions: [] };
 
-    async function initApp() {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+    // เมื่อโหลดหน้าเว็บ ให้ดึงข้อมูลทันที
+    window.onload = () => {
+      google.script.run.withSuccessHandler(renderData).getAllAdminData();
+    };
 
-        const profile = await liff.getProfile();
-        // ถ้าต้องการให้แสดงรูปโปรไฟล์
-        const userImg = document.getElementById('userImage');
-        if (userImg) userImg.src = profile.pictureUrl;
-        
-        // ยิงไปถาม Central API กลาง ว่าคนนี้มีสิทธิ์ไหม?
-        checkPermissions(profile.userId);
+    function renderData(data) {
+      globalData = data;
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      renderUsers();
+      renderPermissions();
+    }
 
-      } catch (err) {
-        console.error("LIFF Init Error:", err);
-        showUnauthorized("เกิดข้อผิดพลาดในการเชื่อมต่อกับ LINE");
+    // --- ระบบ Tabs ---
+    function switchTab(tab) {
+      document.getElementById('section-users').style.display = tab === 'users' ? 'block' : 'none';
+      document.getElementById('section-permissions').style.display = tab === 'permissions' ? 'block' : 'none';
+      
+      document.getElementById('tab-users').className = tab === 'users' ? 'px-4 py-2 rounded-md bg-blue-800 text-white font-medium' : 'px-4 py-2 rounded-md hover:bg-blue-600 font-medium';
+      document.getElementById('tab-permissions').className = tab === 'permissions' ? 'px-4 py-2 rounded-md bg-blue-800 text-white font-medium' : 'px-4 py-2 rounded-md hover:bg-blue-600 font-medium';
+    }
+
+    // --- ส่วนจัดการ Users ---
+    function renderUsers() {
+      const tbody = document.getElementById('userTableBody');
+      tbody.innerHTML = globalData.users.map(u => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 text-xs text-slate-500">${u.userId.substring(0, 15)}...</td>
+          <td class="p-4 font-bold text-slate-700">${u.displayName}</td>
+          <td class="p-4"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">${u.role}</span></td>
+          <td class="p-4">
+            <span class="text-xs px-2 py-1 rounded-full ${u.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${u.status}</span>
+          </td>
+          <td class="p-4 text-xs text-slate-500">${u.lastLogin || '-'}</td>
+          <td class="p-4">
+            <button onclick="openUserModal('${u.userId}', '${u.role}', '${u.status}')" class="text-blue-600 hover:underline text-sm font-medium">แก้ไข</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openUserModal(id, role, status) {
+      document.getElementById('editUserId').value = id;
+      document.getElementById('editRole').value = role;
+      document.getElementById('editStatus').value = status;
+      document.getElementById('userModal').style.display = 'flex';
+    }
+
+    function saveUser() {
+      const id = document.getElementById('editUserId').value;
+      const role = document.getElementById('editRole').value;
+      const status = document.getElementById('editStatus').value;
+      
+      closeModal('userModal');
+      google.script.run.withSuccessHandler(() => {
+        alert('อัปเดตผู้ใช้สำเร็จ!');
+        location.reload();
+      }).updateUser(id, role, status);
+    }
+
+    // --- ส่วนจัดการ Permissions ---
+    function renderPermissions() {
+      const tbody = document.getElementById('permissionTableBody');
+      const iconCheck = `<span class="text-green-500 font-bold">✓</span>`;
+      const iconCross = `<span class="text-slate-300">-</span>`;
+      
+      const checkTrue = (val) => (val === true || String(val).toUpperCase() === 'TRUE') ? iconCheck : iconCross;
+
+      tbody.innerHTML = globalData.permissions.map(p => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 font-bold text-slate-700">${p.role}</td>
+          <td class="p-4 text-blue-600 font-medium">${p.systemName}</td>
+          <td class="p-4 text-center">${checkTrue(p.canRead)}</td>
+          <td class="p-4 text-center">${checkTrue(p.canCreate)}</td>
+          <td class="p-4 text-center">${checkTrue(p.canEdit)}</td>
+          <td class="p-4 text-center">${checkTrue(p.canDelete)}</td>
+          <td class="p-4 text-center">${checkTrue(p.canApprove)}</td>
+          <td class="p-4">
+            <button onclick="openPermissionModal('${p.role}', '${p.systemName}')" class="text-amber-600 hover:underline text-sm font-medium mr-3">แก้ไข</button>
+            <button onclick="delPermission('${p.role}', '${p.systemName}')" class="text-red-600 hover:underline text-sm font-medium">ลบ</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openPermissionModal(role = '', sys = '') {
+      const isEdit = role !== '';
+      document.getElementById('permModalTitle').innerText = isEdit ? 'แก้ไขสิทธิ์' : 'เพิ่มสิทธิ์ใหม่';
+      
+      document.getElementById('pRole').value = role;
+      document.getElementById('pSystem').value = sys;
+      document.getElementById('pRole').readOnly = isEdit;
+      document.getElementById('pSystem').readOnly = isEdit;
+
+      if(isEdit) {
+        const p = globalData.permissions.find(x => x.role === role && x.systemName === sys);
+        document.getElementById('pUrl').value = p.menuUrl || '';
+        document.getElementById('pRead').checked = (p.canRead === true || String(p.canRead).toUpperCase() === 'TRUE');
+        document.getElementById('pCreate').checked = (p.canCreate === true || String(p.canCreate).toUpperCase() === 'TRUE');
+        document.getElementById('pEdit').checked = (p.canEdit === true || String(p.canEdit).toUpperCase() === 'TRUE');
+        document.getElementById('pDelete').checked = (p.canDelete === true || String(p.canDelete).toUpperCase() === 'TRUE');
+        document.getElementById('pApprove').checked = (p.canApprove === true || String(p.canApprove).toUpperCase() === 'TRUE');
+      } else {
+        // Reset form
+        document.getElementById('pUrl').value = '';
+        ['pRead','pCreate','pEdit','pDelete','pApprove'].forEach(id => document.getElementById(id).checked = false);
+      }
+      
+      document.getElementById('permModal').style.display = 'flex';
+    }
+
+    function savePermissionData() {
+      const formData = {
+        role: document.getElementById('pRole').value,
+        systemName: document.getElementById('pSystem').value,
+        menuUrl: document.getElementById('pUrl').value,
+        canRead: document.getElementById('pRead').checked,
+        canCreate: document.getElementById('pCreate').checked,
+        canEdit: document.getElementById('pEdit').checked,
+        canDelete: document.getElementById('pDelete').checked,
+        canApprove: document.getElementById('pApprove').checked
+      };
+
+      if(!formData.role || !formData.systemName) return alert('กรุณากรอก Role และ ชื่อระบบ');
+
+      closeModal('permModal');
+      google.script.run.withSuccessHandler((res) => {
+        alert(res.message);
+        location.reload();
+      }).savePermission(formData);
+    }
+
+    function delPermission(role, sys) {
+      if(confirm(`คุณแน่ใจหรือไม่ที่จะลบสิทธิ์ของ ${role} ในระบบ ${sys}?`)) {
+        google.script.run.withSuccessHandler((res) => {
+          alert(res.message);
+          location.reload();
+        }).deletePermission(role, sys);
       }
     }
 
-    async function checkPermissions(userId) {
-      try {
-        // Fetch ไปยัง Google Apps Script อีกตัว (API กลาง)
-        const response = await fetch(CENTRAL_AUTH_API, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "checkAccess",
-            userId: userId,
-            systemName: SYSTEM_NAME 
-          })
-        });
-        
-        const result = await response.json();
-        
-        // เอาหน้าจอ Loading ออก
-        document.getElementById("loadingUI").style.display = "none";
-
-        if (result.allowed) {
-          // ==========================================
-          // 🟢 อนุญาตให้เข้าถึง (canRead = TRUE)
-          // ==========================================
-          document.getElementById("appContent").style.display = "block";
-          
-          if(document.getElementById("userName")) document.getElementById("userName").innerText = result.user.name;
-          if(document.getElementById("displaySystemName")) document.getElementById("displaySystemName").innerText = SYSTEM_NAME;
-
-          // ==========================================
-          // 🎛️ จัดการสิทธิ์การมองเห็นปุ่ม (RBAC)
-          // ==========================================
-          const perms = result.permissions;
-
-          if (!perms.create && document.getElementById("btnCreate")) {
-            document.getElementById("btnCreate").style.display = "none";
-          }
-          if (!perms.edit && document.getElementById("btnEdit")) {
-            document.getElementById("btnEdit").style.display = "none";
-          }
-          if (!perms.delete && document.getElementById("btnDelete")) {
-            document.getElementById("btnDelete").style.display = "none";
-          }
-          if (!perms.approve && document.getElementById("approveSection")) {
-            document.getElementById("approveSection").style.display = "none";
-          }
-
-          // ** สามารถเรียกฟังก์ชันดึงข้อมูล (google.script.run) ของโปรเจกต์นี้ตรงนี้ได้เลย **
-          // loadMyData();
-
-        } else {
-          // 🔴 ไม่มีสิทธิ์เข้าถึงระบบ
-          showUnauthorized(result.message);
-        }
-      } catch (error) {
-        console.error("Auth Fetch Error:", error);
-        document.getElementById("loadingUI").style.display = "none";
-        showUnauthorized("ไม่สามารถตรวจสอบสิทธิ์ได้ในขณะนี้");
-      }
-    }
-
-    function showUnauthorized(msg) {
-      document.getElementById("unauthorizedUI").classList.remove("hidden");
-      document.getElementById("errorMsg").innerText = msg;
-    }
-
-    // เริ่มทำงานเมื่อเปิดหน้าเว็บ
-    window.onload = initApp;
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
   </script>
 </body>
 </html>
