@@ -25,16 +25,28 @@
 
   <!-- ==================== 2. UI หลักของ Admin Dashboard ==================== -->
   <div id="appUI" class="hidden min-h-screen flex flex-col">
-    <!-- Navbar -->
+    <!-- Navbar (เพิ่มปุ่มกลับหน้าหลักที่นี่) -->
     <nav class="bg-slate-900 text-white shadow-md">
-      <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <h1 class="text-xl font-bold flex items-center gap-2">
           <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
           Admin Dashboard
         </h1>
-        <div class="flex gap-2">
-          <button onclick="switchTab('users')" id="tab-users" class="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium text-sm transition">ผู้ใช้งาน</button>
-          <button onclick="switchTab('permissions')" id="tab-permissions" class="px-4 py-2 rounded-lg hover:bg-slate-700 font-medium text-sm transition">จัดการสิทธิ์</button>
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          <!-- กลุ่มปุ่มจัดการข้อมูล -->
+          <div class="flex gap-2 bg-slate-800 p-1 rounded-lg">
+            <button onclick="switchTab('users')" id="tab-users" class="px-4 py-2 rounded-md bg-blue-600 text-white font-medium text-sm transition">ผู้ใช้งาน</button>
+            <button onclick="switchTab('permissions')" id="tab-permissions" class="px-4 py-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 font-medium text-sm transition">จัดการสิทธิ์</button>
+          </div>
+          
+          <!-- ขีดแบ่ง (ซ่อนในมือถือ) -->
+          <div class="hidden md:block w-px h-8 bg-slate-700 mx-2"></div>
+          
+          <!-- ปุ่มกลับหน้าเมนูหลัก -->
+          <button onclick="window.location.href='index.html'" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white font-medium text-sm transition flex items-center gap-2 border border-slate-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            กลับหน้าหลัก
+          </button>
         </div>
       </div>
     </nav>
@@ -47,8 +59,8 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="p-4 border-b bg-slate-50 flex justify-between items-center">
             <h2 class="font-bold text-slate-700">รายชื่อผู้ใช้งานระบบ</h2>
-            <button onclick="loadAdminData()" class="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> รีเฟรช
+            <button onclick="loadAdminData()" class="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> รีเฟรชข้อมูล
             </button>
           </div>
           <div class="overflow-x-auto">
@@ -64,7 +76,9 @@
       <section id="section-permissions" class="hidden">
         <div class="flex justify-between items-center mb-4">
           <h2 class="font-bold text-slate-700">ตารางสิทธิ์การใช้งาน (Role Permissions)</h2>
-          <button onclick="openPermModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm">+ เพิ่มระบบ</button>
+          <button onclick="openPermModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1 shadow-sm transition">
+             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> เพิ่มระบบ
+          </button>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="overflow-x-auto">
@@ -97,8 +111,8 @@
         </select>
       </div>
       <div class="flex justify-end gap-2">
-        <button onclick="closeModal('userModal')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium">ยกเลิก</button>
-        <button onclick="saveUser()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">บันทึก</button>
+        <button onclick="closeModal('userModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">ยกเลิก</button>
+        <button onclick="saveUser()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">บันทึก</button>
       </div>
     </div>
   </div>
@@ -108,26 +122,26 @@
     <div class="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
       <h3 class="text-lg font-bold mb-4" id="permTitle">ตั้งค่าระบบ</h3>
       <div class="grid grid-cols-2 gap-4 mb-4">
-        <div><label class="block text-xs font-bold text-slate-500 mb-1">กลุ่ม (Role)</label><input type="text" id="pRole" class="w-full border rounded-lg p-2 outline-none"></div>
-        <div><label class="block text-xs font-bold text-slate-500 mb-1">ระบบ (SystemName)</label><input type="text" id="pSystem" class="w-full border rounded-lg p-2 outline-none"></div>
+        <div><label class="block text-xs font-bold text-slate-500 mb-1">กลุ่ม (Role)</label><input type="text" id="pRole" class="w-full border rounded-lg p-2 outline-none focus:border-blue-500"></div>
+        <div><label class="block text-xs font-bold text-slate-500 mb-1">ระบบ (SystemName)</label><input type="text" id="pSystem" class="w-full border rounded-lg p-2 outline-none focus:border-blue-500"></div>
       </div>
       <div class="mb-4">
         <label class="block text-xs font-bold text-slate-500 mb-1">URL (หน้าเว็บปลายทาง)</label>
-        <input type="text" id="pUrl" class="w-full border rounded-lg p-2 outline-none" placeholder="https://...">
+        <input type="text" id="pUrl" class="w-full border rounded-lg p-2 outline-none focus:border-blue-500" placeholder="https://...">
       </div>
       <div class="mb-6 p-4 bg-slate-50 border rounded-lg">
         <label class="block text-xs font-bold text-slate-700 mb-3">กำหนดสิทธิ์พื้นฐาน (RBAC)</label>
         <div class="grid grid-cols-2 gap-3 text-sm">
-          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pRead" class="w-4 h-4 text-blue-600"> canRead (เข้าถึง)</label>
-          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pCreate" class="w-4 h-4 text-blue-600"> canCreate</label>
-          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pEdit" class="w-4 h-4 text-blue-600"> canEdit</label>
-          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pDelete" class="w-4 h-4 text-blue-600"> canDelete</label>
-          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pApprove" class="w-4 h-4 text-blue-600"> canApprove</label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pRead" class="w-4 h-4 text-blue-600 rounded"> canRead (เข้าถึง)</label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pCreate" class="w-4 h-4 text-blue-600 rounded"> canCreate</label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pEdit" class="w-4 h-4 text-blue-600 rounded"> canEdit</label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pDelete" class="w-4 h-4 text-blue-600 rounded"> canDelete</label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="pApprove" class="w-4 h-4 text-blue-600 rounded"> canApprove</label>
         </div>
       </div>
       <div class="flex justify-end gap-2">
-        <button onclick="closeModal('permModal')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium">ยกเลิก</button>
-        <button onclick="savePerm()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">บันทึกสิทธิ์</button>
+        <button onclick="closeModal('permModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">ยกเลิก</button>
+        <button onclick="savePerm()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">บันทึกสิทธิ์</button>
       </div>
     </div>
   </div>
@@ -135,8 +149,8 @@
 
   <!-- ==================== SCRIPT (ควบคุมระบบ) ==================== -->
   <script>
-    const LIFF_ID = "2011487100-dldPQItq"; // LIFF ID (ตัวเดิม)
-    const CENTRAL_AUTH_API = "https://script.google.com/macros/s/AKfycbw0yNPp1k4DAfWQ8WsI1zyhWRhkB3ekQQcs9S63SA0xgbbLVV-KohvdzGKzTYJmHIPtKQ/exec"; // URL Apps Script
+        const LIFF_ID = "2011487100-dldPQItq"; // แทนที่ด้วย LIFF ID ของคุณ
+    const CENTRAL_AUTH_API = "https://script.google.com/macros/s/AKfycbyQJWRWPgoI-3YMuD596c7Uv7t2y6z25HLjwuvtIAdGnyxK3pPO7bFOqYg-QBeGic5Q/exec"; // นำ URL Apps Script ตัวที่รวมสิทธิ์แอดมินมาใส่
     
     let MY_USER_ID = "";
     let globalData = { users: [], permissions: [] };
@@ -149,7 +163,6 @@
         const profile = await liff.getProfile();
         MY_USER_ID = profile.userId;
 
-        // โหลดข้อมูลแอดมิน (ถ้าไม่ใช่แอดมิน API จะตีกลับ Error เอง)
         await loadAdminData();
       } catch (err) {
         document.getElementById("loadingUI").classList.add("hidden");
@@ -188,13 +201,13 @@
 
     function renderUsers() {
       document.getElementById('userTableBody').innerHTML = globalData.users.map(u => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-4 text-xs text-slate-400 font-mono">${u.userId.substring(0,10)}...</td>
+        <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+          <td class="p-4 text-xs text-slate-400 font-mono">${u.userId.substring(0,12)}...</td>
           <td class="p-4 font-bold text-slate-700">${u.displayName}</td>
-          <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2 py-1 rounded-md text-xs font-bold">${u.role}</span></td>
+          <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2 py-1 rounded-md text-xs font-bold border border-slate-200">${u.role}</span></td>
           <td class="p-4"><span class="px-2 py-1 rounded-md text-xs font-bold ${u.status==='ACTIVE'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${u.status}</span></td>
           <td class="p-4 text-xs text-slate-500">${u.lastLogin || '-'}</td>
-          <td class="p-4"><button onclick="openUserModal('${u.userId}','${u.role}','${u.status}')" class="text-blue-600 font-bold hover:underline">แก้ไข</button></td>
+          <td class="p-4"><button onclick="openUserModal('${u.userId}','${u.role}','${u.status}')" class="text-blue-600 font-bold hover:underline bg-blue-50 px-3 py-1 rounded-md">แก้ไข</button></td>
         </tr>
       `).join('');
     }
@@ -202,14 +215,14 @@
     function renderPerms() {
       const check = v => (v===true || String(v).toUpperCase()==='TRUE') ? '<span class="text-green-500 font-bold">✓</span>' : '<span class="text-slate-300">-</span>';
       document.getElementById('permTableBody').innerHTML = globalData.permissions.map(p => `
-        <tr class="hover:bg-slate-50 transition">
+        <tr class="hover:bg-slate-50 transition border-b border-slate-50">
           <td class="p-4 font-bold text-slate-700">${p.role}</td><td class="p-4 font-bold text-blue-600">${p.systemName}</td>
           <td class="p-4 text-center">${check(p.canRead)}</td><td class="p-4 text-center">${check(p.canCreate)}</td>
           <td class="p-4 text-center">${check(p.canEdit)}</td><td class="p-4 text-center">${check(p.canDelete)}</td>
           <td class="p-4 text-center">${check(p.canApprove)}</td>
           <td class="p-4">
-            <button onclick="openPermModal('${p.role}','${p.systemName}')" class="text-amber-500 font-bold hover:underline mr-3">แก้ไข</button>
-            <button onclick="delPerm('${p.role}','${p.systemName}')" class="text-red-500 font-bold hover:underline">ลบ</button>
+            <button onclick="openPermModal('${p.role}','${p.systemName}')" class="text-amber-500 font-bold hover:underline mr-2 bg-amber-50 px-2 py-1 rounded-md">แก้ไข</button>
+            <button onclick="delPerm('${p.role}','${p.systemName}')" class="text-red-500 font-bold hover:underline bg-red-50 px-2 py-1 rounded-md">ลบ</button>
           </td>
         </tr>
       `).join('');
@@ -219,8 +232,18 @@
     function switchTab(tab) {
       document.getElementById('section-users').style.display = tab === 'users' ? 'block' : 'none';
       document.getElementById('section-permissions').style.display = tab === 'permissions' ? 'block' : 'none';
-      document.getElementById('tab-users').className = tab === 'users' ? 'px-4 py-2 rounded-lg bg-blue-600 text-white font-medium text-sm' : 'px-4 py-2 rounded-lg hover:bg-slate-700 font-medium text-sm';
-      document.getElementById('tab-permissions').className = tab === 'permissions' ? 'px-4 py-2 rounded-lg bg-blue-600 text-white font-medium text-sm' : 'px-4 py-2 rounded-lg hover:bg-slate-700 font-medium text-sm';
+      
+      // Update Tab Styles
+      const btnUsers = document.getElementById('tab-users');
+      const btnPerms = document.getElementById('tab-permissions');
+      
+      if(tab === 'users') {
+        btnUsers.className = 'px-4 py-2 rounded-md bg-blue-600 text-white font-medium text-sm transition';
+        btnPerms.className = 'px-4 py-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 font-medium text-sm transition';
+      } else {
+        btnPerms.className = 'px-4 py-2 rounded-md bg-blue-600 text-white font-medium text-sm transition';
+        btnUsers.className = 'px-4 py-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 font-medium text-sm transition';
+      }
     }
 
     function openUserModal(id, role, status) {
