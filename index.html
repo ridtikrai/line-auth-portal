@@ -3,240 +3,203 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบศูนย์รวมแอปพลิเคชัน (Portal)</title>
+  <title>ระบบศูนย์กลาง - หน้าหลัก</title>
   
-  <!-- โหลด Tailwind CSS สำหรับตกแต่ง UI -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- โหลด LINE LIFF SDK -->
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-  <style>
-    /* ซ่อน Scrollbar เพื่อความสวยงามในมือถือ */
-    ::-webkit-scrollbar { display: none; }
-  </style>
+  <!-- LINE LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+<body class="bg-gray-100 font-sans text-gray-800 min-h-screen">
 
-  <!-- 1. หน้าจอโหลด (Loading State) -->
-  <div id="loadingUI" class="flex flex-col items-center justify-center h-screen transition-opacity duration-300">
-    <div class="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-blue-600 mb-4"></div>
-    <p class="text-slate-500 font-medium animate-pulse">กำลังตรวจสอบข้อมูลผู้ใช้งาน...</p>
-  </div>
-
-  <!-- 2. หน้าจอไม่มีสิทธิ์ / ต้องลงทะเบียน (Unauthorized State) -->
-  <div id="unauthorizedUI" class="hidden flex flex-col items-center justify-center h-screen px-4 text-center">
-    <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full border-t-4 border-red-500">
-      <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
-        <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-        </svg>
-      </div>
-      <h2 id="errorMsg" class="text-xl font-bold text-slate-800 mb-2">เข้าสู่ระบบไม่สำเร็จ</h2>
-      <p id="errorSubMsg" class="text-slate-500 mb-6 text-sm">คุณไม่มีสิทธิ์เข้าถึง หรือบัญชีถูกระงับ</p>
-      
-      <!-- ปุ่มลงทะเบียน จะแสดงเมื่อยังไม่เคยมีข้อมูลในระบบ -->
-      <button onclick="registerSystem()" id="btnRegister" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md">
-        ลงทะเบียนขอเข้าใช้งานระบบ
-      </button>
-    </div>
-  </div>
-
-  <!-- 3. หน้า Portal แสดงเมนูแอปพลิเคชัน (Dashboard State) -->
-  <div id="appUI" class="hidden max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    
-    <!-- ส่วนหัว Profile -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8 flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Main Portal</h1>
-        <p class="text-slate-500 mt-1">ยินดีต้อนรับ, <span id="userName" class="font-bold text-blue-600"></span></p>
-        <div class="mt-2 flex items-center gap-2">
-          <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold tracking-wide">
-            Role: <span id="userRole"></span>
-          </span>
+  <!-- Navbar -->
+  <nav class="bg-blue-800 shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <div class="flex items-center gap-3">
+          <!-- Profile Image (Optional, will be injected) -->
+          <img id="profile-img" src="https://via.placeholder.com/40" alt="Profile" class="h-10 w-10 rounded-full border-2 border-white hidden">
+          <span class="text-white text-lg font-bold">Portal Systems</span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="hidden sm:block text-blue-100 text-sm text-right">
+            <div id="user-name" class="font-bold">...</div>
+            <div id="user-role" class="text-xs">...</div>
+          </div>
+          <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm shadow transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            <span class="hidden sm:inline">ออกจากระบบ</span>
+          </button>
         </div>
       </div>
-      <img id="userImage" src="" alt="Profile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-md border-2 border-white object-cover">
     </div>
+  </nav>
 
-    <!-- ส่วนรายการแอปพลิเคชัน -->
-    <div class="mb-6">
-      <h3 class="text-lg font-bold text-slate-700 flex items-center gap-2">
-        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-        แอปพลิเคชันของคุณ
-      </h3>
-    </div>
-    
-    <!-- Grid สำหรับแสดงปุ่มเมนู -->
-    <div id="menuContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <!-- ลิงก์เมนูจะถูก Generate มาใส่ตรงนี้ด้วย JavaScript -->
-    </div>
-
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="flex flex-col items-center justify-center h-[80vh]">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-800 mb-4"></div>
+    <p class="text-gray-600 font-medium">กำลังโหลดข้อมูลระบบ...</p>
   </div>
 
-  <!-- ========================================== -->
-  <!-- ส่วนของ JavaScript -->
-  <!-- ========================================== -->
-  <script>
-    // --------------------------------------------------
-    // ตั้งค่าตัวแปรระบบ (แก้ไข 2 บรรทัดนี้ให้เป็นของคุณ)
-    // --------------------------------------------------
-    const LIFF_ID = "2011487100-dldPQItq"; // แทนที่ด้วย LIFF ID ของคุณ
-    const CENTRAL_AUTH_API = "https://script.google.com/macros/s/AKfycbyQJWRWPgoI-3YMuD596c7Uv7t2y6z25HLjwuvtIAdGnyxK3pPO7bFOqYg-QBeGic5Q/exec"; // แทนที่ด้วย URL ของ Google Apps Script (doPost)
-    
-    let userProfile = null;
+  <!-- Error Screen -->
+  <div id="error-screen" class="hidden flex items-center justify-center h-[80vh] px-4">
+    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center border-t-4 border-red-500">
+      <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      <h2 class="text-xl font-bold text-gray-800 mb-2">ข้อผิดพลาด</h2>
+      <p id="error-message" class="text-gray-600">ไม่สามารถเข้าถึงระบบได้</p>
+    </div>
+  </div>
 
-    // 1. ฟังก์ชันเริ่มต้นระบบ
+  <!-- Main Dashboard Content -->
+  <div id="app-content" class="hidden max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">ระบบที่คุณมีสิทธิ์เข้าใช้งาน</h1>
+      <p class="text-gray-500 mt-2">โปรดเลือกเมนูด้านล่างเพื่อเข้าสู่ระบบงานต่างๆ</p>
+    </div>
+
+    <!-- Container สำหรับแสดง Group Menu -->
+    <div id="menu-container" class="space-y-8">
+      <!-- จะถูกสร้างโดย JavaScript -->
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. CONFIGURATION
+    // ==========================================
+    const LIFF_ID = "2011487100-dldPQItq";
+    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzDpOrouurlO_Wlr5RikWVYf8gAmQcN-TTC8yIk7nKLLEvwjYRio5utMrEdxUm4m5Ia/exec"; // ใส่ URL Web App ของคุณ
+
+    let lineProfile = null;
+
+    // ==========================================
+    // 2. INITIALIZATION
+    // ==========================================
     async function initApp() {
       try {
         await liff.init({ liffId: LIFF_ID });
         
-        // ถ้ายังไม่ได้ล็อกอิน ให้บังคับล็อกอินผ่าน LINE
         if (!liff.isLoggedIn()) {
           liff.login();
-          return;
+        } else {
+          lineProfile = await liff.getProfile();
+          
+          // นำรูปโปรไฟล์มาแสดงที่ Navbar
+          document.getElementById('profile-img').src = lineProfile.pictureUrl;
+          document.getElementById('profile-img').classList.remove('hidden');
+          
+          await loadDashboard(lineProfile.userId);
         }
-
-        // ดึงข้อมูลโปรไฟล์จาก LINE
-        userProfile = await liff.getProfile();
-        document.getElementById('userImage').src = userProfile.pictureUrl;
-        
-        // ส่ง userId ไปเช็คสิทธิ์และดึงเมนู
-        fetchPortalMenus(userProfile.userId);
-
       } catch (err) {
         console.error("LIFF Init Error:", err);
-        showError("เกิดข้อผิดพลาดในการเชื่อมต่อ LINE", err.message);
+        showError("ไม่สามารถเชื่อมต่อระบบ LINE ได้");
       }
     }
 
-    // 2. ฟังก์ชันดึงรายการเมนูจาก Backend
-    async function fetchPortalMenus(userId) {
+    // ==========================================
+    // 3. API & FETCH DATA
+    // ==========================================
+    async function loadDashboard(userId) {
       try {
-        const response = await fetch(CENTRAL_AUTH_API, {
-          method: "POST",
+        const response = await fetch(CENTRAL_API_URL, {
+          method: 'POST',
           body: JSON.stringify({
-            action: "getMenus",
+            action: 'getMenuDashboard',
             userId: userId
           })
         });
-        
-        const result = await response.json();
-        
-        // ซ่อนหน้าจอ Loading
-        document.getElementById("loadingUI").classList.add("hidden");
 
-        if (result.allowed) {
-          // กรณีมีสิทธิ์ใช้งาน
-          document.getElementById("appUI").classList.remove("hidden");
-          document.getElementById("userName").innerText = result.user.name;
-          document.getElementById("userRole").innerText = result.role;
-          
-          renderMenus(result.menus);
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          renderDashboard(data);
+        } else if (data.status === 'not_registered') {
+          showError("คุณยังไม่ได้ลงทะเบียนเข้าใช้งานระบบ โปรดติดต่อผู้ดูแลระบบ");
         } else {
-          // กรณีไม่มีสิทธิ์ หรือ รออนุมัติ หรือ ยังไม่ลงทะเบียน
-          showError(result.message, "กรุณาติดต่อผู้ดูแลระบบหากมีข้อสงสัย");
-          
-          // ถ้าสถานะคือ "ยังไม่เคยลงทะเบียน" ให้แสดงปุ่มลงทะเบียน
-          if (result.status === "not_registered") {
-            document.getElementById("btnRegister").classList.remove("hidden");
-            document.getElementById("errorSubMsg").innerText = "ระบบตรวจไม่พบบัญชีของคุณ กรุณาลงทะเบียนเพื่อใช้งาน";
-          }
+          showError(data.message || "เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์");
         }
       } catch (error) {
-        console.error("Fetch Error:", error);
-        showError("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์", "ไม่สามารถตรวจสอบสิทธิ์ได้ กรุณาลองใหม่อีกครั้ง");
+        console.error("API Error:", error);
+        showError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ โปรดลองใหม่อีกครั้ง");
       }
     }
 
-    // 3. ฟังก์ชันสร้างปุ่มเมนูบนหน้าจอ
-    function renderMenus(menus) {
-      const container = document.getElementById("menuContainer");
-      container.innerHTML = ""; // เคลียร์ของเก่า
+    // ==========================================
+    // 4. UI RENDERER
+    // ==========================================
+    function renderDashboard(data) {
+      // ซ่อน Loading, แสดง App
+      document.getElementById('loading-screen').classList.add('hidden');
+      document.getElementById('error-screen').classList.add('hidden');
+      document.getElementById('app-content').classList.remove('hidden');
 
-      if (!menus || menus.length === 0) {
+      // อัปเดตข้อมูลผู้ใช้บน Navbar
+      document.getElementById('user-name').textContent = lineProfile.displayName || `รหัสพนักงาน: ${data.empId}`;
+      document.getElementById('user-role').textContent = `ตำแหน่ง: ${data.jobPosition}`;
+
+      const container = document.getElementById('menu-container');
+      container.innerHTML = ''; // ล้างค่าเดิม
+
+      // ตรวจสอบว่ามีเมนูหรือไม่
+      if (!data.menuGroups || data.menuGroups.length === 0) {
         container.innerHTML = `
-          <div class="col-span-full bg-slate-100 p-8 rounded-xl text-center border-2 border-dashed border-slate-300">
-            <p class="text-slate-500">คุณยังไม่ได้รับสิทธิ์เข้าใช้งานระบบใดๆ เลย</p>
-          </div>`;
+          <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <p class="text-yellow-700">คุณยังไม่มีสิทธิ์เข้าถึงเมนูใดๆ ในขณะนี้ โปรดติดต่อผู้ดูแลระบบ</p>
+          </div>
+        `;
         return;
       }
 
-      // วนลูปสร้างการ์ดเมนู
-      menus.forEach(menu => {
-        const cardHtml = `
-          <a href="${menu.menuUrl}" class="group relative bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden flex flex-col justify-between h-full">
-            <div class="flex justify-between items-start mb-4">
-              <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                <!-- ไอคอน (เปลี่ยนได้ตามต้องการ) -->
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                </svg>
+      // วนลูปสร้างกลุ่มเมนู
+      data.menuGroups.forEach(group => {
+        // สร้าง Header กลุ่ม
+        const groupSection = document.createElement('div');
+        
+        let menusHtml = group.menus.map(menu => `
+          <a href="${menu.menuUrl}" class="block group">
+            <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md hover:border-blue-500 transition duration-200 h-full flex flex-col justify-between cursor-pointer">
+              <div class="flex items-center gap-4">
+                <div class="bg-blue-100 p-3 rounded-lg text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-800 group-hover:text-blue-700 transition">${menu.menuName}</h3>
+                  <p class="text-sm text-gray-500 mt-1">คลิกเพื่อเข้าสู่ระบบงาน</p>
+                </div>
               </div>
-              <svg class="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
             </div>
-            <div>
-              <h4 class="text-lg font-bold text-slate-800 mb-1 group-hover:text-blue-700 transition-colors duration-300">${menu.systemName}</h4>
-              <p class="text-xs text-slate-500">แตะเพื่อเข้าสู่ระบบ</p>
-            </div>
-            <!-- แถบสีด้านล่าง -->
-            <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </a>
+        `).join('');
+
+        groupSection.innerHTML = `
+          <h2 class="text-xl font-bold text-gray-700 border-b pb-2 mb-4">${group.groupName}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${menusHtml}
+          </div>
         `;
-        container.innerHTML += cardHtml;
+        
+        container.appendChild(groupSection);
       });
     }
 
-    // 4. ฟังก์ชันกดปุ่มลงทะเบียน
-    async function registerSystem() {
-      const btn = document.getElementById("btnRegister");
-      btn.innerText = "กำลังบันทึกข้อมูล...";
-      btn.disabled = true;
-      btn.classList.add("opacity-75", "cursor-not-allowed");
+    // ==========================================
+    // 5. UTILITIES
+    // ==========================================
+    function showError(message) {
+      document.getElementById('loading-screen').classList.add('hidden');
+      document.getElementById('app-content').classList.add('hidden');
+      document.getElementById('error-screen').classList.remove('hidden');
+      document.getElementById('error-message').textContent = message;
+    }
 
-      try {
-        const response = await fetch(CENTRAL_AUTH_API, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "register",
-            profile: {
-              userId: userProfile.userId,
-              displayName: userProfile.displayName
-            }
-          })
-        });
-        
-        const result = await response.json();
-        
-        // ลงทะเบียนเสร็จ ซ่อนปุ่ม และเปลี่ยนข้อความแจ้งเตือน
-        btn.classList.add("hidden");
-        document.getElementById("errorMsg").innerText = "ลงทะเบียนสำเร็จ!";
-        document.getElementById("errorMsg").classList.replace("text-red-600", "text-green-600");
-        document.getElementById("errorSubMsg").innerText = result.message;
-        
-      } catch (error) {
-        btn.innerText = "ลองใหม่อีกครั้ง";
-        btn.disabled = false;
-        btn.classList.remove("opacity-75", "cursor-not-allowed");
-        alert("เกิดข้อผิดพลาด ไม่สามารถลงทะเบียนได้"+ error.message);
+    function handleLogout() {
+      if (liff.isLoggedIn()) {
+        liff.logout();
+        window.location.reload(); 
       }
     }
 
-    // 5. ฟังก์ชันแสดงหน้าต่าง Error
-    function showError(mainMsg, subMsg) {
-      document.getElementById("loadingUI").classList.add("hidden");
-      document.getElementById("appUI").classList.add("hidden");
-      
-      const unauthUI = document.getElementById("unauthorizedUI");
-      unauthUI.classList.remove("hidden");
-      
-      document.getElementById("errorMsg").innerText = mainMsg || "ไม่สามารถเข้าสู่ระบบได้";
-      if (subMsg) document.getElementById("errorSubMsg").innerText = subMsg;
-    }
-
-    // --- สั่งเริ่มทำงานเมื่อโหลดหน้าเว็บเสร็จ ---
+    // Start App
     window.onload = initApp;
   </script>
 </body>
