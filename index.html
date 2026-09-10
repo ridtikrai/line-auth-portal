@@ -1,273 +1,198 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบศูนย์กลาง - หน้าหลัก</title>
-  
-  <!-- Tailwind CSS & LINE LIFF SDK -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Centralized Auth</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- LINE LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- กำหนดสีตาม LINE Template Design Standards -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              linePrimary: '#0084FF',
+              lineLightBg: '#F7F7F7',
+              lineDarkGray: '#6C757D'
+            }
+          }
+        }
+      }
+    </script>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 min-h-screen">
+<body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
 
-  <!-- Navbar -->
-  <nav class="bg-blue-800 shadow-md sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16 items-center">
-        <div class="flex items-center gap-3">
-          <img id="nav-profile-img" src="" alt="Profile" class="h-10 w-10 rounded-full border-2 border-white hidden">
-          <span class="text-white text-lg font-bold tracking-wide">Portal App</span>
-        </div>
-        <div class="flex items-center space-x-4">
-          <div class="hidden sm:block text-blue-100 text-sm text-right">
-            <div id="nav-user-name" class="font-bold">Loading...</div>
-            <div id="nav-user-role" class="text-xs">-</div>
-          </div>
-          <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm shadow transition flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-            <span class="hidden sm:inline">ออกจากระบบ</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- 1. Loading Screen -->
-  <div id="loading-screen" class="flex flex-col items-center justify-center h-[80vh]">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-800 mb-4"></div>
-    <p class="text-gray-600 font-medium">กำลังโหลดข้อมูลระบบ...</p>
-  </div>
-
-  <!-- 2. Register Screen (หน้ากรอกเบอร์โทร) -->
-  <div id="register-screen" class="hidden flex flex-col items-center justify-center h-[80vh] px-4">
-    <form id="register-form" class="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full border-t-4 border-blue-600">
-      <div class="text-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">ยืนยันตัวตน</h2>
-        <p class="text-sm text-gray-500 mt-2">กรุณากรอกเบอร์โทรศัพท์มือถือ 10 หลัก เพื่อเชื่อมโยงบัญชี LINE ของท่าน</p>
-      </div>
-      <div class="mb-5">
-        <input 
-          type="text" 
-          id="phone-input" 
-          maxlength="10" 
-          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg tracking-widest" 
-          placeholder="08xxxxxxxx" 
-          required
-          oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-        >
-      </div>
-      <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition shadow-md">
-        ลงทะเบียนเข้าใช้งาน
-      </button>
-    </form>
-  </div>
-
-  <!-- 3. Error Screen -->
-  <div id="error-screen" class="hidden flex items-center justify-center h-[80vh] px-4">
-    <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center border-t-4 border-red-500">
-      <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-      <h2 class="text-xl font-bold text-gray-800 mb-2">ปฏิเสธการเข้าถึง</h2>
-      <p id="error-message" class="text-gray-600 mb-6">เกิดข้อผิดพลาดบางอย่าง</p>
-      <button onclick="window.location.reload()" class="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium">ลองใหม่อีกครั้ง</button>
-    </div>
-  </div>
-
-  <!-- 4. Dashboard Main Content (แสดงเมนูที่จัดกลุ่มแล้ว) -->
-  <div id="dashboard-screen" class="hidden max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="mb-8 border-b pb-4">
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">ระบบที่คุณมีสิทธิ์เข้าใช้งาน</h1>
-      <p class="text-gray-500 mt-2">โปรดเลือกเมนูด้านล่างเพื่อเข้าสู่ระบบงานต่างๆ</p>
-    </div>
-
-    <!-- คอนเทนเนอร์สำหรับใส่กลุ่มเมนู -->
-    <div id="menu-container" class="space-y-10">
-      <!-- ข้อมูลจะถูก Render ผ่าน JavaScript -->
-    </div>
-  </div>
-
-  <script>
-    // ==========================================
-    // ตัวแปรการตั้งค่าระบบ (กำหนดไว้ด้านบนสุด)
-    // ==========================================
-    const LIFF_ID = "2011487100-dldPQItq";
-    // นำ URL Web App ของคุณมาใส่ตรงนี้
-    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzDpOrouurlO_Wlr5RikWVYf8gAmQcN-TTC8yIk7nKLLEvwjYRio5utMrEdxUm4m5Ia/exec"; 
-    
-    let lineProfile = null;
-
-    // ==========================================
-    // 1. การเริ่มต้นระบบ (Initialization)
-    // ==========================================
-    async function initApp() {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        
-        if (!liff.isLoggedIn()) {
-          liff.login();
-        } else {
-          lineProfile = await liff.getProfile();
-          
-          // โหลดรูปโปรไฟล์ขึ้น Navbar
-          const profileImg = document.getElementById('nav-profile-img');
-          profileImg.src = lineProfile.pictureUrl;
-          profileImg.classList.remove('hidden');
-          
-          // ตรวจสอบสิทธิ์และโหลด Dashboard (ไม่ต้องส่ง menuId)
-          await fetchDashboard();
-        }
-      } catch (err) {
-        showError("ไม่สามารถเชื่อมต่อระบบ LINE ได้");
-        console.error(err);
-      }
-    }
-
-    // ==========================================
-    // 2. ดึงข้อมูลสิทธิ์และเมนูทั้งหมดที่เข้าถึงได้
-    // ==========================================
-    async function fetchDashboard() {
-      showScreen('loading-screen');
-      try {
-        const response = await fetch(CENTRAL_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'getMenuDashboard',
-            userId: lineProfile.userId
-          })
-        });
-
-        const data = await response.json();
-
-        if (data.status === 'not_registered') {
-          showScreen('register-screen');
-        } else if (data.status === 'inactive') {
-          showError(data.message || "บัญชีระงับ ติดต่อผู้ดูแลระบบ");
-        } else if (data.status === 'success') {
-          renderDashboard(data);
-        } else {
-          showError(data.message || "เกิดข้อผิดพลาดในการดึงข้อมูล");
-        }
-      } catch (error) {
-        showError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
-      }
-    }
-
-    // ==========================================
-    // 3. ฟอร์มลงทะเบียนเบอร์โทรศัพท์
-    // ==========================================
-    document.getElementById('register-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const phoneInput = document.getElementById('phone-input').value;
-      
-      if (phoneInput.length !== 10) {
-        alert("กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
-        return;
-      }
-
-      showScreen('loading-screen');
-      try {
-        const response = await fetch(CENTRAL_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'register',
-            userId: lineProfile.userId,
-            displayName: lineProfile.displayName,
-            phone: phoneInput
-          })
-        });
-        
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-          // หากลงทะเบียนสำเร็จ ให้ดึง Dashboard ใหม่ทันที
-          await fetchDashboard();
-        } else {
-          showError(data.message);
-        }
-      } catch (error) {
-        showError("เกิดข้อผิดพลาดในการลงทะเบียน");
-      }
-    });
-
-    // ==========================================
-    // 4. แสดงผลกลุ่มเมนูบนหน้าจอ
-    // ==========================================
-    function renderDashboard(data) {
-      showScreen('dashboard-screen');
-      
-      // อัปเดตข้อมูลพนักงานบน Navbar
-      document.getElementById('nav-user-name').textContent = lineProfile.displayName || `รหัสพนักงาน: ${data.empId}`;
-      document.getElementById('nav-user-role').textContent = `ตำแหน่ง: ${data.jobPosition}`;
-
-      const container = document.getElementById('menu-container');
-      container.innerHTML = ''; 
-
-      // กรณีไม่มีเมนูที่ได้รับสิทธิ์เลย
-      if (!data.menuGroups || data.menuGroups.length === 0) {
-        container.innerHTML = `
-          <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg shadow-sm">
-            <h3 class="text-yellow-800 font-bold text-lg mb-1">ยังไม่มีสิทธิ์เข้าใช้งาน</h3>
-            <p class="text-yellow-700">คุณยังไม่ได้รับสิทธิ์ให้เข้าถึงเมนูใดๆ ในระบบ โปรดติดต่อผู้ดูแลระบบ</p>
-          </div>
-        `;
-        return;
-      }
-
-      // สร้าง UI ตาม Group Menu
-      data.menuGroups.forEach(group => {
-        const groupDiv = document.createElement('div');
-        
-        // วนลูปสร้างการ์ดเมนู
-        const menusHtml = group.menus.map(menu => `
-          <a href="${menu.menuUrl}" class="block group">
-            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-lg hover:border-blue-500 hover:-translate-y-1 transition-all duration-200 h-full flex flex-col justify-center">
-              <div class="flex items-center gap-4">
-                <div class="bg-blue-100 p-3 rounded-lg text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200">
-                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                </div>
-                <div>
-                  <h3 class="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors">${menu.menuName}</h3>
-                  <p class="text-sm text-gray-500 mt-1 line-clamp-1">คลิกเพื่อเข้าสู่ระบบงาน</p>
-                </div>
-              </div>
+    <!-- Header Section -->
+    <header class="bg-gradient-to-r from-linePrimary to-blue-600 text-white p-6 shadow-md">
+        <div class="max-w-3xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold tracking-wide">👋 Welcome</h1>
+                <p id="user-info" class="text-sm opacity-90 mt-1">กำลังโหลดข้อมูล...</p>
             </div>
-          </a>
-        `).join('');
+            <!-- Profile Image (ดึงจาก LIFF) -->
+            <img id="profile-img" src="" alt="Profile" class="h-12 w-12 rounded-full border-2 border-white hidden">
+        </div>
+    </header>
 
-        groupDiv.innerHTML = `
-          <div>
-            <h2 class="text-xl font-bold text-gray-700 border-l-4 border-blue-600 pl-3 mb-4">${group.groupName}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              ${menusHtml}
+    <!-- Main Content -->
+    <main class="flex-grow w-full max-w-3xl mx-auto p-4 mt-2">
+        
+        <!-- Loading State -->
+        <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-linePrimary mb-4"></div>
+            <p class="text-lineDarkGray font-medium">กำลังตรวจสอบสิทธิ์...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-screen" class="hidden bg-white rounded-lg shadow-sm border p-6 text-center">
+            <div class="text-4xl mb-4 text-red-500">⛔</div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">ปฏิเสธการเข้าถึง</h2>
+            <p id="error-message" class="text-lineDarkGray mb-6">คุณไม่มีสิทธิ์เข้าใช้งานระบบนี้</p>
+        </div>
+
+        <!-- Dashboard Menu (Grouped) -->
+        <div id="dashboard-screen" class="hidden space-y-6">
+            <div id="menu-container">
+                <!-- ข้อมูลกลุ่มเมนูจะถูก Render ที่นี่ผ่าน JavaScript -->
             </div>
-          </div>
-        `;
-        container.appendChild(groupDiv);
-      });
-    }
+        </div>
 
-    // ==========================================
-    // 5. Utility Functions
-    // ==========================================
-    function showScreen(screenId) {
-      const screens = ['loading-screen', 'register-screen', 'error-screen', 'dashboard-screen'];
-      screens.forEach(id => document.getElementById(id).classList.add('hidden'));
-      document.getElementById(screenId).classList.remove('hidden');
-    }
+    </main>
 
-    function showError(message) {
-      document.getElementById('error-message').textContent = message;
-      showScreen('error-screen');
-    }
+    <!-- Footer -->
+    <footer class="text-center p-6 text-lineDarkGray text-sm">
+        <p>Centralized Authentication System</p>
+        <button onclick="liff.logout(); window.location.reload();" class="mt-4 text-red-500 hover:underline">
+            ออกจากระบบ
+        </button>
+    </footer>
 
-    function handleLogout() {
-      if (liff.isLoggedIn()) {
-        liff.logout();
-        window.location.reload(); 
-      }
-    }
+    <script>
+        // ==========================================
+        // ตัวแปรการตั้งค่าระบบ (Configuration)
+        // ==========================================
+        const LIFF_ID = "2011487100-dldPQItq";
+        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzDpOrouurlO_Wlr5RikWVYf8gAmQcN-TTC8yIk7nKLLEvwjYRio5utMrEdxUm4m5Ia/exec"; // วาง URL Web App ของคุณที่นี่
+        // นำ CURRENT_MENU_ID ออกตามคำขอ เพราะหน้านี้คือ Dashboard หลัก
+        
+        let lineProfile = null;
 
-    window.onload = initApp;
-  </script>
+        // ==========================================
+        // 1. Initialize LIFF
+        // ==========================================
+        async function initApp() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                } else {
+                    lineProfile = await liff.getProfile();
+                    
+                    // แสดงรูปโปรไฟล์ LINE
+                    const profileImg = document.getElementById('profile-img');
+                    profileImg.src = lineProfile.pictureUrl;
+                    profileImg.classList.remove('hidden');
+                    
+                    await verifyAccess();
+                }
+            } catch (err) {
+                showError("เกิดข้อผิดพลาดในการเชื่อมต่อระบบ LINE");
+                console.error(err);
+            }
+        }
+
+        // ==========================================
+        // 2. ตรวจสอบสิทธิ์ (Verify Access)
+        // ==========================================
+        async function verifyAccess() {
+            try {
+                // ส่ง POST แบบ plain/text เพื่อเลี่ยง CORS preflight ฝั่ง GAS
+                const response = await fetch(CENTRAL_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        action: 'verifyAccess', 
+                        userId: lineProfile.userId 
+                    })
+                });
+                
+                const data = await response.json();
+
+                if (data.status === 'success' && data.allowed) {
+                    renderDashboard(data);
+                } else {
+                    showError(data.message || "ไม่พบข้อมูลผู้ใช้งาน หรือบัญชีถูกระงับ");
+                }
+            } catch (error) {
+                showError("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+            }
+        }
+
+        // ==========================================
+        // 3. จัดการ DOM แสดงกลุ่มเมนู (LINE Template Concept)
+        // ==========================================
+        function renderDashboard(data) {
+            showScreen('dashboard-screen');
+            
+            // อัปเดตข้อมูลผู้ใช้งานบน Header
+            document.getElementById('user-info').textContent = `${lineProfile.displayName} | ตำแหน่ง: ${data.jobPosition}`;
+            
+            const container = document.getElementById('menu-container');
+            container.innerHTML = '';
+
+            if (!data.menuGroups || data.menuGroups.length === 0) {
+                container.innerHTML = `<div class="bg-yellow-50 p-4 rounded text-yellow-700 text-center">คุณยังไม่ได้รับสิทธิ์ให้เข้าถึงเมนูใดๆ</div>`;
+                return;
+            }
+
+            // สร้าง UI กลุ่มเมนูตาม LINE Template Design (Responsive)
+            data.menuGroups.forEach(group => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = "mb-6";
+                
+                // สร้าง HTML สำหรับแต่ละเมนูในการ์ด
+                const menusHtml = group.menus.map(menu => `
+                    <a href="${menu.menuUrl}" class="flex items-center p-4 border-b border-gray-100 hover:bg-gray-50 transition duration-200">
+                        <div class="bg-blue-50 text-linePrimary p-2 rounded-lg mr-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="text-sm font-bold text-gray-800">${menu.menuName}</h3>
+                        </div>
+                        <div class="text-gray-300">›</div>
+                    </a>
+                `).join('');
+
+                groupDiv.innerHTML = `
+                    <h2 class="text-xs font-bold text-lineDarkGray uppercase mb-3 pl-2 tracking-wider">${group.groupName}</h2>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        ${menusHtml}
+                    </div>
+                `;
+                container.appendChild(groupDiv);
+            });
+        }
+
+        // ==========================================
+        // 4. Utilities
+        // ==========================================
+        function showScreen(screenId) {
+            ['loading-screen', 'error-screen', 'dashboard-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('error-message').textContent = message;
+            showScreen('error-screen');
+        }
+
+        // เริ่มแอปพลิเคชันเมื่อโหลด DOM เสร็จ
+        window.onload = initApp;
+    </script>
 </body>
 </html>
