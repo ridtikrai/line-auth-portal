@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <!-- LINE Template Colors & Config[cite: 2] -->
+  <!-- LINE Template Colors[cite: 2] -->
   <script>
     tailwind.config = {
       theme: {
@@ -27,7 +27,8 @@
   </script>
   <style>
     .perm-hide { display: none !important; }
-    .table-container { overflow-x: auto; white-space: nowrap; }
+    /* รองรับการแสดงผลตารางทั้งบนมือถือและคอมพิวเตอร์[cite: 2] */
+    .table-container { overflow-x: auto; }
   </style>
 </head>
 <body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
@@ -37,28 +38,27 @@
     // Configuration
     // ==========================================
     const LIFF_ID = "2011487100-dldPQItq";
-    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // วาง URL Web App ของคุณ
-    const CURRENT_MENU_ID = "901"; // รหัสเมนูระบบจัดการพนักงาน
+    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // แทนที่ด้วย Web App URL ของคุณ
+    const CURRENT_MENU_ID = "901"; // รหัสเมนูของหน้าจัดการพนักงาน
   </script>
 
-  <!-- Header Classic Design[cite: 2] -->
+  <!-- Header พร้อมปุ่มกลับหน้าหลัก[cite: 2] -->
   <header class="bg-gradient-to-r from-linePrimary to-blue-700 text-white shadow-md sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-3">
         <img id="profile-img" src="" alt="Profile" class="h-10 w-10 rounded-full border-2 border-white hidden object-cover shadow-sm">
         <div>
-          <h1 id="menu-title" class="text-base font-bold tracking-wide leading-tight">ระบบจัดการพนักงาน</h1>
-          <p id="user-info" class="text-[11px] opacity-90">กำลังตรวจสอบ...</p>
+          <h1 id="menu-title" class="text-base font-bold tracking-wide leading-tight">User Management</h1>
+          <p id="user-info" class="text-[11px] opacity-90">กำลังตรวจสอบสิทธิ์...</p>
         </div>
       </div>
       
       <div class="flex items-center gap-2">
         <!-- ปุ่มกลับหน้าหลัก -->
-        <button onclick="goHome()" class="text-[11px] sm:text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded border border-white/30 transition shadow-sm font-medium">
-          🏠 หน้าหลัก
-        </button>
-        <!-- ออกจากระบบ -->
-        <button onclick="logoutApp()" class="text-[11px] sm:text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded border border-white/30 transition shadow-sm font-medium">
+        <a href="#" onclick="goHome(event)" class="text-[11px] sm:text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded border border-white/30 transition font-medium">
+          🏠 กลับหน้าหลัก
+        </a>
+        <button onclick="logoutApp()" class="text-[11px] sm:text-xs bg-red-500/80 hover:bg-red-600 text-white px-3 py-1.5 rounded border border-white/30 transition font-medium">
           ออกจากระบบ
         </button>
       </div>
@@ -67,13 +67,13 @@
 
   <main class="max-w-6xl mx-auto p-4 flex-grow w-full">
     
-    <!-- Loading Screen[cite: 2] -->
+    <!-- Loading Screen -->
     <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
       <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-linePrimary mb-4"></div>
       <p class="text-lineDarkGray text-sm font-medium">กำลังโหลดข้อมูลระบบ...</p>
     </div>
 
-    <!-- Main System: User Management -->
+    <!-- Main System: User Management (แสดงผลทันทีเมื่อผ่านสิทธิ์) -->
     <div id="user-management-screen" class="hidden">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-lg md:text-xl font-bold text-gray-800">👥 จัดการข้อมูลพนักงานทั้งหมด</h2>
@@ -82,9 +82,9 @@
         </button>
       </div>
 
-      <!-- Data Table (รองรับทั้งมือถือและคอมพิวเตอร์) -->
+      <!-- Data Table รองรับทั้ง Desktop และ Mobile -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden table-container">
-        <table class="w-full text-left text-sm text-gray-600">
+        <table class="w-full text-left text-sm text-gray-600 min-w-[700px]">
             <thead class="bg-gray-50 text-gray-700 border-b">
                 <tr>
                     <th class="p-4">Emp ID</th>
@@ -102,72 +102,64 @@
 
   </main>
 
-  <!-- FORM MODAL (เพิ่ม/แก้ไขข้อมูลพนักงาน พร้อม Audit Trail และ autocomplete="off") -->
+  <!-- FORM MODAL (เพิ่ม/แก้ไขข้อมูลพนักงานทุกช่อง พร้อม autocomplete="off") -->
   <div id="formModal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
           <div class="bg-linePrimary p-5 text-white font-bold text-lg" id="modalTitle">ฟอร์มพนักงาน</div>
           
           <div class="p-6 space-y-4 text-sm overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
               <input type="hidden" id="formMode">
-              
-              <!-- ช่องกรอกข้อมูล ป้องกัน autocomplete -->
-              <div>
-                  <label class="block font-bold text-gray-700 mb-1">Emp ID (Primary Key) *</label>
-                  <input type="text" id="v_Emp_ID" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
-              </div>
-              <div>
-                  <label class="block font-bold text-gray-700 mb-1">LINE User ID</label>
-                  <input type="text" id="v_userId" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+              <div class="md:col-span-2 text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
+                📌 <strong>Audit Info:</strong> <span id="auditInfo">--</span>
               </div>
               
-              <!-- บังคับใช้ Emp_ID_Status เป็น Select (Active / Inactive) -->
               <div>
-                  <label class="block font-bold text-gray-700 mb-1">Emp_ID_Status *</label>
-                  <select id="v_Emp_ID_Status" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary bg-white">
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
-                  </select>
+                <label class="block font-bold text-gray-700 mb-1">Emp ID (Primary Key) *</label>
+                <input type="text" id="v_Emp_ID" autocomplete="off" required class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
-
               <div>
-                  <label class="block font-bold text-gray-700 mb-1">Job Position *</label>
-                  <input type="text" id="v_Job_Position" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+                <label class="block font-bold text-gray-700 mb-1">LINE User ID</label>
+                <input type="text" id="v_userId" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+              </div>
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">Emp_ID_Status *</label>
+                <select id="v_Emp_ID_Status" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary bg-white">
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">Job Position *</label>
+                <input type="text" id="v_Job_Position" autocomplete="off" required class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
               
               <div class="md:col-span-2">
-                  <label class="block font-bold text-gray-700 mb-1">Full Name</label>
-                  <input type="text" id="v_Emp_Name" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+                <label class="block font-bold text-gray-700 mb-1">Full Name</label>
+                <input type="text" id="v_Emp_Name" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
               <div>
-                  <label class="block font-bold text-gray-700 mb-1">Name & Nickname</label>
-                  <input type="text" id="v_Emp_Name_Nickname" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+                <label class="block font-bold text-gray-700 mb-1">Name & Nickname</label>
+                <input type="text" id="v_Emp_Name_Nickname" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
               <div>
-                  <label class="block font-bold text-gray-700 mb-1">ID Card No</label>
-                  <input type="text" id="v_Emp_IDCard_No" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+                <label class="block font-bold text-gray-700 mb-1">ID Card No</label>
+                <input type="text" id="v_Emp_IDCard_No" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
               <div>
-                  <label class="block font-bold text-gray-700 mb-1">Birth Date</label>
-                  <input type="date" id="v_Emp_BirthDate" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+                <label class="block font-bold text-gray-700 mb-1">Birth Date</label>
+                <input type="date" id="v_Emp_BirthDate" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
               <div>
-                  <label class="block font-bold text-gray-700 mb-1">Phone No</label>
-                  <input type="text" id="v_Emp_Phone_No" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+                <label class="block font-bold text-gray-700 mb-1">Phone No</label>
+                <input type="text" id="v_Emp_Phone_No" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
               <div>
-                  <label class="block font-bold text-gray-700 mb-1">Bank Account</label>
-                  <input type="text" id="v_Emp_BankAccount" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+                <label class="block font-bold text-gray-700 mb-1">Bank Account</label>
+                <input type="text" id="v_Emp_BankAccount" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
               <div>
-                  <label class="block font-bold text-gray-700 mb-1">Bank Account No</label>
-                  <input type="text" id="v_Emp_BankAccountNo" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
-              </div>
-
-              <!-- ส่วนแสดงสถานะ Audit Trail ด้านล่างฟอร์ม -->
-              <div class="md:col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-200 text-xs text-gray-500 space-y-1 mt-2">
-                  <div class="font-bold text-gray-700 mb-1">📋 Audit Trail Information</div>
-                  <div id="audit-created">Created By: -</div>
-                  <div id="audit-updated">Updated By: -</div>
+                <label class="block font-bold text-gray-700 mb-1">Bank Account No</label>
+                <input type="text" id="v_Emp_BankAccountNo" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
           </div>
 
@@ -211,12 +203,13 @@
         document.getElementById('loading-screen').classList.add('hidden');
 
         if (!data.allowed) {
-          alert('Access Denied: คุณไม่มีสิทธิ์เข้าใช้งานระบบ หรือยังไม่ได้ลงทะเบียน');
+          alert('Access Denied: คุณไม่มีสิทธิ์เข้าใช้งานระบบนี้ หรือยังไม่ได้ลงทะเบียน');
           liff.closeWindow();
           return;
         }
 
         document.getElementById('user-management-screen').classList.remove('hidden');
+        document.getElementById('menu-title').textContent = data.menuName;
         document.getElementById('user-info').textContent = `${lineProfile.displayName} | ตำแหน่ง: ${data.jobPosition} (ID: ${data.empId})`;
         
         currentActionEmpId = data.empId; 
@@ -234,7 +227,7 @@
     }
 
     async function loadUsers() {
-      document.getElementById('adminUserList').innerHTML = '<tr><td colspan="6" class="text-center p-6 text-gray-400">กำลังโหลดข้อมูล...</td></tr>';
+      document.getElementById('adminUserList').innerHTML = '<tr><td colspan="6" class="text-center p-6 text-gray-500">กำลังโหลดข้อมูล...</td></tr>';
       const res = await fetch(CENTRAL_API_URL, {
           method: 'POST', body: JSON.stringify({ action: 'getUsers' })
       });
@@ -242,26 +235,38 @@
       allUsersData = result.data;
       
       let html = '';
-      allUsersData.forEach(u => {
-          let lastUpdate = u.updateDate ? new Date(u.updateDate).toLocaleString('th-TH') : '-';
-          html += `
-          <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-              <td class="p-4 font-bold text-linePrimary">${u.Emp_ID || '-'}</td>
-              <td class="p-4">${u.Emp_Name || '-'}</td>
-              <td class="p-4"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">${u.Job_Position || '-'}</span></td>
-              <td class="p-4"><span class="px-2 py-1 rounded text-xs font-semibold ${u.Emp_ID_Status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${u.Emp_ID_Status || '-'}</span></td>
-              <td class="p-4 text-xs text-gray-500">${lastUpdate}<br>By: ${u.updateEmpId || '-'}</td>
-              <td class="p-4 flex space-x-2 justify-center">
-                  <button onclick="openForm('edit', '${u.Emp_ID}')" class="perm-hide perm-edit bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80">แก้ไข</button>
-                  <button onclick="deleteUser('${u.Emp_ID}')" class="perm-hide perm-delete bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80">ลบ</button>
-              </td>
-          </tr>`;
-      });
+      if (!allUsersData || allUsersData.length === 0) {
+        html = '<tr><td colspan="6" class="text-center p-6 text-gray-500">ไม่พบข้อมูลพนักงานในระบบ</td></tr>';
+      } else {
+        allUsersData.forEach(u => {
+            let lastUpdate = u.updateDate ? new Date(u.updateDate).toLocaleString('th-TH') : '-';
+            html += `
+            <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+                <td class="p-4 font-bold text-linePrimary">${u.Emp_ID || '-'}</td>
+                <td class="p-4">${u.Emp_Name || '-'}</td>
+                <td class="p-4"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">${u.Job_Position || '-'}</span></td>
+                <td class="p-4">
+                  <span class="px-2 py-1 rounded text-xs font-bold ${u.Emp_ID_Status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">
+                    ${u.Emp_ID_Status || 'Active'}
+                  </span>
+                </td>
+                <td class="p-4 text-xs text-gray-500">${lastUpdate}<br>By: ${u.updateEmpId || '-'}</td>
+                <td class="p-4 text-center">
+                    <div class="inline-flex items-center gap-2">
+                      <button onclick="openForm('edit', '${u.Emp_ID}')" class="perm-hide perm-edit bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80">แก้ไข</button>
+                      <button onclick="deleteUser('${u.Emp_ID}')" class="perm-hide perm-delete bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80">ลบ</button>
+                    </div>
+                </td>
+            </tr>`;
+        });
+      }
       document.getElementById('adminUserList').innerHTML = html;
       
-      // อัปเดตสิทธิ์การแสดงปุ่มในตาราง
-      const canEdit = !document.querySelector('.perm-create').classList.contains('perm-hide'); // สมมติสิทธิ์ Admin
-      // หากต้องการแยกสิทธิ์ย่อย ให้เรียกฟังก์ชัน applyPermissions ซ้ำ
+      // อัปเดตการแสดงผลปุ่มตามสิทธิ์หลัง Render ตาราง
+      const canCreate = !document.querySelector('.perm-create').classList.contains('perm-hide');
+      const canEdit = !document.querySelector('.perm-edit').classList.contains('perm-hide');
+      const canDelete = !document.querySelector('.perm-hide.perm-delete').classList.contains('perm-hide') rescue = true; 
+      applyPermissions({ create: canCreate, edit: canEdit, delete: true });
     }
 
     function openForm(mode, empId = null) {
@@ -273,12 +278,12 @@
       
       if (mode === 'add') {
           fields.forEach(f => {
-              if(f === 'Emp_ID_Status') document.getElementById('v_' + f).value = 'Active';
-              else document.getElementById('v_' + f).value = '';
+            const el = document.getElementById('v_' + f);
+            if(el.tagName === 'SELECT') el.value = 'Active';
+            else el.value = '';
           });
           document.getElementById('v_Emp_ID').readOnly = false;
-          document.getElementById('audit-created').textContent = `Created By: -`;
-          document.getElementById('audit-updated').textContent = `Updated By: -`;
+          document.getElementById('auditInfo').textContent = `สร้างรายการใหม่ (ดำเนินการโดย: ${currentActionEmpId})`;
       } else {
           const user = allUsersData.find(u => String(u.Emp_ID) === String(empId));
           fields.forEach(f => {
@@ -287,29 +292,33 @@
               if (f === 'Emp_BirthDate' && val) val = new Date(val).toISOString().split('T')[0];
               document.getElementById('v_' + f).value = val;
           });
-          document.getElementById('v_Emp_ID').readOnly = true; // ล็อค Primary Key ตอนแก้ไข
+          // ล็อค Emp_ID ไม่ให้แก้ไข เนื่องจากใช้เป็น Primary Key
+          document.getElementById('v_Emp_ID').readOnly = true;
           
           let createDate = user.createDate ? new Date(user.createDate).toLocaleString('th-TH') : '-';
           let updateDate = user.updateDate ? new Date(user.updateDate).toLocaleString('th-TH') : '-';
-          document.getElementById('audit-created').textContent = `Created By: ${user.createEmpId || '-'} (${createDate})`;
-          document.getElementById('audit-updated').textContent = `Updated By: ${user.updateEmpId || '-'} (${updateDate})`;
+          document.getElementById('auditInfo').textContent = `สร้างโดย: ${user.createEmpId || '-'} (${createDate}) | แก้ไขล่าสุดโดย: ${user.updateEmpId || '-'} (${updateDate})`;
       }
     }
 
     async function saveUser() {
-      const mode = document.getElementById('formMode').value;
       const empIdVal = document.getElementById('v_Emp_ID').value.trim();
-      if(!empIdVal) { alert("กรุณากรอกรหัสพนักงาน (Emp_ID)"); return; }
+      const jobPosVal = document.getElementById('v_Job_Position').value.trim();
+      
+      if(!empIdVal || !jobPosVal) {
+        alert("กรุณากรอกข้อมูล Emp ID และ Job Position ให้ครบถ้วน");
+        return;
+      }
 
       const payload = {
           action: 'manageUser',
-          mode: mode,
+          mode: document.getElementById('formMode').value,
           actionByEmpId: currentActionEmpId,
           user: {
               userId: document.getElementById('v_userId').value,
               Emp_ID: empIdVal,
               Emp_ID_Status: document.getElementById('v_Emp_ID_Status').value,
-              Job_Position: document.getElementById('v_Job_Position').value,
+              Job_Position: jobPosVal,
               Emp_Name: document.getElementById('v_Emp_Name').value,
               "Emp_Name_&_Nickname": document.getElementById('v_Emp_Name_Nickname').value,
               Emp_IDCard_No: document.getElementById('v_Emp_IDCard_No').value,
@@ -322,32 +331,48 @@
       
       document.getElementById('modalTitle').textContent = 'กำลังบันทึก...';
       
-      const res = await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify(payload) });
-      const result = await res.json();
-      
-      if(result.status === 'success') {
+      try {
+        const res = await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const result = await res.json();
+        
+        if(result.status === 'success') {
           document.getElementById('formModal').classList.add('hidden');
           loadUsers();
-      } else {
-          alert(result.message);
-          document.getElementById('modalTitle').textContent = mode === 'add' ? '➕ เพิ่มพนักงาน' : '✏️ แก้ไขพนักงาน';
+        } else {
+          alert(result.message || "เกิดข้อผิดพลาดในการบันทึก");
+          document.getElementById('modalTitle').textContent = 'ฟอร์มพนักงาน';
+        }
+      } catch(e) {
+        alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+        document.getElementById('modalTitle').textContent = 'ฟอร์มพนักงาน';
       }
     }
 
     async function deleteUser(empId) {
       if(!confirm("คุณต้องการลบผู้ใช้งานรหัส " + empId + " ถาวรหรือไม่?")) return;
-      await fetch(CENTRAL_API_URL, {
+      
+      const res = await fetch(CENTRAL_API_URL, {
           method: 'POST', body: JSON.stringify({ action: 'manageUser', mode: 'delete', user: { Emp_ID: empId } })
       });
-      loadUsers();
+      const result = await res.json();
+      if(result.status === 'success') {
+        loadUsers();
+      } else {
+        alert(result.message);
+      }
     }
 
-    function goHome() {
-      window.location.href = "./"; // ปรับเปลี่ยนเส้นทางกลับหน้าหลักตามโครงสร้างโปรเจกต์ของคุณ
+    function goHome(e) {
+      e.preventDefault();
+      // สามารถปรับเปลี่ยน URL ปลายทางของหน้าหลักได้ตามต้องการ
+      window.location.reload();
     }
 
     function logoutApp() {
-      if (liff.isLoggedIn()) { liff.logout(); window.location.reload(); }
+      if (liff.isLoggedIn()) { 
+        liff.logout(); 
+        window.location.reload(); 
+      }
     }
 
     window.onload = initApp;
