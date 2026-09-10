@@ -1,220 +1,470 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Enterprise Permission System</title>
-    
-    <!-- LINE LIFF SDK -->
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script>
-        // กำหนด LINE Official Palette และ Layout 
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        line: {
-                            primary: '#0084FF',
-                            success: '#17C950',
-                            danger: '#FF4458',
-                            warning: '#FFC300',
-                            bg: '#F7F7F7',
-                            gray: '#B6C2C7'
-                        }
-                    },
-                    maxWidth: {
-                        'line-app': '500px' // อิงความกว้างสูงสุดของ Flex Message
-                    }
-                }
-            }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Permission & Menu Management</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+  <!-- LINE Template Colors -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            linePrimary: '#0084FF',
+            lineSuccess: '#17C950',
+            lineDanger: '#FF4458',
+            lineWarning: '#FFC300',
+            lineLightBg: '#F7F7F7',
+            lineDarkGray: '#6C757D'
+          }
         }
-    </script>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        
-        /* Utility สำหรับซ่อน Component ผ่าน DOM DOM manipulation */
-        .hide-perm { display: none !important; }
-        
-        #loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); z-index: 50;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        
-        /* Touch-Friendly Buttons (Min 44x44px) */
-        .btn-touch { min-height: 44px; display: flex; justify-content: center; align-items: center; }
-    </style>
+      }
+    }
+  </script>
+  <style>
+    .perm-hide { display: none !important; }
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab-active { border-bottom-width: 2px; border-color: #0084FF; color: #0084FF; font-weight: bold; }
+    .tab-inactive { color: #6C757D; font-weight: 500; }
+  </style>
 </head>
-<body class="bg-line-bg text-gray-800 antialiased">
+<body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
 
-    <!-- Configuration พื้นฐาน -->
-    <script>
-        const LIFF_ID = "2011487100-dldPQItq";
-        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbwT92lC6xrr0MuDUNdjJKjL_jvkMZb7AjbOmA81uWKONXOf9dG2U-_6Y8qqW8bGsvoY/exec"; // ระบุ URL ของ Central API
-        const CURRENT_MENU_ID = "902"; // เปลี่ยนตาม ID ของเมนูในระบบนี้
-    </script>
+  <script>
+    // ==========================================
+    // Configuration (แก้ API URL ตรงนี้)
+    // ==========================================
+    const LIFF_ID = "2011487100-dldPQItq";
+    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbwT92lC6xrr0MuDUNdjJKjL_jvkMZb7AjbOmA81uWKONXOf9dG2U-_6Y8qqW8bGsvoY/exec"; // <-- นำ URL มาใส่
+    const CURRENT_MENU_ID = "902"; // กำหนด ID ของระบบบริหารสิทธิ์นี้
+  </script>
 
-    <!-- Loading Screen -->
-    <div id="loader">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-line-primary mb-4"></div>
-        <p id="loaderText" class="text-line-primary font-bold text-sm">กำลังเชื่อมต่อ LINE...</p>
+  <!-- Header Classic Design -->
+  <header class="bg-gradient-to-r from-linePrimary to-blue-700 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-3 flex-1 min-w-0">
+        <img id="profile-img" src="" alt="Profile" class="h-10 w-10 rounded-full border-2 border-white hidden object-cover shadow-sm flex-shrink-0">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 id="menu-title" class="text-base font-bold tracking-wide leading-tight">บริหารจัดการระบบ</h1>
+            <button onclick="goToHome()" class="text-[10px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded text-white transition font-medium flex-shrink-0">หน้าหลัก</button>
+          </div>
+          <p id="user-info" class="text-[11px] opacity-90 truncate">กำลังตรวจสอบ...</p>
+        </div>
+      </div>
+      
+      <div class="flex flex-col items-end gap-1 flex-shrink-0">
+        <button onclick="logoutApp()" class="text-[11px] sm:text-xs bg-white/25 hover:bg-white/35 text-white px-3 py-1.5 rounded border border-white/30 transition flex items-center shadow-sm font-medium whitespace-nowrap">
+          ออกจากระบบ
+        </button>
+        <div class="text-[9px] sm:text-[10px] opacity-90 flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded bg-black/10">
+          <span>⏱️</span>
+          <span id="timer-display" class="font-mono font-bold tracking-wider">60:00</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-3 sm:p-4 flex-grow w-full">
+    
+    <!-- Loading Screen[cite: 1] -->
+    <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-linePrimary mb-4"></div>
+      <p class="text-lineDarkGray text-sm font-medium">กำลังตรวจสอบสิทธิ์และโหลดข้อมูล...</p>
     </div>
 
-    <!-- Main Container -->
-    <div class="max-w-line-app mx-auto bg-white min-h-screen shadow-md relative pb-10">
+    <!-- Main System Area -->
+    <div id="management-screen" class="hidden">
+      
+      <!-- Tabs -->
+      <div class="flex border-b border-gray-200 mb-4 overflow-x-auto">
+        <button onclick="switchTab('menu')" id="tab-menu" class="tab-active px-4 py-3 whitespace-nowrap transition">จัดการข้อมูลเมนู (Menu)</button>
+        <button onclick="switchTab('role')" id="tab-role" class="tab-inactive px-4 py-3 whitespace-nowrap transition">จัดการสิทธิ์ (RolePermissions)</button>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-xl shadow-sm border border-gray-200">
+        <div>
+          <h2 id="section-title" class="text-base sm:text-lg font-bold text-gray-800">📋 รายการเมนูระบบ</h2>
+        </div>
+        <button onclick="openForm('add')" id="btn-add" class="perm-hide bg-linePrimary text-white font-bold py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg shadow-sm hover:bg-blue-600 transition text-xs sm:text-sm flex items-center gap-1">
+          <span>➕</span> <span>เพิ่มข้อมูล</span>
+        </button>
+      </div>
+
+      <!-- Desktop Tables -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden table-container">
         
-        <!-- Header LINE Style -->
-        <header class="bg-gradient-to-br from-line-primary to-blue-600 text-white p-5 shadow-sm">
-            <h1 id="headerMenuName" class="text-xl font-bold mb-1">ระบบกำลังโหลด...</h1>
-            <div class="flex items-center text-xs opacity-90 mt-2">
-                <span id="headerRole" class="bg-white/20 px-3 py-1 rounded-full inline-block">👤 กำลังตรวจสอบสิทธิ์</span>
-            </div>
-        </header>
+        <!-- Menu Table -->
+        <table id="table-menu" class="w-full text-left text-sm text-gray-600 hidden">
+            <thead class="bg-gray-50 text-gray-700 border-b sticky top-0">
+                <tr>
+                    <th class="p-3.5 font-bold">Group / MenuGroup</th>
+                    <th class="p-3.5 font-bold">Menu ID</th>
+                    <th class="p-3.5 font-bold">Menu Name</th>
+                    <th class="p-3.5 font-bold">Audit Trail</th>
+                    <th class="p-3.5 font-bold text-center">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-menu" class="divide-y divide-gray-100"></tbody>
+        </table>
 
-        <main class="p-4 space-y-4">
-            
-            <!-- Alert Box (กรณีแสดงข้อผิดพลาด หรือ ไม่มีสิทธิ์) -->
-            <div id="alertBox" class="bg-red-50 border-l-4 border-line-danger p-4 rounded-lg hidden">
-                <p id="alertMessage" class="text-sm text-red-700 font-bold">⛔ เกิดข้อผิดพลาด</p>
-                <button onclick="liff.closeWindow()" class="mt-3 text-xs bg-red-100 text-red-800 px-4 py-2 rounded font-bold">ปิดหน้าจอ</button>
-            </div>
+        <!-- Role Table -->
+        <table id="table-role" class="w-full text-left text-sm text-gray-600 hidden">
+          <thead class="bg-gray-50 text-gray-700 border-b sticky top-0">
+              <tr>
+                  <th class="p-3.5 font-bold">Job Position</th>
+                  <th class="p-3.5 font-bold">Menu ID</th>
+                  <th class="p-3.5 font-bold">สิทธิ์ (R/C/E/D/A)</th>
+                  <th class="p-3.5 font-bold">Audit Trail</th>
+                  <th class="p-3.5 font-bold text-center">จัดการ</th>
+              </tr>
+          </thead>
+          <tbody id="tbody-role" class="divide-y divide-gray-100"></tbody>
+        </table>
 
-            <!-- Workspace Area -->
-            <div id="workspace" class="hidden space-y-4">
-                
-                <!-- กลุ่มปุ่มจัดการข้อมูล (เชื่อมโยงกับสิทธิ์ผ่าน data-permission) -->
-                <div class="grid grid-cols-2 gap-3">
-                    <button data-permission="create" class="btn-touch bg-line-success hover:bg-green-600 text-white font-bold rounded-lg shadow-sm text-sm transition">
-                        ➕ สร้างเอกสาร
-                    </button>
-                    <button data-permission="approve" class="btn-touch bg-line-warning hover:bg-yellow-500 text-white font-bold rounded-lg shadow-sm text-sm transition">
-                        ✅ อนุมัติข้อมูล
-                    </button>
-                </div>
-
-                <!-- Data Card -->
-                <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                    <div class="flex justify-between items-start mb-4 pb-3 border-b border-gray-100">
-                        <div>
-                            <h3 class="font-bold text-gray-800">เอกสารรหัส #DOC-2026</h3>
-                            <p class="text-xs text-line-gray mt-1">ข้อมูลตัวอย่างสำหรับการทดสอบระบบสิทธิ์</p>
-                        </div>
-                        <!-- ปุ่มลบถูกซ่อนหรือแสดงตามสิทธิ์ -->
-                        <button data-permission="delete" class="text-line-danger bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 transition">
-                            🗑️ ลบ
-                        </button>
-                    </div>
-                    
-                    <!-- ปุ่มแก้ไขถูกซ่อนหรือแสดงตามสิทธิ์ -->
-                    <button data-permission="edit" class="btn-touch w-full bg-blue-50 text-line-primary border border-blue-200 font-bold rounded-lg text-sm hover:bg-blue-100 transition">
-                        ✏️ แก้ไขข้อมูลเอกสาร
-                    </button>
-                </div>
-
-            </div>
-        </main>
+      </div>
     </div>
+  </main>
 
-    <!-- Application Logic -->
-    <script>
-        const ui = {
-            hideLoader: () => document.getElementById('loader').style.display = 'none',
-            showLoaderText: (text) => document.getElementById('loaderText').innerText = text,
-            showError: (msg) => {
-                ui.hideLoader();
-                document.getElementById('alertBox').classList.remove('hidden');
-                document.getElementById('alertMessage').innerText = "⛔ " + msg;
-            }
+  <!-- FORM MODAL (Dynamic for both Menu and Role)[cite: 1] -->
+  <div id="formModal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-white w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col my-auto">
+          <div class="bg-linePrimary p-4 text-white font-bold text-base flex justify-between items-center sticky top-0">
+              <span id="modalTitle">ฟอร์มจัดการข้อมูล</span>
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="text-white text-lg font-bold">✕</button>
+          </div>
+          <div class="p-4 sm:p-6 space-y-4 text-sm overflow-y-auto flex-1">
+              <input type="hidden" id="formMode">
+              
+              <!-- Audit Trail Info[cite: 1] -->
+              <div class="text-xs bg-gray-50 p-3 rounded-lg border border-gray-200 text-gray-700 space-y-1 mb-4">
+                <div class="font-bold text-linePrimary">📌 ข้อมูลผู้บันทึก/แก้ไข (Audit Trail):</div>
+                <div id="auditInfo" class="font-mono text-xs text-gray-600">--</div>
+              </div>
+              
+              <!-- Menu Form Fields -->
+              <div id="fields-menu" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                <div><label class="block font-bold mb-1">Group *</label><input type="text" id="m_group" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
+                <div><label class="block font-bold mb-1">Menu Group</label><input type="text" id="m_menuGroup" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
+                <div><label class="block font-bold mb-1">Menu ID (PK) *</label><input type="text" id="m_menuId" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
+                <div><label class="block font-bold mb-1">Menu Name *</label><input type="text" id="m_menuName" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
+              </div>
+
+              <!-- Role Form Fields -->
+              <div id="fields-role" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                <div><label class="block font-bold mb-1">Job Position (PK) *</label><input type="text" id="r_jobPosition" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
+                <div><label class="block font-bold mb-1">Menu ID (PK) *</label><input type="text" id="r_menuId" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
+                <div class="md:col-span-2"><label class="block font-bold mb-1">Menu URL</label><input type="text" id="r_menuUrl" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
+                
+                <div class="md:col-span-2 grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2 p-3 bg-gray-50 rounded border">
+                  <label class="flex items-center gap-1"><input type="checkbox" id="r_canRead"> Read</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" id="r_canCreate"> Create</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" id="r_canEdit"> Edit</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" id="r_canDelete"> Delete</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" id="r_canApprove"> Approve</label>
+                </div>
+              </div>
+
+          </div>
+          <div class="p-3 sm:p-4 border-t flex justify-end gap-2 sm:gap-3 bg-gray-50 sticky bottom-0">
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300">ยกเลิก</button>
+              <button onclick="saveData()" class="px-5 py-2 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600">บันทึก</button>
+          </div>
+      </div>
+  </div>
+
+  <script>
+    let lineProfile = null;
+    let currentActionEmpId = ""; 
+    let currentPermissions = { read: false, create: false, edit: false, delete: false, approve: false };
+    
+    let allMenus = [];
+    let allRoles = [];
+    let currentTab = 'menu'; // 'menu' หรือ 'role'
+    
+    // Timer System 60 นาที[cite: 1]
+    let timeoutLimit = 3600; 
+    let timeRemaining = timeoutLimit;
+    let timerInterval;
+
+    async function initApp() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          lineProfile = await liff.getProfile();
+          document.getElementById('profile-img').src = lineProfile.pictureUrl;
+          document.getElementById('profile-img').classList.remove('hidden');
+          
+          startActivityTracker();
+          await verifyAccess(lineProfile.userId);
+        }
+      } catch (err) {
+        alert("ไม่สามารถเชื่อมต่อ LINE LIFF ได้");
+      }
+    }
+
+    function startActivityTracker() {
+      const resetTimer = () => { timeRemaining = timeoutLimit; };
+      ['mousemove', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => window.addEventListener(evt, resetTimer, { passive: true }));
+
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+        let s = (timeRemaining % 60).toString().padStart(2, '0');
+        document.getElementById('timer-display').textContent = `${m}:${s}`;
+        if (timeRemaining <= 0) { clearInterval(timerInterval); alert("หมดเวลาการเชื่อมต่อ กรุณาเข้าสู่ระบบใหม่"); logoutApp(); }
+      }, 1000);
+    }
+
+    async function verifyAccess(userId) {
+      try {
+        const res = await fetch(CENTRAL_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'verifyAccess', userId: userId, menuId: CURRENT_MENU_ID })
+        });
+        const data = await res.json();
+        
+        document.getElementById('loading-screen').classList.add('hidden');
+
+        if (!data.allowed) {
+          alert('Access Denied: คุณไม่มีสิทธิ์เข้าใช้งานระบบนี้');
+          liff.closeWindow();
+          return;
+        }
+
+        document.getElementById('management-screen').classList.remove('hidden');
+        document.getElementById('menu-title').textContent = data.menuName;
+        document.getElementById('user-info').textContent = `${lineProfile.displayName} | ${data.jobPosition}`;
+        
+        currentActionEmpId = data.empId; 
+        currentPermissions = data.permissions;
+
+        applyPermissions();
+        await loadAllData();
+
+      } catch (error) { 
+        alert("เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์"); 
+      }
+    }
+
+    function applyPermissions() {
+      const btnAdd = document.getElementById('btn-add');
+      if (currentPermissions.create) btnAdd.classList.remove('perm-hide');
+      else btnAdd.classList.add('perm-hide');
+    }
+
+    async function loadAllData() {
+      const res = await fetch(CENTRAL_API_URL, {
+          method: 'POST', body: JSON.stringify({ action: 'getManageData' })
+      });
+      const result = await res.json();
+      if(result.status === 'success'){
+        allMenus = result.menus;
+        allRoles = result.roles;
+        renderData();
+      }
+    }
+
+    function switchTab(tabName) {
+      currentTab = tabName;
+      document.getElementById('tab-menu').className = tabName === 'menu' ? 'tab-active px-4 py-3 whitespace-nowrap transition' : 'tab-inactive px-4 py-3 whitespace-nowrap transition';
+      document.getElementById('tab-role').className = tabName === 'role' ? 'tab-active px-4 py-3 whitespace-nowrap transition' : 'tab-inactive px-4 py-3 whitespace-nowrap transition';
+      
+      document.getElementById('section-title').innerHTML = tabName === 'menu' ? '📋 รายการเมนูระบบ' : '🔐 สิทธิ์การใช้งานตามตำแหน่ง';
+      
+      renderData();
+    }
+
+    function formatDateTime(isoString) {
+      if(!isoString) return '-';
+      return new Date(isoString).toLocaleString('th-TH');
+    }
+
+    function renderData() {
+      const editClass = currentPermissions.edit ? '' : 'perm-hide';
+      const deleteClass = currentPermissions.delete ? '' : 'perm-hide';
+
+      if(currentTab === 'menu') {
+        document.getElementById('table-menu').classList.remove('hidden');
+        document.getElementById('table-role').classList.add('hidden');
+        
+        let html = '';
+        allMenus.forEach((m, idx) => {
+          html += `
+          <tr class="hover:bg-gray-50 transition border-b">
+              <td class="p-3.5"><div class="font-bold text-linePrimary">${m.group}</div><div class="text-xs text-gray-500">${m.menuGroup}</div></td>
+              <td class="p-3.5 font-bold">${m.menuId}</td>
+              <td class="p-3.5">${m.menuName}</td>
+              <td class="p-3.5 text-xs text-gray-500">
+                <div>สร้าง: ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</div>
+                <div>แก้ไข: ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</div>
+              </td>
+              <td class="p-3.5 text-center">
+                <div class="inline-flex space-x-2">
+                  <button onclick="openForm('edit', ${idx})" class="${editClass} bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
+                  <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">ลบ</button>
+                </div>
+              </td>
+          </tr>`;
+        });
+        document.getElementById('tbody-menu').innerHTML = html;
+
+      } else {
+        document.getElementById('table-role').classList.remove('hidden');
+        document.getElementById('table-menu').classList.add('hidden');
+
+        let html = '';
+        allRoles.forEach((r, idx) => {
+          html += `
+          <tr class="hover:bg-gray-50 transition border-b">
+              <td class="p-3.5 font-bold text-blue-700">${r.Job_Position}</td>
+              <td class="p-3.5 font-bold text-gray-800">${r.menuId}</td>
+              <td class="p-3.5 text-xs">
+                ${String(r.canRead).toUpperCase()==='TRUE'?'<span class="text-green-600 font-bold mr-1">R</span>':'-'}
+                ${String(r.canCreate).toUpperCase()==='TRUE'?'<span class="text-green-600 font-bold mr-1">C</span>':'-'}
+                ${String(r.canEdit).toUpperCase()==='TRUE'?'<span class="text-green-600 font-bold mr-1">E</span>':'-'}
+                ${String(r.canDelete).toUpperCase()==='TRUE'?'<span class="text-green-600 font-bold mr-1">D</span>':'-'}
+                ${String(r.canApprove).toUpperCase()==='TRUE'?'<span class="text-purple-600 font-bold">A</span>':'-'}
+              </td>
+              <td class="p-3.5 text-xs text-gray-500">
+                <div>สร้าง: ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</div>
+                <div>แก้ไข: ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</div>
+              </td>
+              <td class="p-3.5 text-center">
+                <div class="inline-flex space-x-2">
+                  <button onclick="openForm('edit', ${idx})" class="${editClass} bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
+                  <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">ลบ</button>
+                </div>
+              </td>
+          </tr>`;
+        });
+        document.getElementById('tbody-role').innerHTML = html;
+      }
+    }
+
+    function openForm(mode, index = null) {
+      document.getElementById('formModal').classList.remove('hidden');
+      document.getElementById('formMode').value = mode;
+      
+      const isMenu = currentTab === 'menu';
+      document.getElementById('fields-menu').classList.toggle('hidden', !isMenu);
+      document.getElementById('fields-role').classList.toggle('hidden', isMenu);
+      document.getElementById('modalTitle').textContent = mode === 'add' ? '➕ เพิ่มข้อมูล' : '✏️ แก้ไขข้อมูล';
+
+      if (mode === 'add') {
+        document.getElementById('auditInfo').innerHTML = `สร้างรายการใหม่โดย Admin ID: <b>${currentActionEmpId}</b>`;
+        if (isMenu) {
+          ['m_group', 'm_menuGroup', 'm_menuId', 'm_menuName'].forEach(id => document.getElementById(id).value = '');
+          document.getElementById('m_group').readOnly = false;
+          document.getElementById('m_menuId').readOnly = false;
+        } else {
+          ['r_jobPosition', 'r_menuId', 'r_menuUrl'].forEach(id => document.getElementById(id).value = '');
+          ['r_canRead', 'r_canCreate', 'r_canEdit', 'r_canDelete', 'r_canApprove'].forEach(id => document.getElementById(id).checked = false);
+          document.getElementById('r_jobPosition').readOnly = false;
+          document.getElementById('r_menuId').readOnly = false;
+        }
+      } else {
+        if (isMenu) {
+          const m = allMenus[index];
+          document.getElementById('m_group').value = m.group;
+          document.getElementById('m_group').readOnly = true;
+          document.getElementById('m_menuGroup').value = m.menuGroup;
+          document.getElementById('m_menuId').value = m.menuId;
+          document.getElementById('m_menuId').readOnly = true;
+          document.getElementById('m_menuName').value = m.menuName;
+          
+          document.getElementById('auditInfo').innerHTML = `<div>• <b>สร้างโดย:</b> ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</div><div>• <b>แก้ไขล่าสุดโดย:</b> ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</div>`;
+        } else {
+          const r = allRoles[index];
+          document.getElementById('r_jobPosition').value = r.Job_Position;
+          document.getElementById('r_jobPosition').readOnly = true;
+          document.getElementById('r_menuId').value = r.menuId;
+          document.getElementById('r_menuId').readOnly = true;
+          document.getElementById('r_menuUrl').value = r.menuUrl;
+          
+          document.getElementById('r_canRead').checked = String(r.canRead).toUpperCase() === 'TRUE';
+          document.getElementById('r_canCreate').checked = String(r.canCreate).toUpperCase() === 'TRUE';
+          document.getElementById('r_canEdit').checked = String(r.canEdit).toUpperCase() === 'TRUE';
+          document.getElementById('r_canDelete').checked = String(r.canDelete).toUpperCase() === 'TRUE';
+          document.getElementById('r_canApprove').checked = String(r.canApprove).toUpperCase() === 'TRUE';
+
+          document.getElementById('auditInfo').innerHTML = `<div>• <b>สร้างโดย:</b> ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</div><div>• <b>แก้ไขล่าสุดโดย:</b> ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</div>`;
+        }
+      }
+    }
+
+    async function saveData() {
+      const mode = document.getElementById('formMode').value;
+      const isMenu = currentTab === 'menu';
+      
+      let payload = { mode: mode, actionByEmpId: currentActionEmpId };
+
+      if (isMenu) {
+        payload.action = 'manageMenu';
+        payload.menuData = {
+          group: document.getElementById('m_group').value.trim(),
+          menuGroup: document.getElementById('m_menuGroup').value.trim(),
+          menuId: document.getElementById('m_menuId').value.trim(),
+          menuName: document.getElementById('m_menuName').value.trim()
         };
+        if(!payload.menuData.group || !payload.menuData.menuId) { alert("กรุณากรอก Group และ Menu ID ให้ครบถ้วน"); return; }
+      } else {
+        payload.action = 'manageRole';
+        payload.roleData = {
+          Job_Position: document.getElementById('r_jobPosition').value.trim(),
+          menuId: document.getElementById('r_menuId').value.trim(),
+          menuUrl: document.getElementById('r_menuUrl').value.trim(),
+          canRead: document.getElementById('r_canRead').checked,
+          canCreate: document.getElementById('r_canCreate').checked,
+          canEdit: document.getElementById('r_canEdit').checked,
+          canDelete: document.getElementById('r_canDelete').checked,
+          canApprove: document.getElementById('r_canApprove').checked
+        };
+        if(!payload.roleData.Job_Position || !payload.roleData.menuId) { alert("กรุณากรอก Job Position และ Menu ID ให้ครบถ้วน"); return; }
+      }
 
-        // 1. ฟังก์ชันเริ่มต้น
-        async function initApp() {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
+      document.getElementById('modalTitle').textContent = 'กำลังบันทึก...';
+      const res = await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const result = await res.json();
+      
+      if (result.status === 'success') {
+        document.getElementById('formModal').classList.add('hidden');
+        loadAllData();
+      } else {
+        alert(result.message);
+        document.getElementById('modalTitle').textContent = 'ฟอร์มจัดการข้อมูล';
+      }
+    }
 
-                ui.showLoaderText("กำลังตรวจสอบสิทธิ์การใช้งาน...");
-                const profile = await liff.getProfile();
-                await checkPermission(profile.userId);
+    async function deleteData(pk1, pk2) {
+      if(!confirm(`ยืนยันการลบข้อมูล [${pk1}] - [${pk2}] อย่างถาวร?`)) return;
+      
+      const payload = { mode: 'delete' };
+      if(currentTab === 'menu') {
+        payload.action = 'manageMenu';
+        payload.menuData = { group: pk1, menuId: pk2 };
+      } else {
+        payload.action = 'manageRole';
+        payload.roleData = { Job_Position: pk1, menuId: pk2 };
+      }
 
-            } catch (err) {
-                console.error("LIFF Init Error:", err);
-                ui.showError("ไม่สามารถเชื่อมต่อ LINE SDK ได้");
-            }
-        }
+      const res = await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const result = await res.json();
+      
+      if(result.status === 'success') loadAllData();
+      else alert(result.message);
+    }
 
-        // 2. ฟังก์ชันตรวจสอบสิทธิ์ (แก้ไข Failed to Fetch แล้ว)
-        async function checkPermission(userId) {
-            try {
-                const response = await fetch(CENTRAL_API_URL, {
-                    method: 'POST',
-                    // เปลี่ยน Content-Type เป็น text/plain เพื่อเลี่ยง Preflight ของ GAS
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    redirect: "follow", // ป้องกัน 302 Redirect หายไปกลางทาง
-                    body: JSON.stringify({
-                        action: 'verifyAccess',
-                        userId: userId,
-                        menuId: CURRENT_MENU_ID
-                    })
-                });
-
-                if (!response.ok) throw new Error("HTTP Status " + response.status);
-
-                const data = await response.json();
-                ui.hideLoader();
-
-                if (data.status === 'not_registered') {
-                    ui.showError("ไม่พบข้อมูลผู้ใช้งานของคุณในระบบ");
-                    return;
-                }
-
-                if (data.status === 'error') {
-                    ui.showError("ข้อผิดพลาดฝั่งเซิร์ฟเวอร์: " + data.message);
-                    return;
-                }
-
-                if (data.allowed === false || data.permissions.read === false) {
-                    ui.showError(`คุณไม่มีสิทธิ์เข้าถึง: ${data.menuName}`);
-                    return;
-                }
-
-                // 3. อนุญาตให้เข้าถึงพื้นที่การทำงาน
-                document.getElementById('workspace').classList.remove('hidden');
-                document.getElementById('headerMenuName').innerText = data.menuName;
-                document.getElementById('headerRole').innerText = `👤 ${data.jobPosition} (รหัส: ${data.empId})`;
-                
-                // นำสิทธิ์ไปซ่อนปุ่มต่างๆ ใน DOM
-                applyPermissionsToDOM(data.permissions);
-
-            } catch (err) {
-                console.error("Fetch Error:", err);
-                ui.showError("เซิร์ฟเวอร์ส่วนกลางไม่ตอบสนอง (" + err.message + ")");
-            }
-        }
-
-        // 4. ฟังก์ชันซ่อน/แสดงปุ่มจากสิทธิ์
-        function applyPermissionsToDOM(permissions) {
-            // permissions = { read: true, create: false, edit: true, delete: false, approve: false }
-            const actionElements = document.querySelectorAll('[data-permission]');
-            
-            actionElements.forEach(el => {
-                const reqPerm = el.getAttribute('data-permission'); // ดึงค่า create, edit, delete, approve
-                
-                if (permissions[reqPerm] === false) {
-                    el.classList.add('hide-perm');
-                }
-            });
-        }
-
-        // โหลดแอปเมื่อหน้าเว็บพร้อม
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
+    function goToHome() { window.location.href = "index.html"; }
+    function logoutApp() { if (liff.isLoggedIn()) { liff.logout(); window.location.reload(); } }
+    window.onload = initApp;
+  </script>
 </body>
 </html>
