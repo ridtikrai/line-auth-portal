@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <!-- LINE Template Colors[cite: 1, 2] -->
+  <!-- LINE Template Colors[cite: 2] -->
   <script>
     tailwind.config = {
       theme: {
@@ -27,6 +27,7 @@
   </script>
   <style>
     .perm-hide { display: none !important; }
+    /* Responsive Table ให้เลื่อนได้บนจอแคบ แต่ปุ่มจัดการแสดงผลชัดเจน */
     .table-container { overflow-x: auto; }
   </style>
 </head>
@@ -89,7 +90,7 @@
 
       <!-- Responsive Data Table -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden table-container">
-        <table class="w-full text-left text-sm text-gray-600 min-w-[800px]">
+        <table class="w-full text-left text-sm text-gray-600 min-w-[700px]">
             <thead class="bg-gray-50 text-gray-700 border-b">
                 <tr>
                     <th class="p-3.5">Emp ID</th>
@@ -116,8 +117,9 @@
           </div>
           <div class="p-6 space-y-4 text-sm overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
               <input type="hidden" id="formMode">
-              <div class="md:col-span-2 text-xs bg-gray-50 p-2.5 rounded border border-gray-200 text-gray-600">
-                📌 <b>Audit Trail:</b> <span id="auditInfo">--</span>
+              <div class="md:col-span-2 text-xs bg-gray-50 p-3 rounded-lg border border-gray-200 text-gray-700 space-y-1">
+                <div class="font-bold text-linePrimary">📌 ข้อมูลผู้บันทึก/แก้ไขข้อมูล (Audit Trail):</div>
+                <div id="auditInfo" class="font-mono text-xs text-gray-600">--</div>
               </div>
               
               <div>
@@ -278,9 +280,11 @@
               <td class="p-3.5"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">${u.Job_Position || '-'}</span></td>
               <td class="p-3.5">${statusBadge}</td>
               <td class="p-3.5 text-xs text-gray-500">${lastUpdate}<br>By: ${u.updateEmpId || '-'}</td>
-              <td class="p-3.5 flex space-x-2 justify-center">
-                  <button onclick="openForm('edit', '${u.Emp_ID}')" class="perm-hide perm-edit bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm">แก้ไข</button>
-                  <button onclick="deleteUser('${u.Emp_ID}')" class="perm-hide perm-delete bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm">ลบ</button>
+              <td class="p-3.5 text-center">
+                <div class="inline-flex space-x-1 sm:space-x-2">
+                  <button onclick="openForm('edit', '${u.Emp_ID}')" class="perm-hide perm-edit bg-lineWarning text-white px-2.5 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm">แก้ไข</button>
+                  <button onclick="deleteUser('${u.Emp_ID}')" class="perm-hide perm-delete bg-lineDanger text-white px-2.5 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm">ลบ</button>
+                </div>
               </td>
           </tr>`;
       });
@@ -289,7 +293,9 @@
       // Re-apply permissions to newly rendered table rows
       if (document.querySelector('.perm-create')) {
         const hasCreate = !document.querySelector('.perm-create').classList.contains('perm-hide');
-        applyPermissions({ create: hasCreate, edit: true, delete: true });
+        const hasEdit = document.querySelector('.perm-edit') ? !document.querySelector('.perm-edit').classList.contains('perm-hide') : true;
+        const hasDelete = document.querySelector('.perm-delete') ? !document.querySelector('.perm-delete').classList.contains('perm-hide') : true;
+        applyPermissions({ create: hasCreate, edit: hasEdit, delete: hasDelete });
       }
     }
 
@@ -306,7 +312,7 @@
             if (el) el.value = '';
           });
           document.getElementById('v_Emp_ID').readOnly = false;
-          document.getElementById('auditInfo').textContent = `สร้างรายการใหม่โดย Admin ID: ${currentActionEmpId}`;
+          document.getElementById('auditInfo').innerHTML = `สร้างรายการใหม่โดย Admin ID: <b>${currentActionEmpId}</b>`;
       } else {
           const user = allUsersData.find(u => String(u.Emp_ID) === String(empId));
           fields.forEach(f => {
@@ -321,7 +327,10 @@
           
           let createDate = user.createDate ? new Date(user.createDate).toLocaleString('th-TH') : '-';
           let updateDate = user.updateDate ? new Date(user.updateDate).toLocaleString('th-TH') : '-';
-          document.getElementById('auditInfo').textContent = `สร้างโดย: ${user.createEmpId || '-'} (${createDate}) | แก้ไขล่าสุดโดย: ${user.updateEmpId || '-'} (${updateDate})`;
+          document.getElementById('auditInfo').innerHTML = `
+            <div>• <b>สร้างโดย:</b> ${user.createEmpId || '-'} (${createDate})</div>
+            <div>• <b>แก้ไขล่าสุดโดย:</b> ${user.updateEmpId || '-'} (${updateDate})</div>
+          `;
       }
     }
 
