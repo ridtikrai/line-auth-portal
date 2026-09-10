@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Management System</title>
+  <title>User Management Portal</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <!-- LINE Template Colors[cite: 2] -->
+  <!-- LINE Template Colors[cite: 1, 2] -->
   <script>
     tailwind.config = {
       theme: {
@@ -27,7 +27,6 @@
   </script>
   <style>
     .perm-hide { display: none !important; }
-    /* รองรับการแสดงผลตารางทั้งบนมือถือและคอมพิวเตอร์[cite: 2] */
     .table-container { overflow-x: auto; }
   </style>
 </head>
@@ -35,64 +34,70 @@
 
   <script>
     // ==========================================
-    // Configuration
+    // Configuration[cite: 2]
     // ==========================================
     const LIFF_ID = "2011487100-dldPQItq";
-    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // แทนที่ด้วย Web App URL ของคุณ
-    const CURRENT_MENU_ID = "901"; // รหัสเมนูของหน้าจัดการพนักงาน
+    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // แทนที่ด้วย URL Web App ของคุณ
+    const CURRENT_MENU_ID = "901"; // รหัสเมนูระบบจัดการพนักงาน
   </script>
 
-  <!-- Header พร้อมปุ่มกลับหน้าหลัก[cite: 2] -->
+  <!-- Header Classic Design[cite: 1] -->
   <header class="bg-gradient-to-r from-linePrimary to-blue-700 text-white shadow-md sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-3">
         <img id="profile-img" src="" alt="Profile" class="h-10 w-10 rounded-full border-2 border-white hidden object-cover shadow-sm">
         <div>
-          <h1 id="menu-title" class="text-base font-bold tracking-wide leading-tight">User Management</h1>
-          <p id="user-info" class="text-[11px] opacity-90">กำลังตรวจสอบสิทธิ์...</p>
+          <div class="flex items-center gap-2">
+            <h1 id="menu-title" class="text-base font-bold tracking-wide leading-tight">จัดการข้อมูลพนักงาน</h1>
+            <button onclick="window.location.reload()" class="text-[10px] bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded text-white transition">หน้าหลัก</button>
+          </div>
+          <p id="user-info" class="text-[11px] opacity-90">กำลังตรวจสอบ...</p>
         </div>
       </div>
       
-      <div class="flex items-center gap-2">
-        <!-- ปุ่มกลับหน้าหลัก -->
-        <a href="#" onclick="goHome(event)" class="text-[11px] sm:text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded border border-white/30 transition font-medium">
-          🏠 กลับหน้าหลัก
-        </a>
-        <button onclick="logoutApp()" class="text-[11px] sm:text-xs bg-red-500/80 hover:bg-red-600 text-white px-3 py-1.5 rounded border border-white/30 transition font-medium">
+      <div class="flex flex-col items-end gap-1">
+        <button onclick="logoutApp()" class="text-[11px] sm:text-xs bg-white/25 hover:bg-white/35 text-white px-3 py-1.5 rounded border border-white/30 transition flex items-center shadow-sm font-medium">
           ออกจากระบบ
         </button>
+        <div class="text-[9px] sm:text-[10px] opacity-90 flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded bg-black/10">
+          <span>⏱️</span>
+          <span id="timer-display" class="font-mono font-bold tracking-wider">60:00</span>
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto p-4 flex-grow w-full">
+  <main class="max-w-7xl mx-auto p-4 flex-grow w-full">
     
-    <!-- Loading Screen -->
+    <!-- Loading Screen[cite: 1] -->
     <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
       <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-linePrimary mb-4"></div>
-      <p class="text-lineDarkGray text-sm font-medium">กำลังโหลดข้อมูลระบบ...</p>
+      <p class="text-lineDarkGray text-sm font-medium">กำลังตรวจสอบสิทธิ์และโหลดข้อมูลพนักงาน...</p>
     </div>
 
-    <!-- Main System: User Management (แสดงผลทันทีเมื่อผ่านสิทธิ์) -->
+    <!-- Main System: User Management Dashboard -->
     <div id="user-management-screen" class="hidden">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-lg md:text-xl font-bold text-gray-800">👥 จัดการข้อมูลพนักงานทั้งหมด</h2>
-        <button onclick="openForm('add')" class="perm-hide perm-create bg-linePrimary text-white font-bold py-2.5 px-5 rounded-lg shadow-sm hover:bg-blue-600 transition text-sm">
-          ➕ เพิ่มพนักงาน
+      <div class="flex justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <div>
+          <h2 class="text-lg font-bold text-gray-800">📋 รายชื่อพนักงานทั้งหมดในระบบ</h2>
+          <p class="text-xs text-gray-500">จัดการ เพิ่ม ลบ แก้ไข ข้อมูลพนักงานตามมาตรฐานสิทธิ์</p>
+        </div>
+        <button onclick="openForm('add')" class="perm-hide perm-create bg-linePrimary text-white font-bold py-2.5 px-4 rounded-lg shadow-sm hover:bg-blue-600 transition text-sm flex items-center gap-1">
+          <span>➕</span> เพิ่มพนักงาน
         </button>
       </div>
 
-      <!-- Data Table รองรับทั้ง Desktop และ Mobile -->
+      <!-- Responsive Data Table -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden table-container">
-        <table class="w-full text-left text-sm text-gray-600 min-w-[700px]">
+        <table class="w-full text-left text-sm text-gray-600 min-w-[800px]">
             <thead class="bg-gray-50 text-gray-700 border-b">
                 <tr>
-                    <th class="p-4">Emp ID</th>
-                    <th class="p-4">Name</th>
-                    <th class="p-4">Position</th>
-                    <th class="p-4">Status</th>
-                    <th class="p-4">Last Update</th>
-                    <th class="p-4 text-center">Action</th>
+                    <th class="p-3.5">Emp ID</th>
+                    <th class="p-3.5">ชื่อ-นามสกุล</th>
+                    <th class="p-3.5">ตำแหน่ง</th>
+                    <th class="p-3.5">สถานะ (Status)</th>
+                    <th class="p-3.5">แก้ไขล่าสุดโดย</th>
+                    <th class="p-3.5 text-center">จัดการ</th>
                 </tr>
             </thead>
             <tbody id="adminUserList" class="divide-y divide-gray-100"></tbody>
@@ -102,20 +107,22 @@
 
   </main>
 
-  <!-- FORM MODAL (เพิ่ม/แก้ไขข้อมูลพนักงานทุกช่อง พร้อม autocomplete="off") -->
+  <!-- FORM MODAL (CRUD All Columns + autocomplete="off")[cite: 2] -->
   <div id="formModal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-      <div class="bg-white w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-          <div class="bg-linePrimary p-5 text-white font-bold text-lg" id="modalTitle">ฟอร์มพนักงาน</div>
-          
+      <div class="bg-white w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+          <div class="bg-linePrimary p-4 text-white font-bold text-base flex justify-between items-center">
+              <span id="modalTitle">ฟอร์มพนักงาน</span>
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="text-white text-lg">✕</button>
+          </div>
           <div class="p-6 space-y-4 text-sm overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
               <input type="hidden" id="formMode">
-              <div class="md:col-span-2 text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
-                📌 <strong>Audit Info:</strong> <span id="auditInfo">--</span>
+              <div class="md:col-span-2 text-xs bg-gray-50 p-2.5 rounded border border-gray-200 text-gray-600">
+                📌 <b>Audit Trail:</b> <span id="auditInfo">--</span>
               </div>
               
               <div>
                 <label class="block font-bold text-gray-700 mb-1">Emp ID (Primary Key) *</label>
-                <input type="text" id="v_Emp_ID" autocomplete="off" required class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+                <input type="text" id="v_Emp_ID" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
               <div>
                 <label class="block font-bold text-gray-700 mb-1">LINE User ID</label>
@@ -130,7 +137,7 @@
               </div>
               <div>
                 <label class="block font-bold text-gray-700 mb-1">Job Position *</label>
-                <input type="text" id="v_Job_Position" autocomplete="off" required class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
+                <input type="text" id="v_Job_Position" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
               
               <div class="md:col-span-2">
@@ -162,10 +169,9 @@
                 <input type="text" id="v_Emp_BankAccountNo" autocomplete="off" class="w-full border rounded-lg p-2.5 outline-none focus:border-linePrimary">
               </div>
           </div>
-
-          <div class="p-5 border-t flex justify-end space-x-3 bg-gray-50">
-              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-5 py-2.5 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300">ยกเลิก</button>
-              <button onclick="saveUser()" class="px-5 py-2.5 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600">บันทึกข้อมูล</button>
+          <div class="p-4 border-t flex justify-end space-x-3 bg-gray-50">
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300">ยกเลิก</button>
+              <button onclick="saveUser()" class="px-5 py-2 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600">บันทึกข้อมูล</button>
           </div>
       </div>
   </div>
@@ -174,6 +180,11 @@
     let lineProfile = null;
     let allUsersData = [];
     let currentActionEmpId = ""; 
+    
+    // Timer System 60 นาที[cite: 1]
+    let timeoutLimit = 3600; 
+    let timeRemaining = timeoutLimit;
+    let timerInterval;
 
     async function initApp() {
       try {
@@ -185,11 +196,30 @@
           document.getElementById('profile-img').src = lineProfile.pictureUrl;
           document.getElementById('profile-img').classList.remove('hidden');
           
+          startActivityTracker();
           await verifyAccess(lineProfile.userId);
         }
       } catch (err) {
         alert("ไม่สามารถเชื่อมต่อ LINE LIFF ได้");
       }
+    }
+
+    function startActivityTracker() {
+      const resetTimer = () => { timeRemaining = timeoutLimit; };
+      ['mousemove', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => window.addEventListener(evt, resetTimer, { passive: true }));
+
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+        let s = (timeRemaining % 60).toString().padStart(2, '0');
+        document.getElementById('timer-display').textContent = `${m}:${s}`;
+        
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          alert("หมดเวลาการเชื่อมต่อ กรุณาเข้าสู่ระบบใหม่");
+          logoutApp();
+        }
+      }, 1000);
     }
 
     async function verifyAccess(userId) {
@@ -203,7 +233,7 @@
         document.getElementById('loading-screen').classList.add('hidden');
 
         if (!data.allowed) {
-          alert('Access Denied: คุณไม่มีสิทธิ์เข้าใช้งานระบบนี้ หรือยังไม่ได้ลงทะเบียน');
+          alert('Access Denied: คุณไม่มีสิทธิ์เข้าใช้งานระบบจัดการพนักงาน');
           liff.closeWindow();
           return;
         }
@@ -227,7 +257,7 @@
     }
 
     async function loadUsers() {
-      document.getElementById('adminUserList').innerHTML = '<tr><td colspan="6" class="text-center p-6 text-gray-500">กำลังโหลดข้อมูล...</td></tr>';
+      document.getElementById('adminUserList').innerHTML = '<tr><td colspan="6" class="text-center p-6 text-gray-400">กำลังโหลดข้อมูลพนักงาน...</td></tr>';
       const res = await fetch(CENTRAL_API_URL, {
           method: 'POST', body: JSON.stringify({ action: 'getUsers' })
       });
@@ -235,64 +265,58 @@
       allUsersData = result.data;
       
       let html = '';
-      if (!allUsersData || allUsersData.length === 0) {
-        html = '<tr><td colspan="6" class="text-center p-6 text-gray-500">ไม่พบข้อมูลพนักงานในระบบ</td></tr>';
-      } else {
-        allUsersData.forEach(u => {
-            let lastUpdate = u.updateDate ? new Date(u.updateDate).toLocaleString('th-TH') : '-';
-            html += `
-            <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-                <td class="p-4 font-bold text-linePrimary">${u.Emp_ID || '-'}</td>
-                <td class="p-4">${u.Emp_Name || '-'}</td>
-                <td class="p-4"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">${u.Job_Position || '-'}</span></td>
-                <td class="p-4">
-                  <span class="px-2 py-1 rounded text-xs font-bold ${u.Emp_ID_Status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">
-                    ${u.Emp_ID_Status || 'Active'}
-                  </span>
-                </td>
-                <td class="p-4 text-xs text-gray-500">${lastUpdate}<br>By: ${u.updateEmpId || '-'}</td>
-                <td class="p-4 text-center">
-                    <div class="inline-flex items-center gap-2">
-                      <button onclick="openForm('edit', '${u.Emp_ID}')" class="perm-hide perm-edit bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80">แก้ไข</button>
-                      <button onclick="deleteUser('${u.Emp_ID}')" class="perm-hide perm-delete bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80">ลบ</button>
-                    </div>
-                </td>
-            </tr>`;
-        });
-      }
+      allUsersData.forEach(u => {
+          let lastUpdate = u.updateDate ? new Date(u.updateDate).toLocaleString('th-TH') : '-';
+          let statusBadge = u.Emp_ID_Status === 'Active' 
+            ? '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">Active</span>' 
+            : '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold">Inactive</span>';
+
+          html += `
+          <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+              <td class="p-3.5 font-bold text-linePrimary">${u.Emp_ID || '-'}</td>
+              <td class="p-3.5">${u.Emp_Name || '-'}</td>
+              <td class="p-3.5"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">${u.Job_Position || '-'}</span></td>
+              <td class="p-3.5">${statusBadge}</td>
+              <td class="p-3.5 text-xs text-gray-500">${lastUpdate}<br>By: ${u.updateEmpId || '-'}</td>
+              <td class="p-3.5 flex space-x-2 justify-center">
+                  <button onclick="openForm('edit', '${u.Emp_ID}')" class="perm-hide perm-edit bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm">แก้ไข</button>
+                  <button onclick="deleteUser('${u.Emp_ID}')" class="perm-hide perm-delete bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm">ลบ</button>
+              </td>
+          </tr>`;
+      });
       document.getElementById('adminUserList').innerHTML = html;
       
-      // อัปเดตการแสดงผลปุ่มตามสิทธิ์หลัง Render ตาราง
-      const canCreate = !document.querySelector('.perm-create').classList.contains('perm-hide');
-      const canEdit = !document.querySelector('.perm-edit').classList.contains('perm-hide');
-      const canDelete = !document.querySelector('.perm-hide.perm-delete').classList.contains('perm-hide') rescue = true; 
-      applyPermissions({ create: canCreate, edit: canEdit, delete: true });
+      // Re-apply permissions to newly rendered table rows
+      if (document.querySelector('.perm-create')) {
+        const hasCreate = !document.querySelector('.perm-create').classList.contains('perm-hide');
+        applyPermissions({ create: hasCreate, edit: true, delete: true });
+      }
     }
 
     function openForm(mode, empId = null) {
       document.getElementById('formModal').classList.remove('hidden');
       document.getElementById('formMode').value = mode;
-      document.getElementById('modalTitle').textContent = mode === 'add' ? '➕ เพิ่มพนักงาน' : '✏️ แก้ไขพนักงาน';
+      document.getElementById('modalTitle').textContent = mode === 'add' ? '➕ เพิ่มพนักงานใหม่' : '✏️ แก้ไขข้อมูลพนักงาน';
       
       const fields = ['userId', 'Emp_ID', 'Emp_ID_Status', 'Job_Position', 'Emp_Name', 'Emp_Name_Nickname', 'Emp_IDCard_No', 'Emp_BirthDate', 'Emp_Phone_No', 'Emp_BankAccount', 'Emp_BankAccountNo'];
       
       if (mode === 'add') {
           fields.forEach(f => {
             const el = document.getElementById('v_' + f);
-            if(el.tagName === 'SELECT') el.value = 'Active';
-            else el.value = '';
+            if (el) el.value = '';
           });
           document.getElementById('v_Emp_ID').readOnly = false;
-          document.getElementById('auditInfo').textContent = `สร้างรายการใหม่ (ดำเนินการโดย: ${currentActionEmpId})`;
+          document.getElementById('auditInfo').textContent = `สร้างรายการใหม่โดย Admin ID: ${currentActionEmpId}`;
       } else {
           const user = allUsersData.find(u => String(u.Emp_ID) === String(empId));
           fields.forEach(f => {
               let mapKey = f === 'Emp_Name_Nickname' ? 'Emp_Name_&_Nickname' : f;
               let val = user[mapKey] || '';
               if (f === 'Emp_BirthDate' && val) val = new Date(val).toISOString().split('T')[0];
-              document.getElementById('v_' + f).value = val;
+              const el = document.getElementById('v_' + f);
+              if (el) el.value = val;
           });
-          // ล็อค Emp_ID ไม่ให้แก้ไข เนื่องจากใช้เป็น Primary Key
+          // Emp_ID เป็น Primary Key ห้ามแก้ไขขณะ Edit
           document.getElementById('v_Emp_ID').readOnly = true;
           
           let createDate = user.createDate ? new Date(user.createDate).toLocaleString('th-TH') : '-';
@@ -303,9 +327,8 @@
 
     async function saveUser() {
       const empIdVal = document.getElementById('v_Emp_ID').value.trim();
-      const jobPosVal = document.getElementById('v_Job_Position').value.trim();
-      
-      if(!empIdVal || !jobPosVal) {
+      const posVal = document.getElementById('v_Job_Position').value.trim();
+      if (!empIdVal || !posVal) {
         alert("กรุณากรอกข้อมูล Emp ID และ Job Position ให้ครบถ้วน");
         return;
       }
@@ -318,7 +341,7 @@
               userId: document.getElementById('v_userId').value,
               Emp_ID: empIdVal,
               Emp_ID_Status: document.getElementById('v_Emp_ID_Status').value,
-              Job_Position: jobPosVal,
+              Job_Position: posVal,
               Emp_Name: document.getElementById('v_Emp_Name').value,
               "Emp_Name_&_Nickname": document.getElementById('v_Emp_Name_Nickname').value,
               Emp_IDCard_No: document.getElementById('v_Emp_IDCard_No').value,
@@ -329,28 +352,21 @@
           }
       };
       
-      document.getElementById('modalTitle').textContent = 'กำลังบันทึก...';
+      document.getElementById('modalTitle').textContent = 'กำลังบันทึกข้อมูล...';
+      const res = await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const result = await res.json();
       
-      try {
-        const res = await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify(payload) });
-        const result = await res.json();
-        
-        if(result.status === 'success') {
-          document.getElementById('formModal').classList.add('hidden');
-          loadUsers();
-        } else {
-          alert(result.message || "เกิดข้อผิดพลาดในการบันทึก");
-          document.getElementById('modalTitle').textContent = 'ฟอร์มพนักงาน';
-        }
-      } catch(e) {
-        alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+      if (result.status === 'success') {
+        document.getElementById('formModal').classList.add('hidden');
+        loadUsers();
+      } else {
+        alert(result.message || "เกิดข้อผิดพลาดในการบันทึก");
         document.getElementById('modalTitle').textContent = 'ฟอร์มพนักงาน';
       }
     }
 
     async function deleteUser(empId) {
-      if(!confirm("คุณต้องการลบผู้ใช้งานรหัส " + empId + " ถาวรหรือไม่?")) return;
-      
+      if(!confirm("คุณต้องการลบพนักงานรหัส " + empId + " นี้ออกจากระบบอย่างถาวรหรือไม่?")) return;
       const res = await fetch(CENTRAL_API_URL, {
           method: 'POST', body: JSON.stringify({ action: 'manageUser', mode: 'delete', user: { Emp_ID: empId } })
       });
@@ -360,12 +376,6 @@
       } else {
         alert(result.message);
       }
-    }
-
-    function goHome(e) {
-      e.preventDefault();
-      // สามารถปรับเปลี่ยน URL ปลายทางของหน้าหลักได้ตามต้องการ
-      window.location.reload();
     }
 
     function logoutApp() {
