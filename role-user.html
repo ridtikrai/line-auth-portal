@@ -52,7 +52,7 @@
         <img id="profile-img" src="" alt="Profile" class="h-10 w-10 rounded-full border-2 border-white hidden object-cover shadow-sm flex-shrink-0">
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
-            <h1 id="menu-title" class="text-base font-bold tracking-wide leading-tight">บริหารจัดการระบบ</h1>
+            <h1 id="menu-title" class="text-base font-bold tracking-wide leading-tight">สิทธิ์ผู้ใช้งาน</h1>
             <button onclick="goToHome()" class="text-[10px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded text-white transition font-medium flex-shrink-0">หน้าหลัก</button>
           </div>
           <p id="user-info" class="text-[11px] opacity-90 truncate">กำลังตรวจสอบ...</p>
@@ -276,6 +276,10 @@
       if(result.status === 'success'){
         allMenus = result.menus;
         allRoles = result.roles;
+
+        // เพิ่มการเรียงลำดับ (Sort) allRoles ตาม menuId จากน้อยไปหามาก
+        allRoles.sort((a, b) => String(a.menuId).localeCompare(String(b.menuId), undefined, { numeric: true }));
+
         renderData();
       }
     }
