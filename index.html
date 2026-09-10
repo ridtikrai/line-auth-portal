@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
+  <!-- LINE Template Colors[cite: 1] -->
   <script>
     tailwind.config = {
       theme: {
@@ -28,86 +29,62 @@
   <header class="bg-gradient-to-r from-linePrimary to-blue-700 text-white shadow-md sticky top-0 z-50">
     <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <img id="profile-img" src="https://via.placeholder.com/40" alt="Profile" class="h-9 w-9 rounded-full border border-white hidden object-cover">
+        <img id="profile-img" src="https://via.placeholder.com/40" alt="Profile" class="h-10 w-10 rounded-full border-2 border-white hidden object-cover shadow-sm">
         <div>
-          <h1 class="text-base font-bold tracking-wide leading-tight">Portal System</h1>
-          <p id="user-info" class="text-[11px] opacity-90">กำลังตรวจสอบ...</p>
+          <h1 class="text-base font-bold tracking-wide">Portal System</h1>
+          <p id="user-info" class="text-xs opacity-90">กำลังเชื่อมต่อ...</p>
         </div>
       </div>
       
-      <div class="flex items-center gap-4">
-        <div class="text-right hidden sm:block">
-          <div class="text-[10px] opacity-80 uppercase tracking-wider">Timeout in</div>
-          <div id="timer-display" class="font-mono text-sm font-bold">60:00</div>
-        </div>
-        <!-- TimeOut Mobile -->
-        <div id="timer-display-mobile" class="sm:hidden font-mono text-xs font-bold bg-black/20 px-2 py-1 rounded">60:00</div>
-        <!-- Classic Logout -->
-        <button onclick="logoutApp()" class="text-xs md:text-sm font-medium hover:underline flex items-center gap-1">
-          ออกจากระบบ
+      <div class="flex flex-col items-end gap-1">
+        <button onclick="logoutApp()" class="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded border border-white/30 transition flex items-center gap-1 shadow-sm">
+          <span>ออกจากระบบ</span>
         </button>
+        <div class="text-[10px] opacity-90 flex items-center gap-1 mt-1 bg-black/10 px-2 py-0.5 rounded">
+          <span>⏱️</span>
+          <span id="timer-display" class="font-mono font-bold tracking-wider">60:00</span>
+        </div>
       </div>
     </div>
   </header>
 
   <main class="max-w-4xl mx-auto p-4 flex-grow w-full">
     
+    <!-- 1. Loading -->
     <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
       <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-linePrimary mb-4"></div>
-      <p class="text-lineDarkGray text-sm">กำลังโหลดข้อมูลระบบ...</p>
+      <p class="text-lineDarkGray text-sm font-medium">กำลังโหลดเมนูระบบ...</p>
     </div>
 
-    <!-- Verify Phone -->
-    <div id="register-screen" class="hidden max-w-md mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <h2 class="text-xl font-bold mb-2">ลงทะเบียนใช้งาน</h2>
-      <p class="text-sm text-lineDarkGray mb-5">กรุณากรอกเบอร์โทรศัพท์เพื่อยืนยันตัวตน</p>
-      <form id="phone-form" class="space-y-4">
-        <div>
-          <input type="text" id="phone-input" maxlength="10" required
-            class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-linePrimary"
-            placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        </div>
-        <button type="submit" class="w-full bg-linePrimary text-white font-bold py-3.5 rounded-lg hover:bg-blue-700 transition">
-          ตรวจสอบข้อมูล
-        </button>
-      </form>
-    </div>
-
-    <!-- Copy ID (For Admin) -->
-    <div id="copy-screen" class="hidden max-w-md mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
-      <div class="text-4xl mb-3">📱</div>
-      <h2 class="text-lg font-bold mb-2">ยืนยันเบอร์โทรสำเร็จ</h2>
-      <p class="text-sm text-lineDarkGray mb-4">คัดลอกรหัสอ้างอิงส่งให้ Admin เพื่อเปิดสิทธิ์</p>
-      <div class="bg-gray-100 p-3 rounded-lg mb-4 font-mono text-xs break-all border border-gray-200" id="display-userid"></div>
-      <button onclick="copyUserId()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 transition">
-        คัดลอกรหัส
-      </button>
-    </div>
-
-    <div id="error-screen" class="hidden max-w-md mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+    <!-- 2. Error Screen -->
+    <div id="error-screen" class="hidden max-w-md mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
       <div class="text-4xl mb-3 text-red-500">⚠️</div>
       <h2 id="error-title" class="text-lg font-bold mb-2">ข้อผิดพลาด</h2>
       <p id="error-message" class="text-sm text-lineDarkGray mb-5">-</p>
-      <button onclick="showScreen('register-screen')" class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg transition">
-        กลับไปกรอกเบอร์โทรใหม่
+      <button onclick="liff.closeWindow()" class="w-full bg-gray-200 text-gray-700 font-bold py-3.5 rounded-lg transition">
+        ปิดหน้าต่าง
       </button>
     </div>
 
-    <!-- Dashboard -->
-    <div id="dashboard-screen" class="hidden space-y-6">
-      <div id="menu-container" class="space-y-8"></div>
+    <!-- 3. Dashboard Groups -->
+    <div id="dashboard-screen" class="hidden space-y-8 pb-10">
+      <div id="menu-container" class="space-y-6"></div>
     </div>
 
   </main>
 
   <script>
+    // ==========================================
+    // Configuration
+    // ==========================================
     const LIFF_ID = "2011487100-dldPQItq";
     const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzDpOrouurlO_Wlr5RikWVYf8gAmQcN-TTC8yIk7nKLLEvwjYRio5utMrEdxUm4m5Ia/exec"; // วาง URL Web App ของคุณ
+    const CURRENT_MENU_ID = "DASHBOARD"; // ประกาศไว้ตามกฎ แม้หน้าหลักจะดึงทั้งหมด
     
     let lineProfile = null;
     let clientInfo = { ip: "Unknown", location: "Unknown", device: navigator.userAgent };
     
-    // TimeOut 60 นาที (3600 วินาที)
+    // Auto TimeOut 60 นาที (3600 วินาที)
     let timeoutLimit = 3600; 
     let timeRemaining = timeoutLimit;
     let timerInterval;
@@ -133,34 +110,33 @@
       }
     }
 
-    // ฟังก์ชันรีเซ็ตเวลาและส่ง Keep Alive อัปเดต lastLogin ในพื้นหลัง
+    // ระบบจับเวลา TimeOut และต่ออายุ lastLogin
     function startActivityTracker() {
       const resetTimer = () => { timeRemaining = timeoutLimit; };
       
-      // ดักจับการเคลื่อนไหวเพื่อรีเซ็ต Timer หน้าจอ
-      ['mousemove', 'keydown', 'touchstart', 'scroll'].forEach(evt => 
+      // ดักจับ Activity ทุกรูปแบบเพื่อ Reset TimeOut
+      ['mousemove', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => 
         window.addEventListener(evt, resetTimer, { passive: true })
       );
 
-      // นับถอยหลัง UI
+      // UI Timer
       timerInterval = setInterval(() => {
         timeRemaining--;
         let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
         let s = (timeRemaining % 60).toString().padStart(2, '0');
         document.getElementById('timer-display').textContent = `${m}:${s}`;
-        document.getElementById('timer-display-mobile').textContent = `${m}:${s}`;
         
         if (timeRemaining <= 0) {
           clearInterval(timerInterval);
           clearInterval(keepAliveInterval);
-          alert("หมดเวลาการเชื่อมต่อ (60 นาที) กรุณาเข้าสู่ระบบใหม่");
+          alert("หมดเวลาการเชื่อมต่อ (60 นาที) เพื่อความปลอดภัย กรุณาเข้าสู่ระบบใหม่");
           logoutApp();
         }
       }, 1000);
 
-      // ส่งสัญญาณไป GAS ทุกๆ 15 นาที เพื่ออัปเดต lastLogin หากผู้ใช้ยังใช้งานอยู่
+      // ส่งสัญญาณ Keep Alive ไปอัปเดต lastLogin ทุกๆ 15 นาที หากมีการใช้งาน
       keepAliveInterval = setInterval(() => {
-        if (timeRemaining > 300) { // ถ้ายังมีการใช้งานจริง
+        if (timeRemaining > 300) { 
           fetch(CENTRAL_API_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'keepAlive', userId: lineProfile.userId })
@@ -169,6 +145,7 @@
       }, 15 * 60 * 1000); 
     }
 
+    // ดึง IP / Location สำหรับ พ.ร.บ. คอมพิวเตอร์
     async function fetchClientInfo() {
       try {
         const res = await fetch('https://ipapi.co/json/');
@@ -186,8 +163,9 @@
         const response = await fetch(CENTRAL_API_URL, {
           method: 'POST',
           body: JSON.stringify({ 
-            action: 'getDashboard', 
+            action: 'verifyAccess', 
             userId: lineProfile.userId,
+            menuId: CURRENT_MENU_ID,
             profile: lineProfile,
             clientInfo: clientInfo
           })
@@ -196,8 +174,7 @@
         const data = await response.json();
 
         if (data.status === 'not_registered') {
-          showScreen('register-screen');
-          document.getElementById('user-info').textContent = 'Please Verify';
+          showError("ไม่พบข้อมูลผู้ใช้งาน", "กรุณาติดต่อ Admin เพื่อลงทะเบียน");
         } else if (data.status === 'success') {
           renderDashboard(data);
         } else {
@@ -208,70 +185,35 @@
       }
     }
 
-    document.getElementById('phone-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const phoneInput = document.getElementById('phone-input').value;
-      if (phoneInput.length !== 10) return alert("กรุณากรอกเบอร์โทรศัพท์ 10 หลัก");
-
-      showScreen('loading-screen');
-      try {
-        const response = await fetch(CENTRAL_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ 
-            action: 'registerPhone', 
-            userId: lineProfile.userId, 
-            phone: phoneInput,
-            profile: lineProfile,
-            clientInfo: clientInfo 
-          })
-        });
-        
-        const data = await response.json();
-        if (data.status === 'show_userid') {
-          showScreen('copy-screen');
-          document.getElementById('display-userid').textContent = data.lineUserId;
-        } else {
-          showError("ตรวจสอบไม่สำเร็จ", data.message);
-        }
-      } catch (error) {
-        showError("การตรวจสอบล้มเหลว", "โปรดลองอีกครั้ง");
-      }
-    });
-
-    function copyUserId() {
-      navigator.clipboard.writeText(lineProfile.userId).then(() => {
-        alert("คัดลอกรหัสสำเร็จ นำส่ง Admin ได้เลยครับ");
-      });
-    }
-
+    // ฟังก์ชัน Render เมนู (grid-cols-3 บนมือถือ)
     function renderDashboard(data) {
       showScreen('dashboard-screen');
-      document.getElementById('user-info').textContent = `${data.jobPosition}`;
+      document.getElementById('user-info').textContent = `${lineProfile.displayName} | ตำแหน่ง: ${data.jobPosition}`;
       
       const container = document.getElementById('menu-container');
       container.innerHTML = '';
 
       if (!data.menuGroups || data.menuGroups.length === 0) {
-        container.innerHTML = `<div class="bg-white p-6 rounded-lg text-lineDarkGray text-center border shadow-sm">คุณไม่มีสิทธิ์เข้าถึงเมนูใดๆ</div>`;
+        container.innerHTML = `<div class="bg-white p-6 rounded-lg text-lineDarkGray text-center border shadow-sm">คุณยังไม่มีสิทธิ์เข้าถึงเมนูใดๆ</div>`;
         return;
       }
 
       data.menuGroups.forEach(group => {
         const groupSection = document.createElement('div');
         
-        // ออกแบบให้แสดงอย่างน้อย 3 เมนูต่อแถวบนมือถือ (grid-cols-3)
+        // จัดการ Grid อย่างน้อย 3 คอลัมน์บนมือถือ[cite: 1] และ 4-5 บนจอใหญ่
         const menusHtml = group.menus.map(menu => `
-          <a href="${menu.menuUrl}" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-linePrimary transition min-h-[90px]">
-            <div class="bg-blue-50 text-linePrimary p-2 rounded-full mb-2">
-              <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+          <a href="${menu.menuUrl}" class="flex flex-col items-center justify-start p-3 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-linePrimary transition h-full active:scale-95">
+            <div class="bg-blue-50 text-linePrimary p-2.5 rounded-full mb-2.5">
+              <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             </div>
-            <h3 class="text-[11px] sm:text-xs font-bold text-gray-800 text-center leading-tight line-clamp-2">${menu.menuName}</h3>
+            <h3 class="text-[11px] sm:text-xs font-bold text-gray-800 text-center leading-tight line-clamp-2 w-full">${menu.menuName}</h3>
           </a>
         `).join('');
 
         groupSection.innerHTML = `
-          <h2 class="text-xs font-bold text-lineDarkGray uppercase mb-3 pl-2 tracking-wider border-l-4 border-linePrimary leading-none">${group.groupName}</h2>
-          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-4">
+          <h2 class="text-sm font-bold text-linePrimary mb-3 tracking-wide pl-1 border-l-4 border-linePrimary leading-none">#${group.groupName}</h2>
+          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 sm:gap-4">
               ${menusHtml}
           </div>
         `;
@@ -280,7 +222,7 @@
     }
 
     function showScreen(id) {
-      ['loading-screen', 'register-screen', 'error-screen', 'dashboard-screen', 'copy-screen'].forEach(s => {
+      ['loading-screen', 'error-screen', 'dashboard-screen'].forEach(s => {
         document.getElementById(s).classList.add('hidden');
       });
       document.getElementById(id).classList.remove('hidden');
