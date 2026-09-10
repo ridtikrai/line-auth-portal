@@ -1,198 +1,275 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Centralized Auth</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- LINE LIFF SDK -->
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <!-- กำหนดสีตาม LINE Template Design Standards -->
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              linePrimary: '#0084FF',
-              lineLightBg: '#F7F7F7',
-              lineDarkGray: '#6C757D'
-            }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centralized Dashboard</title>
+  
+  <!-- Tailwind CSS & LINE LIFF SDK -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+  <!-- LINE Template Colors Configuration[cite: 1] -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            linePrimary: '#0084FF',
+            lineSuccess: '#17C950',
+            lineDanger: '#FF4458',
+            lineLightBg: '#F7F7F7',
+            lineDarkGray: '#6C757D'
           }
         }
       }
-    </script>
+    }
+  </script>
 </head>
-<body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
+<body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen">
 
-    <!-- Header Section -->
-    <header class="bg-gradient-to-r from-linePrimary to-blue-600 text-white p-6 shadow-md">
-        <div class="max-w-3xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold tracking-wide">👋 Welcome</h1>
-                <p id="user-info" class="text-sm opacity-90 mt-1">กำลังโหลดข้อมูล...</p>
-            </div>
-            <!-- Profile Image (ดึงจาก LIFF) -->
-            <img id="profile-img" src="" alt="Profile" class="h-12 w-12 rounded-full border-2 border-white hidden">
-        </div>
-    </header>
+  <!-- Header (LINE Template Style) -->
+  <header class="bg-gradient-to-r from-linePrimary to-blue-600 text-white p-5 shadow-md sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold tracking-wide">👋 Welcome</h1>
+        <p id="user-info" class="text-xs opacity-90 mt-1">กำลังเชื่อมต่อระบบ...</p>
+      </div>
+      <img id="profile-img" src="" alt="Profile" class="h-10 w-10 rounded-full border-2 border-white hidden">
+    </div>
+  </header>
 
-    <!-- Main Content -->
-    <main class="flex-grow w-full max-w-3xl mx-auto p-4 mt-2">
+  <main class="max-w-4xl mx-auto p-4 mt-2">
+    
+    <!-- 1. Loading Screen -->
+    <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-linePrimary mb-4"></div>
+      <p class="text-lineDarkGray font-medium text-sm">กำลังตรวจสอบสิทธิ์...</p>
+    </div>
+
+    <!-- 2. Registration Page (Mobile-First Layout)[cite: 1] -->
+    <div id="register-screen" class="hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-md mx-auto">
+        <h2 class="text-xl font-bold text-gray-800 mb-2">ลงทะเบียนเข้าใช้งาน</h2>
+        <p class="text-sm text-lineDarkGray mb-6">กรุณายืนยันตัวตนด้วยเบอร์โทรศัพท์ที่ลงทะเบียนไว้</p>
         
-        <!-- Loading State -->
-        <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
-            <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-linePrimary mb-4"></div>
-            <p class="text-lineDarkGray font-medium">กำลังตรวจสอบสิทธิ์...</p>
-        </div>
+        <form id="phone-form" class="space-y-5">
+          <div class="flex flex-col space-y-1">
+            <label class="text-sm font-bold text-lineDarkGray">เบอร์โทรศัพท์มือถือ (10 หลัก)</label>
+            <input type="text" id="phone-input" maxlength="10" required
+              class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-linePrimary focus:ring-1 focus:ring-linePrimary text-lg"
+              placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+          </div>
+          <!-- Touch-Friendly Button (min 44x44px)[cite: 1] -->
+          <button type="submit" class="w-full bg-linePrimary text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition">
+            ยืนยันลงทะเบียน
+          </button>
+        </form>
+      </div>
+    </div>
 
-        <!-- Error State -->
-        <div id="error-screen" class="hidden bg-white rounded-lg shadow-sm border p-6 text-center">
-            <div class="text-4xl mb-4 text-red-500">⛔</div>
-            <h2 class="text-xl font-bold text-gray-800 mb-2">ปฏิเสธการเข้าถึง</h2>
-            <p id="error-message" class="text-lineDarkGray mb-6">คุณไม่มีสิทธิ์เข้าใช้งานระบบนี้</p>
-        </div>
+    <!-- 3. Error Screen -->
+    <div id="error-screen" class="hidden bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center max-w-md mx-auto">
+      <div class="text-5xl mb-4 text-lineDanger">⛔</div>
+      <h2 class="text-xl font-bold text-gray-800 mb-2">พบข้อผิดพลาด</h2>
+      <p id="error-message" class="text-lineDarkGray mb-6">เกิดข้อผิดพลาดบางอย่าง</p>
+      <button onclick="liff.closeWindow()" class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-300 transition">
+        ปิดหน้าต่าง
+      </button>
+    </div>
 
-        <!-- Dashboard Menu (Grouped) -->
-        <div id="dashboard-screen" class="hidden space-y-6">
-            <div id="menu-container">
-                <!-- ข้อมูลกลุ่มเมนูจะถูก Render ที่นี่ผ่าน JavaScript -->
-            </div>
-        </div>
+    <!-- 4. Dashboard Main Screen -->
+    <div id="dashboard-screen" class="hidden space-y-6">
+      <div id="menu-container">
+        <!-- เมนูจะถูกสร้างอัตโนมัติจาก JavaScript -->
+      </div>
+      
+      <button onclick="logoutApp()" class="w-full mt-6 bg-white text-lineDanger font-bold py-4 rounded-lg border border-red-100 shadow-sm hover:bg-red-50 transition">
+        ออกจากระบบ (Logout)
+      </button>
+    </div>
 
-    </main>
+  </main>
 
-    <!-- Footer -->
-    <footer class="text-center p-6 text-lineDarkGray text-sm">
-        <p>Centralized Authentication System</p>
-        <button onclick="liff.logout(); window.location.reload();" class="mt-4 text-red-500 hover:underline">
-            ออกจากระบบ
-        </button>
-    </footer>
+  <script>
+    // ==========================================
+    // ตัวแปรตั้งค่าระบบหลัก
+    // ==========================================
+    const LIFF_ID = "2011487100-dldPQItq";
+    const CENTRAL_API_URL = "https://script.google.com/macros/library/d/1xjyj9u7w6BElbWr--PeoY4WYB1M4fdmXIzsTfUJvDJIBN_ZY-IYYD-1y/6"; // วาง URL Web App ของคุณ
+    
+    let lineProfile = null;
+    let clientInfo = { ip: "Unknown", location: "Unknown", device: "Unknown" };
 
-    <script>
-        // ==========================================
-        // ตัวแปรการตั้งค่าระบบ (Configuration)
-        // ==========================================
-        const LIFF_ID = "2011487100-dldPQItq";
-        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzDpOrouurlO_Wlr5RikWVYf8gAmQcN-TTC8yIk7nKLLEvwjYRio5utMrEdxUm4m5Ia/exec"; // วาง URL Web App ของคุณที่นี่
-        // นำ CURRENT_MENU_ID ออกตามคำขอ เพราะหน้านี้คือ Dashboard หลัก
+    // ==========================================
+    // 1. Initialize App
+    // ==========================================
+    async function initApp() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
         
-        let lineProfile = null;
-
-        // ==========================================
-        // 1. Initialize LIFF
-        // ==========================================
-        async function initApp() {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                } else {
-                    lineProfile = await liff.getProfile();
-                    
-                    // แสดงรูปโปรไฟล์ LINE
-                    const profileImg = document.getElementById('profile-img');
-                    profileImg.src = lineProfile.pictureUrl;
-                    profileImg.classList.remove('hidden');
-                    
-                    await verifyAccess();
-                }
-            } catch (err) {
-                showError("เกิดข้อผิดพลาดในการเชื่อมต่อระบบ LINE");
-                console.error(err);
-            }
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          lineProfile = await liff.getProfile();
+          
+          // แสดงรูปโปรไฟล์
+          const profileImg = document.getElementById('profile-img');
+          profileImg.src = lineProfile.pictureUrl;
+          profileImg.classList.remove('hidden');
+          
+          await fetchClientInfo(); // ดึงข้อมูล IP/Device สำหรับ Log
+          await loadDashboard();
         }
+      } catch (err) {
+        showError("เกิดข้อผิดพลาดในการเชื่อมต่อระบบ LINE");
+      }
+    }
 
-        // ==========================================
-        // 2. ตรวจสอบสิทธิ์ (Verify Access)
-        // ==========================================
-        async function verifyAccess() {
-            try {
-                // ส่ง POST แบบ plain/text เพื่อเลี่ยง CORS preflight ฝั่ง GAS
-                const response = await fetch(CENTRAL_API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                        action: 'verifyAccess', 
-                        userId: lineProfile.userId 
-                    })
-                });
-                
-                const data = await response.json();
-
-                if (data.status === 'success' && data.allowed) {
-                    renderDashboard(data);
-                } else {
-                    showError(data.message || "ไม่พบข้อมูลผู้ใช้งาน หรือบัญชีถูกระงับ");
-                }
-            } catch (error) {
-                showError("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
-            }
+    // ==========================================
+    // 2. ดึงข้อมูล Client สำหรับบันทึก Log (พรบ.คอม)
+    // ==========================================
+    async function fetchClientInfo() {
+      clientInfo.device = navigator.userAgent;
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (res.ok) {
+          const data = await res.json();
+          clientInfo.ip = data.ip;
+          clientInfo.location = `${data.city}, ${data.country_name}`;
         }
+      } catch (e) {
+        console.warn("ไม่สามารถดึง IP ได้");
+      }
+    }
 
-        // ==========================================
-        // 3. จัดการ DOM แสดงกลุ่มเมนู (LINE Template Concept)
-        // ==========================================
-        function renderDashboard(data) {
-            showScreen('dashboard-screen');
-            
-            // อัปเดตข้อมูลผู้ใช้งานบน Header
-            document.getElementById('user-info').textContent = `${lineProfile.displayName} | ตำแหน่ง: ${data.jobPosition}`;
-            
-            const container = document.getElementById('menu-container');
-            container.innerHTML = '';
+    // ==========================================
+    // 3. โหลดหน้า Dashboard
+    // ==========================================
+    async function loadDashboard() {
+      showScreen('loading-screen');
+      try {
+        const response = await fetch(CENTRAL_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ 
+            action: 'getDashboard', 
+            userId: lineProfile.userId,
+            clientInfo: clientInfo
+          })
+        });
+        
+        const data = await response.json();
 
-            if (!data.menuGroups || data.menuGroups.length === 0) {
-                container.innerHTML = `<div class="bg-yellow-50 p-4 rounded text-yellow-700 text-center">คุณยังไม่ได้รับสิทธิ์ให้เข้าถึงเมนูใดๆ</div>`;
-                return;
-            }
-
-            // สร้าง UI กลุ่มเมนูตาม LINE Template Design (Responsive)
-            data.menuGroups.forEach(group => {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = "mb-6";
-                
-                // สร้าง HTML สำหรับแต่ละเมนูในการ์ด
-                const menusHtml = group.menus.map(menu => `
-                    <a href="${menu.menuUrl}" class="flex items-center p-4 border-b border-gray-100 hover:bg-gray-50 transition duration-200">
-                        <div class="bg-blue-50 text-linePrimary p-2 rounded-lg mr-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        </div>
-                        <div class="flex-grow">
-                            <h3 class="text-sm font-bold text-gray-800">${menu.menuName}</h3>
-                        </div>
-                        <div class="text-gray-300">›</div>
-                    </a>
-                `).join('');
-
-                groupDiv.innerHTML = `
-                    <h2 class="text-xs font-bold text-lineDarkGray uppercase mb-3 pl-2 tracking-wider">${group.groupName}</h2>
-                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-                        ${menusHtml}
-                    </div>
-                `;
-                container.appendChild(groupDiv);
-            });
+        if (data.status === 'not_registered') {
+          showScreen('register-screen');
+          document.getElementById('user-info').textContent = 'Please register account';
+        } else if (data.status === 'success') {
+          renderDashboard(data);
+        } else {
+          showError(data.message || "เกิดข้อผิดพลาดในระบบ");
         }
+      } catch (error) {
+        showError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+      }
+    }
 
-        // ==========================================
-        // 4. Utilities
-        // ==========================================
-        function showScreen(screenId) {
-            ['loading-screen', 'error-screen', 'dashboard-screen'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(screenId).classList.remove('hidden');
+    // ==========================================
+    // 4. จัดการฟอร์มลงทะเบียนเบอร์โทรศัพท์
+    // ==========================================
+    document.getElementById('phone-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const phoneInput = document.getElementById('phone-input').value;
+      
+      if (phoneInput.length !== 10) return alert("กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
+
+      showScreen('loading-screen');
+      try {
+        const response = await fetch(CENTRAL_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ 
+            action: 'registerPhone', 
+            userId: lineProfile.userId, 
+            phone: phoneInput,
+            clientInfo: clientInfo 
+          })
+        });
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+          await loadDashboard(); // โหลดแดชบอร์ดใหม่เมื่อลงทะเบียนสำเร็จ
+        } else {
+          showError(data.message);
         }
+      } catch (error) {
+        showError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      }
+    });
 
-        function showError(message) {
-            document.getElementById('error-message').textContent = message;
-            showScreen('error-screen');
-        }
+    // ==========================================
+    // 5. Render เมนูแดชบอร์ด
+    // ==========================================
+    function renderDashboard(data) {
+      showScreen('dashboard-screen');
+      document.getElementById('user-info').textContent = `${lineProfile.displayName} | ${data.jobPosition}`;
+      
+      const container = document.getElementById('menu-container');
+      container.innerHTML = '';
 
-        // เริ่มแอปพลิเคชันเมื่อโหลด DOM เสร็จ
-        window.onload = initApp;
-    </script>
+      if (!data.menuGroups || data.menuGroups.length === 0) {
+        container.innerHTML = `<div class="bg-white p-6 rounded-lg text-lineDarkGray text-center border shadow-sm">คุณยังไม่มีสิทธิ์เข้าถึงเมนูใดๆ</div>`;
+        return;
+      }
+
+      // Responsive Grid: 1 column on Mobile, 2-3 on Desktop[cite: 1]
+      data.menuGroups.forEach(group => {
+        const groupSection = document.createElement('div');
+        groupSection.className = "mb-6";
+        
+        const menusHtml = group.menus.map(menu => `
+          <a href="${menu.menuUrl}" class="flex items-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-linePrimary transition duration-200">
+            <div class="bg-blue-50 text-linePrimary p-3 rounded-lg mr-4 flex-shrink-0">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <div class="flex-grow">
+              <h3 class="text-sm font-bold text-gray-800">${menu.menuName}</h3>
+            </div>
+            <div class="text-gray-300 ml-2">›</div>
+          </a>
+        `).join('');
+
+        groupSection.innerHTML = `
+          <h2 class="text-xs font-bold text-lineDarkGray uppercase mb-3 pl-1 tracking-wider border-l-4 border-linePrimary leading-none ml-1">${group.groupName}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              ${menusHtml}
+          </div>
+        `;
+        container.appendChild(groupSection);
+      });
+    }
+
+    // ==========================================
+    // Utility Functions
+    // ==========================================
+    function showScreen(id) {
+      ['loading-screen', 'register-screen', 'error-screen', 'dashboard-screen'].forEach(s => {
+        document.getElementById(s).classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function showError(message) {
+      document.getElementById('error-message').textContent = message;
+      showScreen('error-screen');
+    }
+
+    function logoutApp() {
+      if (liff.isLoggedIn()) {
+        liff.logout();
+        window.location.reload();
+      }
+    }
+
+    window.onload = initApp;
+  </script>
 </body>
 </html>
