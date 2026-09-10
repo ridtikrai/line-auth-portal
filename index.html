@@ -9,7 +9,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <!-- LINE Template Colors Configuration[cite: 1] -->
+  <!-- LINE Template Colors Configuration -->
   <script>
     tailwind.config = {
       theme: {
@@ -28,7 +28,7 @@
 </head>
 <body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen">
 
-  <!-- Header Section -->
+  <!-- Header (LINE Template Style) -->
   <header class="bg-gradient-to-r from-linePrimary to-blue-600 text-white p-5 shadow-md sticky top-0 z-50">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <div>
@@ -47,7 +47,7 @@
       <p class="text-lineDarkGray font-medium text-sm">กำลังตรวจสอบสิทธิ์...</p>
     </div>
 
-    <!-- 2. Registration Page[cite: 1] -->
+    <!-- 2. Registration Page (Mobile-First Layout) -->
     <div id="register-screen" class="hidden">
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-md mx-auto">
         <h2 class="text-xl font-bold text-gray-800 mb-2">ลงทะเบียนเข้าใช้งาน</h2>
@@ -60,7 +60,7 @@
               class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-linePrimary focus:ring-1 focus:ring-linePrimary text-lg"
               placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
           </div>
-          <!-- Touch-Friendly Button (min 44x44px)[cite: 1] -->
+          <!-- Touch-Friendly Button (min 44x44px) -->
           <button type="submit" class="w-full bg-linePrimary text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition">
             ยืนยันลงทะเบียน
           </button>
@@ -72,10 +72,8 @@
     <div id="error-screen" class="hidden bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center max-w-md mx-auto">
       <div class="text-5xl mb-4 text-lineDanger">⛔</div>
       <h2 class="text-xl font-bold text-gray-800 mb-2">พบข้อผิดพลาด</h2>
-      <p id="error-message" class="text-lineDarkGray mb-6">คุณไม่มีสิทธิ์เข้าใช้งานเมนูนี้</p>
-      
-      <!-- ปุ่มที่แก้ไขระบบตรวจสอบ in-app browser แล้ว -->
-      <button onclick="closeApp()" class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-300 transition">
+      <p id="error-message" class="text-lineDarkGray mb-6">เกิดข้อผิดพลาดบางอย่าง</p>
+      <button onclick="liff.closeWindow()" class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-300 transition">
         ปิดหน้าต่าง
       </button>
     </div>
@@ -120,7 +118,7 @@
           profileImg.src = lineProfile.pictureUrl;
           profileImg.classList.remove('hidden');
           
-          await fetchClientInfo(); 
+          await fetchClientInfo(); // ดึงข้อมูล IP/Device สำหรับ Log
           await loadDashboard();
         }
       } catch (err) {
@@ -141,12 +139,12 @@
           clientInfo.location = `${data.city}, ${data.country_name}`;
         }
       } catch (e) {
-        console.warn("ไม่สามารถดึงข้อมูลเครือข่ายได้");
+        console.warn("ไม่สามารถดึง IP ได้");
       }
     }
 
     // ==========================================
-    // 3. โหลดหน้า Dashboard (ตรวจสอบสิทธิ์)
+    // 3. โหลดหน้า Dashboard
     // ==========================================
     async function loadDashboard() {
       showScreen('loading-screen');
@@ -164,7 +162,7 @@
 
         if (data.status === 'not_registered') {
           showScreen('register-screen');
-          document.getElementById('user-info').textContent = 'กรุณาลงทะเบียน';
+          document.getElementById('user-info').textContent = 'Please register account';
         } else if (data.status === 'success') {
           renderDashboard(data);
         } else {
@@ -198,7 +196,7 @@
         
         const data = await response.json();
         if (data.status === 'success') {
-          await loadDashboard(); 
+          await loadDashboard(); // โหลดแดชบอร์ดใหม่เมื่อลงทะเบียนสำเร็จ
         } else {
           showError(data.message);
         }
@@ -208,7 +206,7 @@
     });
 
     // ==========================================
-    // 5. Render เมนูแดชบอร์ดตามกลุ่ม
+    // 5. Render เมนูแดชบอร์ด
     // ==========================================
     function renderDashboard(data) {
       showScreen('dashboard-screen');
@@ -222,7 +220,7 @@
         return;
       }
 
-      // วางโครงสร้างแบบ Grid[cite: 1]
+      // Responsive Grid Layout
       data.menuGroups.forEach(group => {
         const groupSection = document.createElement('div');
         groupSection.className = "mb-6";
@@ -250,7 +248,7 @@
     }
 
     // ==========================================
-    // 6. Utility Functions & แก้ไขปุ่มปิดหน้าต่าง
+    // Utility Functions
     // ==========================================
     function showScreen(id) {
       ['loading-screen', 'register-screen', 'error-screen', 'dashboard-screen'].forEach(s => {
@@ -262,15 +260,6 @@
     function showError(message) {
       document.getElementById('error-message').textContent = message;
       showScreen('error-screen');
-    }
-
-    // ✅ ฟังก์ชันปิดแอปที่รองรับการใช้งานผ่านเบราว์เซอร์ภายนอก
-    function closeApp() {
-      if (liff.isInClient()) {
-        liff.closeWindow(); // ทำงานเมื่อเปิดผ่านแอป LINE
-      } else {
-        alert("เนื่องจากคุณเปิดใช้งานผ่านเบราว์เซอร์ภายนอก กรุณากดปิดแท็บเบราว์เซอร์นี้ด้วยตนเองครับ");
-      }
     }
 
     function logoutApp() {
