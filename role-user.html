@@ -30,14 +30,16 @@
     .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .tab-active { border-bottom-width: 2px; border-color: #0084FF; color: #0084FF; font-weight: bold; }
     .tab-inactive { color: #6C757D; font-weight: 500; }
+    .group-row { background-color: #f0f7ff; font-weight: bold; }
+    .group-row-expand { cursor: pointer; user-select: none; }
+    .group-row-expand:hover { background-color: #e6f2ff; }
+    .sub-row { background-color: #fff; }
+    .sub-row:hover { background-color: #f9f9f9; }
   </style>
 </head>
 <body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
 
   <script>
-    // ==========================================
-    // Configuration (แก้ API URL ตรงนี้)
-    // ==========================================
     const LIFF_ID = "2011487100-dldPQItq";
     const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbwT92lC6xrr0MuDUNdjJKjL_jvkMZb7AjbOmA81uWKONXOf9dG2U-_6Y8qqW8bGsvoY/exec";
     const CURRENT_MENU_ID = "902";
@@ -50,7 +52,7 @@
         <img id="profile-img" src="" alt="Profile" class="h-10 w-10 rounded-full border-2 border-white hidden object-cover shadow-sm flex-shrink-0">
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
-            <h1 id="menu-title" class="text-base font-bold tracking-wide leading-tight">สิทธิ์ผู้ใช้าน</h1>
+            <h1 id="menu-title" class="text-base font-bold tracking-wide leading-tight">บริหารจัดการระบบ</h1>
             <button onclick="goToHome()" class="text-[10px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded text-white transition font-medium flex-shrink-0">หน้าหลัก</button>
           </div>
           <p id="user-info" class="text-[11px] opacity-90 truncate">กำลังตรวจสอบ...</p>
@@ -103,6 +105,7 @@
         <table id="table-menu" class="w-full text-left text-sm text-gray-600 hidden">
             <thead class="bg-gray-50 text-gray-700 border-b sticky top-0">
                 <tr>
+                    <th class="p-3.5 font-bold w-12">➕</th>
                     <th class="p-3.5 font-bold">Group / MenuGroup</th>
                     <th class="p-3.5 font-bold">Menu ID</th>
                     <th class="p-3.5 font-bold">Menu Name</th>
@@ -117,6 +120,7 @@
         <table id="table-role" class="w-full text-left text-sm text-gray-600 hidden">
           <thead class="bg-gray-50 text-gray-700 border-b sticky top-0">
               <tr>
+                  <th class="p-3.5 font-bold w-12">➕</th>
                   <th class="p-3.5 font-bold">Job Position</th>
                   <th class="p-3.5 font-bold">Menu ID</th>
                   <th class="p-3.5 font-bold">สิทธิ์ (R/C/E/D/A)</th>
@@ -191,7 +195,6 @@
     let allRoles = [];
     let currentTab = 'menu';
     
-    // Timer System 60 นาที
     let timeoutLimit = 3600; 
     let timeRemaining = timeoutLimit;
     let timerInterval;
@@ -291,6 +294,24 @@
       return new Date(isoString).toLocaleString('th-TH');
     }
 
+    function toggleGroupMenu(groupKey) {
+      const groupEl = document.getElementById(`group-menu-${groupKey}`);
+      if (groupEl) {
+        groupEl.classList.toggle('hidden');
+        document.getElementById(`toggle-menu-${groupKey}`).textContent = 
+          groupEl.classList.contains('hidden') ? '▶' : '▼';
+      }
+    }
+
+    function toggleGroupRole(jobPos) {
+      const groupEl = document.getElementById(`group-role-${jobPos}`);
+      if (groupEl) {
+        groupEl.classList.toggle('hidden');
+        document.getElementById(`toggle-role-${jobPos}`).textContent = 
+          groupEl.classList.contains('hidden') ? '▶' : '▼';
+      }
+    }
+
     function renderData() {
       const editClass = currentPermissions.edit ? '' : 'perm-hide';
       const deleteClass = currentPermissions.delete ? '' : 'perm-hide';
@@ -309,169 +330,249 @@
     }
 
     function renderMenuDesktop(editClass, deleteClass) {
+      // จัดกลุ่มตามหน่วยมัฒนา (Group)
+      const groupedMenus = {};
+      allMenus.forEach(m => {
+        if (!groupedMenus[m.group]) groupedMenus[m.group] = [];
+        groupedMenus[m.group].push(m);
+      });
+
       let html = '';
-      allMenus.forEach((m, idx) => {
+      Object.keys(groupedMenus).forEach(group => {
+        const items = groupedMenus[group];
         html += `
-        <tr class="hover:bg-gray-50 transition border-b">
-            <td class="p-3.5"><div class="font-bold text-linePrimary">${m.group}</div><div class="text-xs text-gray-500">${m.menuGroup}</div></td>
-            <td class="p-3.5 font-bold">${m.menuId}</td>
-            <td class="p-3.5">${m.menuName}</td>
-            <td class="p-3.5 text-xs text-gray-500">
-              <div>สร้าง: ${m.createEmpId || '-'}</div>
-              <div class="text-[10px]">${formatDateTime(m.createDate)}</div>
-              <div class="mt-1">แก้ไข: ${m.updateEmpId || '-'}</div>
-              <div class="text-[10px]">${formatDateTime(m.updateDate)}</div>
-            </td>
-            <td class="p-3.5 text-center">
-              <div class="inline-flex space-x-2">
-                <button onclick="openForm('edit', ${idx})" class="${editClass} bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
-                <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">ลบ</button>
-              </div>
+        <tr class="group-row group-row-expand" onclick="toggleGroupMenu('${group}')">
+            <td class="p-3.5"><span id="toggle-menu-${group}" class="font-bold">▼</span></td>
+            <td class="p-3.5 font-bold text-linePrimary" colspan="5">
+              📁 ${group}
+              <span class="text-xs text-gray-500 ml-2">(${items.length} items)</span>
             </td>
         </tr>`;
+        
+        html += `<tbody id="group-menu-${group}" class="divide-y divide-gray-100">`;
+        items.forEach((m, idx) => {
+          html += `
+          <tr class="sub-row hover:bg-gray-50 transition">
+              <td class="p-3.5"></td>
+              <td class="p-3.5 text-xs text-gray-600">${m.menuGroup || '-'}</td>
+              <td class="p-3.5 font-bold text-sm">${m.menuId}</td>
+              <td class="p-3.5">${m.menuName}</td>
+              <td class="p-3.5 text-xs text-gray-500">
+                <div>สร้าง: ${m.createEmpId || '-'}</div>
+                <div class="text-[10px]">${formatDateTime(m.createDate)}</div>
+                <div class="mt-1">แก้ไข: ${m.updateEmpId || '-'}</div>
+                <div class="text-[10px]">${formatDateTime(m.updateDate)}</div>
+              </td>
+              <td class="p-3.5 text-center">
+                <div class="inline-flex space-x-1.5">
+                  <button onclick="openForm('edit', 'menu', '${m.group}', '${m.menuId}')" class="${editClass} bg-lineWarning text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
+                  <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} bg-lineDanger text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">ลบ</button>
+                </div>
+              </td>
+          </tr>`;
+        });
+        html += `</tbody></tr>`;
       });
-      document.getElementById('tbody-menu').innerHTML = html || '<tr><td colspan="5" class="text-center p-6 text-gray-400">ไม่มีข้อมูล</td></tr>';
+
+      document.getElementById('tbody-menu').innerHTML = html || '<tr><td colspan="6" class="text-center p-6 text-gray-400">ไม่มีข้อมูล</td></tr>';
     }
 
     function renderMenuMobile(editClass, deleteClass) {
+      const groupedMenus = {};
+      allMenus.forEach(m => {
+        if (!groupedMenus[m.group]) groupedMenus[m.group] = [];
+        groupedMenus[m.group].push(m);
+      });
+
       let html = '';
-      allMenus.forEach((m, idx) => {
+      Object.keys(groupedMenus).forEach(group => {
+        const items = groupedMenus[group];
         html += `
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition">
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <p class="text-xs text-gray-500">Group</p>
-                    <p class="font-bold text-linePrimary text-base">${m.group}</p>
-                </div>
-                <div class="text-right">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <!-- Group Header -->
+          <div class="bg-blue-50 p-3 border-b border-blue-200 cursor-pointer hover:bg-blue-100 transition" onclick="this.parentElement.querySelector('[id^=mobile-group-items]').classList.toggle('hidden')">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-lg">▼</span>
+              <div>
+                <p class="font-bold text-linePrimary text-base">📁 ${group}</p>
+                <p class="text-xs text-gray-600">${items.length} รายการ</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Group Items -->
+          <div id="mobile-group-items-${group}" class="divide-y divide-gray-200">
+            ${items.map((m, idx) => `
+              <div class="p-3 space-y-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="text-xs text-gray-500">Menu ID</p>
+                    <p class="font-bold text-gray-800">${m.menuId}</p>
+                  </div>
+                  <div class="text-right">
                     <p class="text-xs text-gray-500">Menu Group</p>
-                    <p class="text-xs font-semibold text-gray-700">${m.menuGroup}</p>
+                    <p class="text-xs font-semibold text-gray-700">${m.menuGroup || '-'}</p>
+                  </div>
                 </div>
-            </div>
-            
-            <div class="mb-2">
-                <p class="text-xs text-gray-500">Menu ID</p>
-                <p class="font-bold text-gray-800">${m.menuId}</p>
-            </div>
-            
-            <div class="mb-2">
-                <p class="text-xs text-gray-500">Menu Name</p>
-                <p class="text-sm text-gray-700 font-semibold">${m.menuName}</p>
-            </div>
-            
-            <div class="mb-3 pb-3 border-b border-gray-200 text-xs text-gray-600">
-                <p class="font-bold text-gray-700">Audit Trail:</p>
-                <p>สร้าง: ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</p>
-                <p>แก้ไข: ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</p>
-            </div>
-            
-            <div class="flex gap-2 w-full">
-                <button onclick="openForm('edit', ${idx})" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
-                  ✏️ แก้ไข
-                </button>
-                <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
-                  🗑️ ลบ
-                </button>
-            </div>
+                
+                <div>
+                  <p class="text-xs text-gray-500">Menu Name</p>
+                  <p class="text-sm font-semibold text-gray-700">${m.menuName}</p>
+                </div>
+                
+                <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                  <p class="font-bold">Audit Trail:</p>
+                  <p>สร้าง: ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</p>
+                  <p>แก้ไข: ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</p>
+                </div>
+                
+                <div class="flex gap-2 pt-2">
+                  <button onclick="openForm('edit', 'menu', '${m.group}', '${m.menuId}')" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">✏️ แก้ไข</button>
+                  <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">🗑️ ลบ</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
         </div>`;
       });
-      
+
       const mobileList = document.getElementById('adminListMobile');
       if (mobileList) mobileList.innerHTML = html || '<div class="col-span-full text-center py-8 text-gray-400">ไม่มีข้อมูล</div>';
     }
 
     function renderRoleDesktop(editClass, deleteClass) {
+      // จัดกลุ่มตามตำแหน่ง (Job Position)
+      const groupedRoles = {};
+      allRoles.forEach(r => {
+        if (!groupedRoles[r.Job_Position]) groupedRoles[r.Job_Position] = [];
+        groupedRoles[r.Job_Position].push(r);
+      });
+
       let html = '';
-      allRoles.forEach((r, idx) => {
+      Object.keys(groupedRoles).forEach(jobPos => {
+        const items = groupedRoles[jobPos];
         html += `
-        <tr class="hover:bg-gray-50 transition border-b">
-            <td class="p-3.5 font-bold text-blue-700">${r.Job_Position}</td>
-            <td class="p-3.5 font-bold text-gray-800">${r.menuId}</td>
-            <td class="p-3.5 text-sm">
-              <div class="flex gap-2 flex-wrap">
-                ${String(r.canRead).toUpperCase()==='TRUE'?'<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">R</span>':''}
-                ${String(r.canCreate).toUpperCase()==='TRUE'?'<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">C</span>':''}
-                ${String(r.canEdit).toUpperCase()==='TRUE'?'<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">E</span>':''}
-                ${String(r.canDelete).toUpperCase()==='TRUE'?'<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">D</span>':''}
-                ${String(r.canApprove).toUpperCase()==='TRUE'?'<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-bold">A</span>':''}
-              </div>
-            </td>
-            <td class="p-3.5 text-xs text-gray-500">
-              <div>สร้าง: ${r.createEmpId || '-'}</div>
-              <div class="text-[10px]">${formatDateTime(r.createDate)}</div>
-              <div class="mt-1">แก้ไข: ${r.updateEmpId || '-'}</div>
-              <div class="text-[10px]">${formatDateTime(r.updateDate)}</div>
-            </td>
-            <td class="p-3.5 text-center">
-              <div class="inline-flex space-x-2">
-                <button onclick="openForm('edit', ${idx})" class="${editClass} bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
-                <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">ลบ</button>
-              </div>
+        <tr class="group-row group-row-expand" onclick="toggleGroupRole('${jobPos}')">
+            <td class="p-3.5"><span id="toggle-role-${jobPos}" class="font-bold">▼</span></td>
+            <td class="p-3.5 font-bold text-blue-700" colspan="5">
+              👤 ${jobPos}
+              <span class="text-xs text-gray-500 ml-2">(${items.length} items)</span>
             </td>
         </tr>`;
+        
+        html += `<tbody id="group-role-${jobPos}" class="divide-y divide-gray-100">`;
+        items.forEach((r) => {
+          const perms = [];
+          if (String(r.canRead).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">R</span>');
+          if (String(r.canCreate).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">C</span>');
+          if (String(r.canEdit).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">E</span>');
+          if (String(r.canDelete).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">D</span>');
+          if (String(r.canApprove).toUpperCase() === 'TRUE') perms.push('<span class="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded text-xs font-bold">A</span>');
+          
+          html += `
+          <tr class="sub-row hover:bg-gray-50 transition">
+              <td class="p-3.5"></td>
+              <td class="p-3.5"></td>
+              <td class="p-3.5 font-bold text-sm">${r.menuId}</td>
+              <td class="p-3.5">
+                <div class="flex gap-1">${perms.join('')}</div>
+              </td>
+              <td class="p-3.5 text-xs text-gray-500">
+                <div>สร้าง: ${r.createEmpId || '-'}</div>
+                <div class="text-[10px]">${formatDateTime(r.createDate)}</div>
+                <div class="mt-1">แก้ไข: ${r.updateEmpId || '-'}</div>
+                <div class="text-[10px]">${formatDateTime(r.updateDate)}</div>
+              </td>
+              <td class="p-3.5 text-center">
+                <div class="inline-flex space-x-1.5">
+                  <button onclick="openForm('edit', 'role', '${r.Job_Position}', '${r.menuId}')" class="${editClass} bg-lineWarning text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
+                  <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} bg-lineDanger text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">ลบ</button>
+                </div>
+              </td>
+          </tr>`;
+        });
+        html += `</tbody></tr>`;
       });
-      document.getElementById('tbody-role').innerHTML = html || '<tr><td colspan="5" class="text-center p-6 text-gray-400">ไม่มีข้อมูล</td></tr>';
+
+      document.getElementById('tbody-role').innerHTML = html || '<tr><td colspan="6" class="text-center p-6 text-gray-400">ไม่มีข้อมูล</td></tr>';
     }
 
     function renderRoleMobile(editClass, deleteClass) {
+      const groupedRoles = {};
+      allRoles.forEach(r => {
+        if (!groupedRoles[r.Job_Position]) groupedRoles[r.Job_Position] = [];
+        groupedRoles[r.Job_Position].push(r);
+      });
+
       let html = '';
-      allRoles.forEach((r, idx) => {
-        const perms = [];
-        if (String(r.canRead).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">R</span>');
-        if (String(r.canCreate).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">C</span>');
-        if (String(r.canEdit).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">E</span>');
-        if (String(r.canDelete).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">D</span>');
-        if (String(r.canApprove).toUpperCase() === 'TRUE') perms.push('<span class="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded text-xs font-bold">A</span>');
-        
+      Object.keys(groupedRoles).forEach(jobPos => {
+        const items = groupedRoles[jobPos];
         html += `
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition">
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <p class="text-xs text-gray-500">Job Position</p>
-                    <p class="font-bold text-blue-700 text-base">${r.Job_Position}</p>
-                </div>
-                <div class="text-right">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <!-- Group Header -->
+          <div class="bg-blue-50 p-3 border-b border-blue-200 cursor-pointer hover:bg-blue-100 transition" onclick="this.parentElement.querySelector('[id^=mobile-role-items]').classList.toggle('hidden')">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-lg">▼</span>
+              <div>
+                <p class="font-bold text-blue-700 text-base">👤 ${jobPos}</p>
+                <p class="text-xs text-gray-600">${items.length} รายการ</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Group Items -->
+          <div id="mobile-role-items-${jobPos}" class="divide-y divide-gray-200">
+            ${items.map((r) => {
+              const perms = [];
+              if (String(r.canRead).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">R</span>');
+              if (String(r.canCreate).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">C</span>');
+              if (String(r.canEdit).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">E</span>');
+              if (String(r.canDelete).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">D</span>');
+              if (String(r.canApprove).toUpperCase() === 'TRUE') perms.push('<span class="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded text-xs font-bold">A</span>');
+              
+              return `
+              <div class="p-3 space-y-2">
+                <div class="flex justify-between items-start">
+                  <div>
                     <p class="text-xs text-gray-500">Menu ID</p>
-                    <p class="font-bold text-gray-800 text-sm">${r.menuId}</p>
+                    <p class="font-bold text-gray-800">${r.menuId}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500">สิทธิ์</p>
+                    <div class="flex gap-1 justify-end">${perms.join('')}</div>
+                  </div>
                 </div>
-            </div>
-            
-            <div class="mb-2">
-                <p class="text-xs text-gray-500">Menu URL</p>
-                <p class="text-xs text-gray-600 break-all">${r.menuUrl || '-'}</p>
-            </div>
-            
-            <div class="mb-3 pb-3 border-b border-gray-200">
-                <p class="text-xs text-gray-500 mb-1.5">สิทธิ์ (R/C/E/D/A)</p>
-                <div class="flex gap-1.5 flex-wrap">${perms.join('')}</div>
-            </div>
-            
-            <div class="mb-3 pb-3 border-b border-gray-200 text-xs text-gray-600">
-                <p class="font-bold text-gray-700">Audit Trail:</p>
-                <p>สร้าง: ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</p>
-                <p>แก้ไข: ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</p>
-            </div>
-            
-            <div class="flex gap-2 w-full">
-                <button onclick="openForm('edit', ${idx})" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
-                  ✏️ แก้ไข
-                </button>
-                <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
-                  🗑️ ลบ
-                </button>
-            </div>
+                
+                <div>
+                  <p class="text-xs text-gray-500">Menu URL</p>
+                  <p class="text-xs text-gray-600 break-all">${r.menuUrl || '-'}</p>
+                </div>
+                
+                <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                  <p class="font-bold">Audit Trail:</p>
+                  <p>สร้าง: ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</p>
+                  <p>แก้ไข: ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</p>
+                </div>
+                
+                <div class="flex gap-2 pt-2">
+                  <button onclick="openForm('edit', 'role', '${r.Job_Position}', '${r.menuId}')" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">✏️ แก้ไข</button>
+                  <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">🗑️ ลบ</button>
+                </div>
+              </div>
+            `}).join('')}
+          </div>
         </div>`;
       });
-      
+
       const mobileList = document.getElementById('adminListMobile');
       if (mobileList) mobileList.innerHTML = html || '<div class="col-span-full text-center py-8 text-gray-400">ไม่มีข้อมูล</div>';
     }
 
-    function openForm(mode, index = null) {
+    function openForm(mode, tabType, pk1, pk2) {
       document.getElementById('formModal').classList.remove('hidden');
       document.getElementById('formMode').value = mode;
       
-      const isMenu = currentTab === 'menu';
+      const isMenu = tabType === 'menu';
       document.getElementById('fields-menu').classList.toggle('hidden', !isMenu);
       document.getElementById('fields-role').classList.toggle('hidden', isMenu);
       document.getElementById('modalTitle').textContent = mode === 'add' ? '➕ เพิ่มข้อมูล' : '✏️ แก้ไขข้อมูล';
@@ -490,30 +591,34 @@
         }
       } else {
         if (isMenu) {
-          const m = allMenus[index];
-          document.getElementById('m_group').value = m.group;
-          document.getElementById('m_group').readOnly = true;
-          document.getElementById('m_menuGroup').value = m.menuGroup;
-          document.getElementById('m_menuId').value = m.menuId;
-          document.getElementById('m_menuId').readOnly = true;
-          document.getElementById('m_menuName').value = m.menuName;
-          
-          document.getElementById('auditInfo').innerHTML = `<div>• <b>สร้างโดย:</b> ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</div><div>• <b>แก้ไขล่าสุดโดย:</b> ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</div>`;
+          const m = allMenus.find(x => x.group === pk1 && x.menuId === pk2);
+          if (m) {
+            document.getElementById('m_group').value = m.group;
+            document.getElementById('m_group').readOnly = true;
+            document.getElementById('m_menuGroup').value = m.menuGroup;
+            document.getElementById('m_menuId').value = m.menuId;
+            document.getElementById('m_menuId').readOnly = true;
+            document.getElementById('m_menuName').value = m.menuName;
+            
+            document.getElementById('auditInfo').innerHTML = `<div>• <b>สร้างโดย:</b> ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</div><div>• <b>แก้ไขล่าสุดโดย:</b> ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</div>`;
+          }
         } else {
-          const r = allRoles[index];
-          document.getElementById('r_jobPosition').value = r.Job_Position;
-          document.getElementById('r_jobPosition').readOnly = true;
-          document.getElementById('r_menuId').value = r.menuId;
-          document.getElementById('r_menuId').readOnly = true;
-          document.getElementById('r_menuUrl').value = r.menuUrl;
-          
-          document.getElementById('r_canRead').checked = String(r.canRead).toUpperCase() === 'TRUE';
-          document.getElementById('r_canCreate').checked = String(r.canCreate).toUpperCase() === 'TRUE';
-          document.getElementById('r_canEdit').checked = String(r.canEdit).toUpperCase() === 'TRUE';
-          document.getElementById('r_canDelete').checked = String(r.canDelete).toUpperCase() === 'TRUE';
-          document.getElementById('r_canApprove').checked = String(r.canApprove).toUpperCase() === 'TRUE';
+          const r = allRoles.find(x => x.Job_Position === pk1 && x.menuId === pk2);
+          if (r) {
+            document.getElementById('r_jobPosition').value = r.Job_Position;
+            document.getElementById('r_jobPosition').readOnly = true;
+            document.getElementById('r_menuId').value = r.menuId;
+            document.getElementById('r_menuId').readOnly = true;
+            document.getElementById('r_menuUrl').value = r.menuUrl;
+            
+            document.getElementById('r_canRead').checked = String(r.canRead).toUpperCase() === 'TRUE';
+            document.getElementById('r_canCreate').checked = String(r.canCreate).toUpperCase() === 'TRUE';
+            document.getElementById('r_canEdit').checked = String(r.canEdit).toUpperCase() === 'TRUE';
+            document.getElementById('r_canDelete').checked = String(r.canDelete).toUpperCase() === 'TRUE';
+            document.getElementById('r_canApprove').checked = String(r.canApprove).toUpperCase() === 'TRUE';
 
-          document.getElementById('auditInfo').innerHTML = `<div>• <b>สร้างโดย:</b> ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</div><div>• <b>แก้ไขล่าสุดโดย:</b> ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</div>`;
+            document.getElementById('auditInfo').innerHTML = `<div>• <b>สร้างโดย:</b> ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</div><div>• <b>แก้ไขล่าสุดโดย:</b> ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</div>`;
+          }
         }
       }
     }
