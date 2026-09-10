@@ -39,8 +39,8 @@
     // Configuration (แก้ API URL ตรงนี้)
     // ==========================================
     const LIFF_ID = "2011487100-dldPQItq";
-    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbwT92lC6xrr0MuDUNdjJKjL_jvkMZb7AjbOmA81uWKONXOf9dG2U-_6Y8qqW8bGsvoY/exec"; // <-- นำ URL มาใส่
-    const CURRENT_MENU_ID = "902"; // กำหนด ID ของระบบบริหารสิทธิ์นี้
+    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbwT92lC6xrr0MuDUNdjJKjL_jvkMZb7AjbOmA81uWKONXOf9dG2U-_6Y8qqW8bGsvoY/exec";
+    const CURRENT_MENU_ID = "902";
   </script>
 
   <!-- Header Classic Design -->
@@ -71,7 +71,7 @@
 
   <main class="max-w-7xl mx-auto p-3 sm:p-4 flex-grow w-full">
     
-    <!-- Loading Screen[cite: 1] -->
+    <!-- Loading Screen -->
     <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
       <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-linePrimary mb-4"></div>
       <p class="text-lineDarkGray text-sm font-medium">กำลังตรวจสอบสิทธิ์และโหลดข้อมูล...</p>
@@ -80,24 +80,24 @@
     <!-- Main System Area -->
     <div id="management-screen" class="hidden">
       
-      <!-- Tabs -->
+      <!-- Tabs (Mobile-friendly) -->
       <div class="flex border-b border-gray-200 mb-4 overflow-x-auto">
-        <button onclick="switchTab('menu')" id="tab-menu" class="tab-active px-4 py-3 whitespace-nowrap transition">จัดการข้อมูลเมนู (Menu)</button>
-        <button onclick="switchTab('role')" id="tab-role" class="tab-inactive px-4 py-3 whitespace-nowrap transition">จัดการสิทธิ์ (RolePermissions)</button>
+        <button onclick="switchTab('menu')" id="tab-menu" class="tab-active px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base">📋 เมนู</button>
+        <button onclick="switchTab('role')" id="tab-role" class="tab-inactive px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base">🔐 สิทธิ์</button>
       </div>
 
       <!-- Action Bar -->
-      <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-xl shadow-sm border border-gray-200">
-        <div>
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
+        <div class="flex-1">
           <h2 id="section-title" class="text-base sm:text-lg font-bold text-gray-800">📋 รายการเมนูระบบ</h2>
         </div>
-        <button onclick="openForm('add')" id="btn-add" class="perm-hide bg-linePrimary text-white font-bold py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg shadow-sm hover:bg-blue-600 transition text-xs sm:text-sm flex items-center gap-1">
-          <span>➕</span> <span>เพิ่มข้อมูล</span>
+        <button onclick="openForm('add')" id="btn-add" class="perm-hide bg-linePrimary text-white font-bold py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg shadow-sm hover:bg-blue-600 transition text-xs sm:text-sm flex items-center gap-1 whitespace-nowrap">
+          <span>➕</span> <span class="hidden sm:inline">เพิ่มข้อมูล</span><span class="sm:hidden">เพิ่ม</span>
         </button>
       </div>
 
-      <!-- Desktop Tables -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden table-container">
+      <!-- Desktop Table View (Hidden on Mobile) -->
+      <div class="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden table-container">
         
         <!-- Menu Table -->
         <table id="table-menu" class="w-full text-left text-sm text-gray-600 hidden">
@@ -128,10 +128,14 @@
         </table>
 
       </div>
+
+      <!-- Mobile Card View (Visible on Mobile Only) -->
+      <div id="adminListMobile" class="lg:hidden grid gap-3 grid-cols-1 sm:grid-cols-2"></div>
+
     </div>
   </main>
 
-  <!-- FORM MODAL (Dynamic for both Menu and Role)[cite: 1] -->
+  <!-- FORM MODAL (Dynamic for both Menu and Role) -->
   <div id="formModal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 overflow-y-auto">
       <div class="bg-white w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col my-auto">
           <div class="bg-linePrimary p-4 text-white font-bold text-base flex justify-between items-center sticky top-0">
@@ -141,7 +145,7 @@
           <div class="p-4 sm:p-6 space-y-4 text-sm overflow-y-auto flex-1">
               <input type="hidden" id="formMode">
               
-              <!-- Audit Trail Info[cite: 1] -->
+              <!-- Audit Trail Info -->
               <div class="text-xs bg-gray-50 p-3 rounded-lg border border-gray-200 text-gray-700 space-y-1 mb-4">
                 <div class="font-bold text-linePrimary">📌 ข้อมูลผู้บันทึก/แก้ไข (Audit Trail):</div>
                 <div id="auditInfo" class="font-mono text-xs text-gray-600">--</div>
@@ -149,31 +153,31 @@
               
               <!-- Menu Form Fields -->
               <div id="fields-menu" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
-                <div><label class="block font-bold mb-1">Group *</label><input type="text" id="m_group" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
-                <div><label class="block font-bold mb-1">Menu Group</label><input type="text" id="m_menuGroup" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
-                <div><label class="block font-bold mb-1">Menu ID (PK) *</label><input type="text" id="m_menuId" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
-                <div><label class="block font-bold mb-1">Menu Name *</label><input type="text" id="m_menuName" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
+                <div><label class="block font-bold mb-1">Group *</label><input type="text" id="m_group" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                <div><label class="block font-bold mb-1">Menu Group</label><input type="text" id="m_menuGroup" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                <div><label class="block font-bold mb-1">Menu ID (PK) *</label><input type="text" id="m_menuId" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                <div><label class="block font-bold mb-1">Menu Name *</label><input type="text" id="m_menuName" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
               </div>
 
               <!-- Role Form Fields -->
               <div id="fields-role" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
-                <div><label class="block font-bold mb-1">Job Position (PK) *</label><input type="text" id="r_jobPosition" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
-                <div><label class="block font-bold mb-1">Menu ID (PK) *</label><input type="text" id="r_menuId" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
-                <div class="md:col-span-2"><label class="block font-bold mb-1">Menu URL</label><input type="text" id="r_menuUrl" class="w-full border rounded-lg p-2 focus:border-linePrimary outline-none"></div>
+                <div><label class="block font-bold mb-1">Job Position (PK) *</label><input type="text" id="r_jobPosition" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                <div><label class="block font-bold mb-1">Menu ID (PK) *</label><input type="text" id="r_menuId" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                <div class="md:col-span-2"><label class="block font-bold mb-1">Menu URL</label><input type="text" id="r_menuUrl" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
                 
                 <div class="md:col-span-2 grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2 p-3 bg-gray-50 rounded border">
-                  <label class="flex items-center gap-1"><input type="checkbox" id="r_canRead"> Read</label>
-                  <label class="flex items-center gap-1"><input type="checkbox" id="r_canCreate"> Create</label>
-                  <label class="flex items-center gap-1"><input type="checkbox" id="r_canEdit"> Edit</label>
-                  <label class="flex items-center gap-1"><input type="checkbox" id="r_canDelete"> Delete</label>
-                  <label class="flex items-center gap-1"><input type="checkbox" id="r_canApprove"> Approve</label>
+                  <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="r_canRead" class="cursor-pointer"> <span class="text-xs">Read</span></label>
+                  <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="r_canCreate" class="cursor-pointer"> <span class="text-xs">Create</span></label>
+                  <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="r_canEdit" class="cursor-pointer"> <span class="text-xs">Edit</span></label>
+                  <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="r_canDelete" class="cursor-pointer"> <span class="text-xs">Delete</span></label>
+                  <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="r_canApprove" class="cursor-pointer"> <span class="text-xs">Approve</span></label>
                 </div>
               </div>
 
           </div>
           <div class="p-3 sm:p-4 border-t flex justify-end gap-2 sm:gap-3 bg-gray-50 sticky bottom-0">
-              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300">ยกเลิก</button>
-              <button onclick="saveData()" class="px-5 py-2 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600">บันทึก</button>
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300 text-sm">ยกเลิก</button>
+              <button onclick="saveData()" class="px-4 sm:px-5 py-2 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600 text-sm">บันทึก</button>
           </div>
       </div>
   </div>
@@ -185,9 +189,9 @@
     
     let allMenus = [];
     let allRoles = [];
-    let currentTab = 'menu'; // 'menu' หรือ 'role'
+    let currentTab = 'menu';
     
-    // Timer System 60 นาที[cite: 1]
+    // Timer System 60 นาที
     let timeoutLimit = 3600; 
     let timeRemaining = timeoutLimit;
     let timerInterval;
@@ -274,8 +278,8 @@
 
     function switchTab(tabName) {
       currentTab = tabName;
-      document.getElementById('tab-menu').className = tabName === 'menu' ? 'tab-active px-4 py-3 whitespace-nowrap transition' : 'tab-inactive px-4 py-3 whitespace-nowrap transition';
-      document.getElementById('tab-role').className = tabName === 'role' ? 'tab-active px-4 py-3 whitespace-nowrap transition' : 'tab-inactive px-4 py-3 whitespace-nowrap transition';
+      document.getElementById('tab-menu').className = tabName === 'menu' ? 'tab-active px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base' : 'tab-inactive px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base';
+      document.getElementById('tab-role').className = tabName === 'role' ? 'tab-active px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base' : 'tab-inactive px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base';
       
       document.getElementById('section-title').innerHTML = tabName === 'menu' ? '📋 รายการเมนูระบบ' : '🔐 สิทธิ์การใช้งานตามตำแหน่ง';
       
@@ -294,59 +298,173 @@
       if(currentTab === 'menu') {
         document.getElementById('table-menu').classList.remove('hidden');
         document.getElementById('table-role').classList.add('hidden');
-        
-        let html = '';
-        allMenus.forEach((m, idx) => {
-          html += `
-          <tr class="hover:bg-gray-50 transition border-b">
-              <td class="p-3.5"><div class="font-bold text-linePrimary">${m.group}</div><div class="text-xs text-gray-500">${m.menuGroup}</div></td>
-              <td class="p-3.5 font-bold">${m.menuId}</td>
-              <td class="p-3.5">${m.menuName}</td>
-              <td class="p-3.5 text-xs text-gray-500">
-                <div>สร้าง: ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</div>
-                <div>แก้ไข: ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</div>
-              </td>
-              <td class="p-3.5 text-center">
-                <div class="inline-flex space-x-2">
-                  <button onclick="openForm('edit', ${idx})" class="${editClass} bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
-                  <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">ลบ</button>
-                </div>
-              </td>
-          </tr>`;
-        });
-        document.getElementById('tbody-menu').innerHTML = html;
-
+        renderMenuDesktop(editClass, deleteClass);
+        renderMenuMobile(editClass, deleteClass);
       } else {
         document.getElementById('table-role').classList.remove('hidden');
         document.getElementById('table-menu').classList.add('hidden');
-
-        let html = '';
-        allRoles.forEach((r, idx) => {
-          html += `
-          <tr class="hover:bg-gray-50 transition border-b">
-              <td class="p-3.5 font-bold text-blue-700">${r.Job_Position}</td>
-              <td class="p-3.5 font-bold text-gray-800">${r.menuId}</td>
-              <td class="p-3.5 text-xs">
-                ${String(r.canRead).toUpperCase()==='TRUE'?'<span class="text-green-600 font-bold mr-1">R</span>':'-'}
-                ${String(r.canCreate).toUpperCase()==='TRUE'?'<span class="text-green-600 font-bold mr-1">C</span>':'-'}
-                ${String(r.canEdit).toUpperCase()==='TRUE'?'<span class="text-green-600 font-bold mr-1">E</span>':'-'}
-                ${String(r.canDelete).toUpperCase()==='TRUE'?'<span class="text-green-600 font-bold mr-1">D</span>':'-'}
-                ${String(r.canApprove).toUpperCase()==='TRUE'?'<span class="text-purple-600 font-bold">A</span>':'-'}
-              </td>
-              <td class="p-3.5 text-xs text-gray-500">
-                <div>สร้าง: ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</div>
-                <div>แก้ไข: ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</div>
-              </td>
-              <td class="p-3.5 text-center">
-                <div class="inline-flex space-x-2">
-                  <button onclick="openForm('edit', ${idx})" class="${editClass} bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
-                  <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">ลบ</button>
-                </div>
-              </td>
-          </tr>`;
-        });
-        document.getElementById('tbody-role').innerHTML = html;
+        renderRoleDesktop(editClass, deleteClass);
+        renderRoleMobile(editClass, deleteClass);
       }
+    }
+
+    function renderMenuDesktop(editClass, deleteClass) {
+      let html = '';
+      allMenus.forEach((m, idx) => {
+        html += `
+        <tr class="hover:bg-gray-50 transition border-b">
+            <td class="p-3.5"><div class="font-bold text-linePrimary">${m.group}</div><div class="text-xs text-gray-500">${m.menuGroup}</div></td>
+            <td class="p-3.5 font-bold">${m.menuId}</td>
+            <td class="p-3.5">${m.menuName}</td>
+            <td class="p-3.5 text-xs text-gray-500">
+              <div>สร้าง: ${m.createEmpId || '-'}</div>
+              <div class="text-[10px]">${formatDateTime(m.createDate)}</div>
+              <div class="mt-1">แก้ไข: ${m.updateEmpId || '-'}</div>
+              <div class="text-[10px]">${formatDateTime(m.updateDate)}</div>
+            </td>
+            <td class="p-3.5 text-center">
+              <div class="inline-flex space-x-2">
+                <button onclick="openForm('edit', ${idx})" class="${editClass} bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
+                <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">ลบ</button>
+              </div>
+            </td>
+        </tr>`;
+      });
+      document.getElementById('tbody-menu').innerHTML = html || '<tr><td colspan="5" class="text-center p-6 text-gray-400">ไม่มีข้อมูล</td></tr>';
+    }
+
+    function renderMenuMobile(editClass, deleteClass) {
+      let html = '';
+      allMenus.forEach((m, idx) => {
+        html += `
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p class="text-xs text-gray-500">Group</p>
+                    <p class="font-bold text-linePrimary text-base">${m.group}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-500">Menu Group</p>
+                    <p class="text-xs font-semibold text-gray-700">${m.menuGroup}</p>
+                </div>
+            </div>
+            
+            <div class="mb-2">
+                <p class="text-xs text-gray-500">Menu ID</p>
+                <p class="font-bold text-gray-800">${m.menuId}</p>
+            </div>
+            
+            <div class="mb-2">
+                <p class="text-xs text-gray-500">Menu Name</p>
+                <p class="text-sm text-gray-700 font-semibold">${m.menuName}</p>
+            </div>
+            
+            <div class="mb-3 pb-3 border-b border-gray-200 text-xs text-gray-600">
+                <p class="font-bold text-gray-700">Audit Trail:</p>
+                <p>สร้าง: ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</p>
+                <p>แก้ไข: ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</p>
+            </div>
+            
+            <div class="flex gap-2 w-full">
+                <button onclick="openForm('edit', ${idx})" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
+                  ✏️ แก้ไข
+                </button>
+                <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
+                  🗑️ ลบ
+                </button>
+            </div>
+        </div>`;
+      });
+      
+      const mobileList = document.getElementById('adminListMobile');
+      if (mobileList) mobileList.innerHTML = html || '<div class="col-span-full text-center py-8 text-gray-400">ไม่มีข้อมูล</div>';
+    }
+
+    function renderRoleDesktop(editClass, deleteClass) {
+      let html = '';
+      allRoles.forEach((r, idx) => {
+        html += `
+        <tr class="hover:bg-gray-50 transition border-b">
+            <td class="p-3.5 font-bold text-blue-700">${r.Job_Position}</td>
+            <td class="p-3.5 font-bold text-gray-800">${r.menuId}</td>
+            <td class="p-3.5 text-sm">
+              <div class="flex gap-2 flex-wrap">
+                ${String(r.canRead).toUpperCase()==='TRUE'?'<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">R</span>':''}
+                ${String(r.canCreate).toUpperCase()==='TRUE'?'<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">C</span>':''}
+                ${String(r.canEdit).toUpperCase()==='TRUE'?'<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">E</span>':''}
+                ${String(r.canDelete).toUpperCase()==='TRUE'?'<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">D</span>':''}
+                ${String(r.canApprove).toUpperCase()==='TRUE'?'<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-bold">A</span>':''}
+              </div>
+            </td>
+            <td class="p-3.5 text-xs text-gray-500">
+              <div>สร้าง: ${r.createEmpId || '-'}</div>
+              <div class="text-[10px]">${formatDateTime(r.createDate)}</div>
+              <div class="mt-1">แก้ไข: ${r.updateEmpId || '-'}</div>
+              <div class="text-[10px]">${formatDateTime(r.updateDate)}</div>
+            </td>
+            <td class="p-3.5 text-center">
+              <div class="inline-flex space-x-2">
+                <button onclick="openForm('edit', ${idx})" class="${editClass} bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
+                <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition">ลบ</button>
+              </div>
+            </td>
+        </tr>`;
+      });
+      document.getElementById('tbody-role').innerHTML = html || '<tr><td colspan="5" class="text-center p-6 text-gray-400">ไม่มีข้อมูล</td></tr>';
+    }
+
+    function renderRoleMobile(editClass, deleteClass) {
+      let html = '';
+      allRoles.forEach((r, idx) => {
+        const perms = [];
+        if (String(r.canRead).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">R</span>');
+        if (String(r.canCreate).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">C</span>');
+        if (String(r.canEdit).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">E</span>');
+        if (String(r.canDelete).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">D</span>');
+        if (String(r.canApprove).toUpperCase() === 'TRUE') perms.push('<span class="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded text-xs font-bold">A</span>');
+        
+        html += `
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p class="text-xs text-gray-500">Job Position</p>
+                    <p class="font-bold text-blue-700 text-base">${r.Job_Position}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-500">Menu ID</p>
+                    <p class="font-bold text-gray-800 text-sm">${r.menuId}</p>
+                </div>
+            </div>
+            
+            <div class="mb-2">
+                <p class="text-xs text-gray-500">Menu URL</p>
+                <p class="text-xs text-gray-600 break-all">${r.menuUrl || '-'}</p>
+            </div>
+            
+            <div class="mb-3 pb-3 border-b border-gray-200">
+                <p class="text-xs text-gray-500 mb-1.5">สิทธิ์ (R/C/E/D/A)</p>
+                <div class="flex gap-1.5 flex-wrap">${perms.join('')}</div>
+            </div>
+            
+            <div class="mb-3 pb-3 border-b border-gray-200 text-xs text-gray-600">
+                <p class="font-bold text-gray-700">Audit Trail:</p>
+                <p>สร้าง: ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</p>
+                <p>แก้ไข: ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</p>
+            </div>
+            
+            <div class="flex gap-2 w-full">
+                <button onclick="openForm('edit', ${idx})" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
+                  ✏️ แก้ไข
+                </button>
+                <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
+                  🗑️ ลบ
+                </button>
+            </div>
+        </div>`;
+      });
+      
+      const mobileList = document.getElementById('adminListMobile');
+      if (mobileList) mobileList.innerHTML = html || '<div class="col-span-full text-center py-8 text-gray-400">ไม่มีข้อมูล</div>';
     }
 
     function openForm(mode, index = null) {
