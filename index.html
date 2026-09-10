@@ -9,7 +9,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <!-- LINE Template Colors Configuration -->
+  <!-- LINE Template Colors -->
   <script>
     tailwind.config = {
       theme: {
@@ -28,7 +28,6 @@
 </head>
 <body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
 
-  <!-- Header -->
   <header class="bg-gradient-to-r from-linePrimary to-blue-600 text-white p-5 shadow-md sticky top-0 z-50">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <div>
@@ -44,14 +43,14 @@
     <!-- 1. Loading Screen -->
     <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
       <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-linePrimary mb-4"></div>
-      <p class="text-lineDarkGray font-medium text-sm">กำลังโหลดข้อมูล...</p>
+      <p class="text-lineDarkGray font-medium text-sm">โปรดรอสักครู่...</p>
     </div>
 
-    <!-- 2. Registration Page -->
+    <!-- 2. Verify Phone Page -->
     <div id="register-screen" class="hidden">
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-md mx-auto">
-        <h2 class="text-xl font-bold text-gray-800 mb-2">ลงทะเบียนเข้าใช้งาน</h2>
-        <p class="text-sm text-lineDarkGray mb-6">กรุณายืนยันตัวตนด้วยเบอร์โทรศัพท์ที่ลงทะเบียนไว้กับระบบ</p>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">ตรวจสอบข้อมูล</h2>
+        <p class="text-sm text-lineDarkGray mb-6">กรุณายืนยันเบอร์โทรศัพท์ เพื่อขอรับรหัสอ้างอิงสำหรับเปิดสิทธิ์</p>
         
         <form id="phone-form" class="space-y-5">
           <div class="flex flex-col space-y-1">
@@ -60,29 +59,49 @@
               class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-linePrimary focus:ring-1 focus:ring-linePrimary text-lg"
               placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
           </div>
+          <!-- Touch-Friendly Button -->
           <button type="submit" class="w-full bg-linePrimary text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition">
-            ยืนยันลงทะเบียน
+            ตรวจสอบข้อมูล
           </button>
         </form>
       </div>
     </div>
 
-    <!-- 3. Error Screen (ปรับปรุงปุ่ม "ลองใหม่อีกครั้ง") -->
+    <!-- 3. Copy User ID Screen (ให้ Admin จัดการ) -->
+    <div id="copy-screen" class="hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center max-w-md mx-auto">
+        <div class="text-5xl mb-4">📱</div>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">พบข้อมูลในระบบ</h2>
+        <p class="text-sm text-lineDarkGray mb-4">โปรดคัดลอกรหัสอ้างอิง (LINE UserID) ด้านล่าง และส่งให้ <span class="font-bold text-linePrimary">ผู้ดูแลระบบ</span> เพื่อเปิดการใช้งาน</p>
+        
+        <div class="bg-gray-100 p-4 rounded-lg mb-6 font-mono text-sm break-all text-gray-700 select-all border border-gray-200" id="display-userid">
+          <!-- User ID จะแสดงที่นี่ -->
+        </div>
+        
+        <button onclick="copyUserId()" class="w-full bg-lineSuccess text-white font-bold py-4 rounded-lg hover:bg-green-600 transition flex justify-center items-center gap-2 mb-3">
+          📋 คัดลอกรหัสอ้างอิง
+        </button>
+        <button onclick="liff.closeWindow()" class="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-200 transition">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. Error Screen -->
     <div id="error-screen" class="hidden bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center max-w-md mx-auto">
       <div class="text-5xl mb-4 text-lineDanger">⚠️</div>
-      <h2 id="error-title" class="text-xl font-bold text-gray-800 mb-2">ลงทะเบียนไม่สำเร็จ</h2>
-      <p id="error-message" class="text-lineDarkGray mb-6">ไม่พบข้อมูลในระบบ</p>
+      <h2 id="error-title" class="text-xl font-bold text-gray-800 mb-2">ข้อผิดพลาด</h2>
+      <p id="error-message" class="text-lineDarkGray mb-6">เกิดข้อผิดพลาดบางอย่าง</p>
       
-      <!-- เปลี่ยนจาก liff.closeWindow() เป็นปุ่มกลับไปกรอกเบอร์โทรใหม่ -->
       <button onclick="showScreen('register-screen')" class="w-full bg-gray-200 text-gray-700 font-bold py-4 rounded-lg hover:bg-gray-300 transition">
         กลับไปกรอกเบอร์โทรใหม่อีกครั้ง
       </button>
     </div>
 
-    <!-- 4. Dashboard Main Screen -->
+    <!-- 5. Dashboard Main Screen -->
     <div id="dashboard-screen" class="hidden space-y-6">
       <div id="menu-container">
-        <!-- เมนูจะถูกสร้างอัตโนมัติจาก JavaScript -->
+        <!-- เมนูจะถูกสร้างอัตโนมัติ -->
       </div>
       
       <button onclick="logoutApp()" class="w-full mt-6 bg-white text-lineDanger font-bold py-4 rounded-lg border border-red-100 shadow-sm hover:bg-red-50 transition">
@@ -126,7 +145,7 @@
     }
 
     // ==========================================
-    // 2. ดึงข้อมูล Client สำหรับบันทึก Log 
+    // 2. ดึงข้อมูล Client สำหรับ Log 
     // ==========================================
     async function fetchClientInfo() {
       clientInfo.device = navigator.userAgent;
@@ -161,11 +180,11 @@
 
         if (data.status === 'not_registered') {
           showScreen('register-screen');
-          document.getElementById('user-info').textContent = 'Please register account';
+          document.getElementById('user-info').textContent = 'Please verify phone';
         } else if (data.status === 'success') {
           renderDashboard(data);
         } else {
-          showError("ตรวจสอบสิทธิ์ไม่สำเร็จ", data.message || "เกิดข้อผิดพลาดในระบบ");
+          showError("เข้าสู่ระบบไม่สำเร็จ", data.message || "เกิดข้อผิดพลาดในระบบ");
         }
       } catch (error) {
         showError("พบข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
@@ -173,7 +192,7 @@
     }
 
     // ==========================================
-    // 4. จัดการฟอร์มลงทะเบียนเบอร์โทรศัพท์
+    // 4. ตรวจสอบเบอร์โทร (ไม่บันทึกตรงๆ ให้ Copy)
     // ==========================================
     document.getElementById('phone-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -186,7 +205,7 @@
         const response = await fetch(CENTRAL_API_URL, {
           method: 'POST',
           body: JSON.stringify({ 
-            action: 'registerPhone', 
+            action: 'verifyPhone', 
             userId: lineProfile.userId, 
             phone: phoneInput,
             clientInfo: clientInfo 
@@ -194,15 +213,24 @@
         });
         
         const data = await response.json();
-        if (data.status === 'success') {
-          await loadDashboard(); 
+        
+        if (data.status === 'show_userid') {
+          // พบเบอร์โทร ให้โชว์หน้าจอคัดลอก UserID
+          showScreen('copy-screen');
+          document.getElementById('display-userid').textContent = data.lineUserId;
         } else {
-          showError("ลงทะเบียนไม่สำเร็จ", data.message);
+          showError("ตรวจสอบไม่สำเร็จ", data.message);
         }
       } catch (error) {
-        showError("ลงทะเบียนไม่สำเร็จ", "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง");
+        showError("การตรวจสอบล้มเหลว", "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง");
       }
     });
+
+    function copyUserId() {
+      navigator.clipboard.writeText(lineProfile.userId).then(() => {
+        alert("คัดลอกรหัสเรียบร้อยแล้ว กรุณานำไปส่งให้ผู้ดูแลระบบ");
+      });
+    }
 
     // ==========================================
     // 5. Render เมนูแดชบอร์ด
@@ -249,7 +277,7 @@
     // Utility Functions
     // ==========================================
     function showScreen(id) {
-      ['loading-screen', 'register-screen', 'error-screen', 'dashboard-screen'].forEach(s => {
+      ['loading-screen', 'register-screen', 'error-screen', 'dashboard-screen', 'copy-screen'].forEach(s => {
         document.getElementById(s).classList.add('hidden');
       });
       document.getElementById(id).classList.remove('hidden');
