@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>จัดการสิทธิ์ผู้ใช้งาน</title>
+    
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load LINE LIFF SDK -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+    <!-- Tailwind Config for LINE Theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        line: {
+                            primary: '#0084FF',
+                            success: '#17C950',
+                            warning: '#FFC300',
+                            danger: '#FF4458',
+                            gray: '#B6C2C7',
+                            bg: '#F7F7F7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* ซ่อน Element พื้นฐานเพื่อรอรับ Permission */
+        .perm-required { display: none; }
+        
+        /* สไตล์พื้นฐานจำลอง LINE Template */
+        body { background-color: #F7F7F7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .line-container { max-width: 500px; margin: 0 auto; min-height: 100vh; background-color: #F7F7F7; }
+        .line-header { background: linear-gradient(135deg, #0084FF 0%, #0066cc 100%); color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Configuration Variables -->
+    <script>
+        const LIFF_ID = "2011487100-dldPQItq"; 
+        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // แทนที่ด้วย Web App URL จาก GAS
+        const CURRENT_MENU_ID = "901"; // กำหนดรหัสเมนูของหน้านี้
+    </script>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="line-container flex flex-col items-center justify-center h-screen">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-line-primary"></div>
+        <p class="mt-4 text-gray-500 text-sm">กำลังตรวจสอบสิทธิ์เข้าใช้งาน...</p>
+    </div>
+
+    <!-- Main App (Hidden by default) -->
+    <div id="appScreen" class="line-container hidden shadow-sm">
+        
+        <!-- Header (LINE Style) -->
+        <header class="line-header px-4 py-6 rounded-b-xl shadow-md">
+            <h1 id="menuTitle" class="text-2xl font-bold mb-1">Loading...</h1>
+            <div class="flex items-center text-sm text-blue-100 opacity-90">
+                <span id="userRoleBadge" class="bg-white/30 px-3 py-1 rounded-full text-xs mr-2">Role</span>
+                <span id="empIdDisplay">ID: --</span>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="p-4 space-y-4">
+            
+            <!-- Dashboard Info -->
+            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <p class="text-gray-600 text-sm mb-4">พื้นที่สำหรับจัดการข้อมูลตามสิทธิ์ของคุณในระบบ</p>
+                
+                <!-- Action Buttons (ควบคุมด้วย Permissions) -->
+                <div class="grid grid-cols-2 gap-3">
+                    
+                    <!-- Create Button (ต้องมีสิทธิ์ Create) -->
+                    <button class="perm-required perm-create w-full bg-line-primary text-white font-medium py-3 rounded-lg flex items-center justify-center space-x-2 active:bg-blue-700 transition">
+                        <span>➕</span>
+                        <span>เพิ่มข้อมูล</span>
+                    </button>
+
+                    <!-- Edit Button (ต้องมีสิทธิ์ Edit) -->
+                    <button class="perm-required perm-edit w-full bg-line-warning text-white font-medium py-3 rounded-lg flex items-center justify-center space-x-2 active:bg-yellow-600 transition">
+                        <span>✏️</span>
+                        <span>แก้ไขข้อมูล</span>
+                    </button>
+                    
+                    <!-- Approve Button (ต้องมีสิทธิ์ Approve) -->
+                    <button class="perm-required perm-approve w-full bg-line-success text-white font-medium py-3 rounded-lg flex items-center justify-center space-x-2 active:bg-green-700 transition col-span-2">
+                        <span>✅</span>
+                        <span>อนุมัติรายการ</span>
+                    </button>
+
+                    <!-- Delete Button (ต้องมีสิทธิ์ Delete) -->
+                    <button class="perm-required perm-delete w-full bg-line-danger text-white font-medium py-3 rounded-lg flex items-center justify-center space-x-2 active:bg-red-700 transition col-span-2">
+                        <span>🗑️</span>
+                        <span>ลบข้อมูล</span>
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- List Data (ต้องมีสิทธิ์ Read ถึงจะมองเห็นหน้านี้แต่แรก) -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
+                <div class="p-4 border-b border-gray-100 font-bold text-gray-700">รายการล่าสุด</div>
+                <div class="p-4 text-center text-gray-400 text-sm">
+                    ไม่มีข้อมูลแสดงผล (ตัวอย่าง)
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        async function initApp() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+
+                const profile = await liff.getProfile();
+                await verifyAccess(profile.userId);
+
+            } catch (err) {
+                console.error("LIFF Initialization failed", err);
+                alert("ไม่สามารถเชื่อมต่อ LINE ได้");
+            }
+        }
+
+        async function verifyAccess(userId) {
+            try {
+                const response = await fetch(CENTRAL_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' }, // GAS Post requests usually expect plain text for CORS
+                    body: JSON.stringify({
+                        action: 'verifyAccess',
+                        userId: userId,
+                        menuId: CURRENT_MENU_ID
+                    })
+                });
+
+                const data = await response.json();
+
+                document.getElementById('loadingScreen').classList.add('hidden');
+
+                if (data.status === 'not_registered') {
+                    alert('คุณยังไม่ได้ลงทะเบียนในระบบ กรุณาลงทะเบียนก่อนใช้งาน');
+                    liff.closeWindow();
+                    return;
+                }
+
+                if (!data.allowed) {
+                    alert('คุณไม่มีสิทธิ์เข้าถึงเมนูนี้ (Access Denied)');
+                    liff.closeWindow();
+                    return;
+                }
+
+                // สิทธิ์ผ่านแล้ว -> แสดงผลหน้าจอและตั้งค่า UI
+                document.getElementById('appScreen').classList.remove('hidden');
+                document.getElementById('menuTitle').textContent = data.menuName;
+                document.getElementById('userRoleBadge').textContent = data.jobPosition;
+                document.getElementById('empIdDisplay').textContent = 'ID: ' + data.empId;
+
+                applyPermissions(data.permissions);
+
+            } catch (error) {
+                console.error("API Error:", error);
+                alert("เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์");
+            }
+        }
+
+        function applyPermissions(perms) {
+            // ถอดคลาสที่ใช้ซ่อน (display: none) ออก ตามสิทธิ์ที่เป็น true
+            if (perms.create) {
+                document.querySelectorAll('.perm-create').forEach(el => el.classList.remove('perm-required'));
+            }
+            if (perms.edit) {
+                document.querySelectorAll('.perm-edit').forEach(el => el.classList.remove('perm-required'));
+            }
+            if (perms.delete) {
+                document.querySelectorAll('.perm-delete').forEach(el => el.classList.remove('perm-required'));
+            }
+            if (perms.approve) {
+                document.querySelectorAll('.perm-approve').forEach(el => el.classList.remove('perm-required'));
+            }
+        }
+
+        // เริ่มต้นการทำงานเมื่อโหลดหน้าเว็บ
+        window.onload = initApp;
+    </script>
+</body>
+</html>
