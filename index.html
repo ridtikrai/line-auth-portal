@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Centralized Dashboard</title>
   
-  <!-- Tailwind CSS & LINE LIFF SDK -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
@@ -28,38 +27,47 @@
 </head>
 <body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
 
-  <header class="bg-gradient-to-r from-linePrimary to-blue-600 text-white p-5 shadow-md sticky top-0 z-50">
-    <div class="max-w-4xl mx-auto flex justify-between items-center">
-      <div>
-        <h1 class="text-xl font-bold tracking-wide">👋 Welcome</h1>
-        <p id="user-info" class="text-xs opacity-90 mt-1">กำลังเชื่อมต่อระบบ...</p>
-      </div>
+  <!-- Header (Classic Design with Timeout & Logout) -->
+  <header class="bg-gradient-to-r from-linePrimary to-blue-600 text-white p-4 shadow-md sticky top-0 z-50 flex justify-between items-center">
+    <div class="flex items-center gap-3">
       <img id="profile-img" src="" alt="Profile" class="h-10 w-10 rounded-full border-2 border-white hidden">
+      <div>
+        <h1 class="text-lg font-bold tracking-wide">Portal System</h1>
+        <p id="user-info" class="text-xs opacity-90">กำลังตรวจสอบ...</p>
+      </div>
+    </div>
+    
+    <div class="flex flex-col items-end gap-1">
+      <button onclick="logoutApp()" class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition">
+        ออกจากระบบ
+      </button>
+      <div class="text-xs opacity-90 flex items-center gap-1">
+        <span>⏱️ หมดเวลาใน:</span>
+        <span id="timer-display" class="font-mono font-bold">60:00</span>
+      </div>
     </div>
   </header>
 
   <main class="max-w-4xl mx-auto p-4 mt-2 flex-grow w-full">
     
-    <!-- 1. Loading Screen -->
+    <!-- 1. Loading -->
     <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
       <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-linePrimary mb-4"></div>
-      <p class="text-lineDarkGray font-medium text-sm">โปรดรอสักครู่...</p>
+      <p class="text-lineDarkGray font-medium text-sm">กำลังโหลดข้อมูลระบบ...</p>
     </div>
 
-    <!-- 2. Verify Phone Page -->
+    <!-- 2. Verify Phone -->
     <div id="register-screen" class="hidden">
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-md mx-auto">
-        <h2 class="text-xl font-bold text-gray-800 mb-2">ตรวจสอบข้อมูล</h2>
-        <p class="text-sm text-lineDarkGray mb-6">กรุณายืนยันเบอร์โทรศัพท์ เพื่อขอรับรหัสอ้างอิงสำหรับเปิดสิทธิ์</p>
-        
+        <h2 class="text-xl font-bold text-gray-800 mb-2">ยืนยันตัวตน</h2>
+        <p class="text-sm text-lineDarkGray mb-6">กรุณายืนยันเบอร์โทรศัพท์เพื่อขอรับรหัสอ้างอิง</p>
         <form id="phone-form" class="space-y-5">
           <div class="flex flex-col space-y-1">
             <label class="text-sm font-bold text-lineDarkGray">เบอร์โทรศัพท์มือถือ (10 หลัก)</label>
             <input type="text" id="phone-input" maxlength="10" required
-              class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-linePrimary focus:ring-1 focus:ring-linePrimary text-lg"
+              class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-linePrimary"
               placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
           </div>
-          <!-- Touch-Friendly Button -->
           <button type="submit" class="w-full bg-linePrimary text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition">
             ตรวจสอบข้อมูล
           </button>
@@ -67,63 +75,49 @@
       </div>
     </div>
 
-    <!-- 3. Copy User ID Screen (ให้ Admin จัดการ) -->
+    <!-- 3. Copy User ID Screen -->
     <div id="copy-screen" class="hidden">
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center max-w-md mx-auto">
         <div class="text-5xl mb-4">📱</div>
-        <h2 class="text-xl font-bold text-gray-800 mb-2">พบข้อมูลในระบบ</h2>
-        <p class="text-sm text-lineDarkGray mb-4">โปรดคัดลอกรหัสอ้างอิง (LINE UserID) ด้านล่าง และส่งให้ <span class="font-bold text-linePrimary">ผู้ดูแลระบบ</span> เพื่อเปิดการใช้งาน</p>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">ตรวจสอบสำเร็จ</h2>
+        <p class="text-sm text-lineDarkGray mb-4">โปรดคัดลอกรหัสอ้างอิง (LINE UserID) แจ้งให้ <span class="font-bold text-linePrimary">Admin</span> เพื่อบันทึกสิทธิ์</p>
         
-        <div class="bg-gray-100 p-4 rounded-lg mb-6 font-mono text-sm break-all text-gray-700 select-all border border-gray-200" id="display-userid">
-          <!-- User ID จะแสดงที่นี่ -->
-        </div>
+        <div class="bg-gray-100 p-4 rounded-lg mb-6 font-mono text-sm break-all text-gray-700 border border-gray-200" id="display-userid"></div>
         
-        <button onclick="copyUserId()" class="w-full bg-lineSuccess text-white font-bold py-4 rounded-lg hover:bg-green-600 transition flex justify-center items-center gap-2 mb-3">
-          📋 คัดลอกรหัสอ้างอิง
-        </button>
-        <button onclick="liff.closeWindow()" class="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-200 transition">
-          ปิดหน้าต่าง
+        <button onclick="copyUserId()" class="w-full bg-lineSuccess text-white font-bold py-4 rounded-lg transition mb-3">
+          📋 คัดลอกรหัส
         </button>
       </div>
     </div>
 
-    <!-- 4. Error Screen -->
+    <!-- 4. Error -->
     <div id="error-screen" class="hidden bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center max-w-md mx-auto">
       <div class="text-5xl mb-4 text-lineDanger">⚠️</div>
       <h2 id="error-title" class="text-xl font-bold text-gray-800 mb-2">ข้อผิดพลาด</h2>
       <p id="error-message" class="text-lineDarkGray mb-6">เกิดข้อผิดพลาดบางอย่าง</p>
-      
       <button onclick="showScreen('register-screen')" class="w-full bg-gray-200 text-gray-700 font-bold py-4 rounded-lg hover:bg-gray-300 transition">
         กลับไปกรอกเบอร์โทรใหม่อีกครั้ง
       </button>
     </div>
 
-    <!-- 5. Dashboard Main Screen -->
+    <!-- 5. Dashboard -->
     <div id="dashboard-screen" class="hidden space-y-6">
-      <div id="menu-container">
-        <!-- เมนูจะถูกสร้างอัตโนมัติ -->
-      </div>
-      
-      <button onclick="logoutApp()" class="w-full mt-6 bg-white text-lineDanger font-bold py-4 rounded-lg border border-red-100 shadow-sm hover:bg-red-50 transition">
-        ออกจากระบบ (Logout)
-      </button>
+      <div id="menu-container"></div>
     </div>
 
   </main>
 
   <script>
-    // ==========================================
-    // ตัวแปรตั้งค่าระบบหลัก
-    // ==========================================
     const LIFF_ID = "2011487100-dldPQItq";
     const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzDpOrouurlO_Wlr5RikWVYf8gAmQcN-TTC8yIk7nKLLEvwjYRio5utMrEdxUm4m5Ia/exec"; // วาง URL Web App ของคุณ
     
     let lineProfile = null;
     let clientInfo = { ip: "Unknown", location: "Unknown", device: "Unknown" };
+    
+    // ระบบ Timer 60 นาที (3600 วินาที)
+    let timeoutSeconds = 3600; 
+    let timerInterval;
 
-    // ==========================================
-    // 1. Initialize App
-    // ==========================================
     async function initApp() {
       try {
         await liff.init({ liffId: LIFF_ID });
@@ -138,15 +132,40 @@
           
           await fetchClientInfo(); 
           await loadDashboard();
+          
+          // ตรวจจับการใช้งานเพื่อ Reset Timer
+          setupActivityListeners();
         }
       } catch (err) {
         showError("พบข้อผิดพลาด", "เกิดข้อผิดพลาดในการเชื่อมต่อระบบ LINE");
       }
     }
 
-    // ==========================================
-    // 2. ดึงข้อมูล Client สำหรับ Log 
-    // ==========================================
+    // ฟังก์ชัน Reset เวลานับถอยหลัง เมื่อผู้ใช้ขยับเมาส์ พิมพ์ หรือสัมผัสหน้าจอ
+    function setupActivityListeners() {
+      const resetTimer = () => { timeoutSeconds = 3600; };
+      window.onload = resetTimer;
+      window.onmousemove = resetTimer;
+      window.onmousedown = resetTimer;
+      window.ontouchstart = resetTimer;
+      window.onclick = resetTimer;
+      window.onkeydown = resetTimer;
+
+      timerInterval = setInterval(() => {
+        timeoutSeconds--;
+        let minutes = Math.floor(timeoutSeconds / 60);
+        let seconds = timeoutSeconds % 60;
+        document.getElementById('timer-display').textContent = 
+          `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeoutSeconds <= 0) {
+          clearInterval(timerInterval);
+          alert("หมดเวลาการเชื่อมต่อ กรุณาเข้าสู่ระบบใหม่");
+          logoutApp();
+        }
+      }, 1000);
+    }
+
     async function fetchClientInfo() {
       clientInfo.device = navigator.userAgent;
       try {
@@ -157,13 +176,10 @@
           clientInfo.location = `${data.city}, ${data.country_name}`;
         }
       } catch (e) {
-        console.warn("ไม่สามารถดึง IP ได้");
+        console.warn("Cannot fetch IP");
       }
     }
 
-    // ==========================================
-    // 3. โหลดหน้า Dashboard
-    // ==========================================
     async function loadDashboard() {
       showScreen('loading-screen');
       try {
@@ -172,6 +188,7 @@
           body: JSON.stringify({ 
             action: 'getDashboard', 
             userId: lineProfile.userId,
+            profile: lineProfile,
             clientInfo: clientInfo
           })
         });
@@ -180,25 +197,21 @@
 
         if (data.status === 'not_registered') {
           showScreen('register-screen');
-          document.getElementById('user-info').textContent = 'Please verify phone';
+          document.getElementById('user-info').textContent = 'Please Verify';
         } else if (data.status === 'success') {
           renderDashboard(data);
         } else {
-          showError("เข้าสู่ระบบไม่สำเร็จ", data.message || "เกิดข้อผิดพลาดในระบบ");
+          showError("ข้อผิดพลาด", data.message || "เกิดข้อผิดพลาดในระบบ");
         }
       } catch (error) {
         showError("พบข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
       }
     }
 
-    // ==========================================
-    // 4. ตรวจสอบเบอร์โทร (ไม่บันทึกตรงๆ ให้ Copy)
-    // ==========================================
     document.getElementById('phone-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const phoneInput = document.getElementById('phone-input').value;
-      
-      if (phoneInput.length !== 10) return alert("กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
+      if (phoneInput.length !== 10) return alert("กรุณากรอก 10 หลัก");
 
       showScreen('loading-screen');
       try {
@@ -208,42 +221,38 @@
             action: 'verifyPhone', 
             userId: lineProfile.userId, 
             phone: phoneInput,
+            profile: lineProfile,
             clientInfo: clientInfo 
           })
         });
         
         const data = await response.json();
-        
         if (data.status === 'show_userid') {
-          // พบเบอร์โทร ให้โชว์หน้าจอคัดลอก UserID
           showScreen('copy-screen');
           document.getElementById('display-userid').textContent = data.lineUserId;
         } else {
           showError("ตรวจสอบไม่สำเร็จ", data.message);
         }
       } catch (error) {
-        showError("การตรวจสอบล้มเหลว", "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง");
+        showError("การตรวจสอบล้มเหลว", "โปรดลองอีกครั้ง");
       }
     });
 
     function copyUserId() {
       navigator.clipboard.writeText(lineProfile.userId).then(() => {
-        alert("คัดลอกรหัสเรียบร้อยแล้ว กรุณานำไปส่งให้ผู้ดูแลระบบ");
+        alert("คัดลอกรหัสเรียบร้อย นำส่ง Admin ได้เลย");
       });
     }
 
-    // ==========================================
-    // 5. Render เมนูแดชบอร์ด
-    // ==========================================
     function renderDashboard(data) {
       showScreen('dashboard-screen');
-      document.getElementById('user-info').textContent = `${lineProfile.displayName} | ${data.jobPosition}`;
+      document.getElementById('user-info').textContent = `${data.jobPosition}`;
       
       const container = document.getElementById('menu-container');
       container.innerHTML = '';
 
       if (!data.menuGroups || data.menuGroups.length === 0) {
-        container.innerHTML = `<div class="bg-white p-6 rounded-lg text-lineDarkGray text-center border shadow-sm">คุณยังไม่มีสิทธิ์เข้าถึงเมนูใดๆ</div>`;
+        container.innerHTML = `<div class="bg-white p-6 rounded-lg text-lineDarkGray text-center border shadow-sm">ไม่มีสิทธิ์เข้าถึงเมนู</div>`;
         return;
       }
 
@@ -252,17 +261,18 @@
         groupSection.className = "mb-6";
         
         const menusHtml = group.menus.map(menu => `
-          <a href="${menu.menuUrl}" class="flex items-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-linePrimary transition duration-200">
-            <div class="bg-blue-50 text-linePrimary p-3 rounded-lg mr-4 flex-shrink-0">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          <a href="${menu.menuUrl}" class="flex flex-col p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition">
+            <div class="flex items-center">
+              <div class="bg-blue-50 text-linePrimary p-2 rounded-lg mr-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              </div>
+              <h3 class="text-sm font-bold text-gray-800 flex-grow">${menu.menuName}</h3>
+              <div class="text-gray-300">›</div>
             </div>
-            <div class="flex-grow">
-              <h3 class="text-sm font-bold text-gray-800">${menu.menuName}</h3>
-            </div>
-            <div class="text-gray-300 ml-2">›</div>
           </a>
         `).join('');
 
+        // Grid CSS รองรับอย่างน้อย 3 เมนูบน Desktop
         groupSection.innerHTML = `
           <h2 class="text-xs font-bold text-lineDarkGray uppercase mb-3 pl-1 tracking-wider border-l-4 border-linePrimary leading-none ml-1">${group.groupName}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -273,9 +283,6 @@
       });
     }
 
-    // ==========================================
-    // Utility Functions
-    // ==========================================
     function showScreen(id) {
       ['loading-screen', 'register-screen', 'error-screen', 'dashboard-screen', 'copy-screen'].forEach(s => {
         document.getElementById(s).classList.add('hidden');
