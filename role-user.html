@@ -605,7 +605,8 @@
       const isMenu = (tabType || currentTab) === 'menu';
       document.getElementById('fields-menu').classList.toggle('hidden', !isMenu);
       document.getElementById('fields-role').classList.toggle('hidden', isMenu);
-      document.getElementById('modalTitle').textContent = mode === 'add' ? '➕ เพิ่มข้อมูล' : '✏️ แก้ไขข้อมูล';
+      const entityLabel = isMenu ? 'รายการเมนูระบบ' : 'สิทธิ์การใช้งานตามตำแหน่ง';
+      document.getElementById('modalTitle').textContent = mode === 'add' ? `➕ เพิ่ม${entityLabel}` : `✏️ แก้ไข${entityLabel}`;
 
       if (mode === 'add') {
         document.getElementById('auditInfo').innerHTML = `สร้างรายการใหม่โดย Admin ID: <b>${currentActionEmpId}</b>`;
