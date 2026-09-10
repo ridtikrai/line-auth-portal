@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Portal Dashboard</title>
+    <title>Centralized Auth Dashboard</title>
     
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load LINE LIFF SDK -->
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-    <!-- Tailwind Config: LINE Color Palette[cite: 1] -->
+    <!-- Tailwind Config based on LINE Template Design Standards[cite: 1] -->
     <script>
         tailwind.config = {
             theme: {
@@ -29,33 +32,50 @@
         }
     </script>
     <style>
+        /* กฎสำคัญ: ซ่อน Element พื้นฐานเพื่อรอรับ Permission[cite: 1] */
         .perm-required { display: none !important; }
         
-        /* LINE Template Standard - Mobile First (Max 500px)[cite: 1] */
-        body { background-color: #F7F7F7; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        .line-container { max-width: 500px; margin: 0 auto; min-height: 100vh; background-color: #F7F7F7; }
-        .line-header { background: linear-gradient(135deg, #0084FF 0%, #0066cc 100%); color: white; }
+        /* LINE Template Standard - Mobile First[cite: 1] */
+        body { 
+            background-color: #F7F7F7; /* Light Background[cite: 1] */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+        }
+        .line-container { 
+            max-width: 500px; /* Optimized for mobile to full Flex Message max[cite: 1] */
+            margin: 0 auto; 
+            min-height: 100vh; 
+            background-color: #F7F7F7; 
+        }
+        .line-header { 
+            background: linear-gradient(135deg, #0084FF 0%, #0066cc 100%); /* LINE Blue Gradient[cite: 1] */
+            color: white; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        /* Hover/Active states for interactivity[cite: 1] */
+        .menu-item { transition: all 0.3s ease; }
+        .menu-item:active { background-color: #efefef; }
     </style>
 </head>
 <body>
 
+    <!-- ⚙️ VARIABLES CONFIGURATION ⚙️ -->
     <script>
         const LIFF_ID = "2011487100-dldPQItq"; 
-        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; 
+        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // นำ Web App URL มาใส่ตรงนี้
         const CURRENT_MENU_ID = "901"; 
     </script>
 
-    <!-- Loading -->
+    <!-- Loading Screen -->
     <div id="loadingScreen" class="line-container flex flex-col items-center justify-center h-screen">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-line-primary"></div>
-        <p class="mt-4 text-line-darkGray text-sm">กำลังโหลดข้อมูล Portal...</p>
+        <p class="mt-4 text-line-darkGray text-sm">กำลังตรวจสอบสิทธิ์...</p>
     </div>
 
-    <!-- Main Dashboard -->
+    <!-- Main Application (Hidden by default) -->
     <div id="appScreen" class="line-container hidden pb-10">
         
-        <!-- Header (Greeting & Role Display)[cite: 1] -->
-        <header class="line-header px-4 py-6 rounded-b-xl shadow-md">
+        <!-- HEADER SECTION[cite: 1] -->
+        <header class="line-header px-4 py-6 rounded-b-2xl">
             <h1 class="text-2xl font-bold mb-1">👋 Welcome, <span id="displayName">User</span></h1>
             <div class="flex items-center text-sm text-blue-100 opacity-90 mt-2">
                 <span id="userRoleBadge" class="bg-white/30 px-3 py-1 rounded-full text-xs mr-2 shadow-sm font-semibold">Role</span>
@@ -65,52 +85,60 @@
 
         <main class="p-4 space-y-5 mt-2">
             
-            <!-- ADMIN GROUP (แสดงผลเมื่อเป็น Admin เท่านั้น)[cite: 1] -->
+            <!-- GROUP 1: Administration (แสดงเฉพาะคนที่เป็น ADMIN)[cite: 1] -->
             <section id="adminPortal" class="perm-required bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="bg-red-50 p-3 border-b border-red-100">
-                    <h2 class="text-xs font-bold text-red-600 uppercase tracking-wide">👑 Administration (Admin Only)</h2>
+                    <h2 class="text-xs font-bold text-red-600 uppercase tracking-wide">📋 Administration</h2>
                 </div>
                 <div class="p-2 divide-y divide-gray-100">
-                    <a href="#" class="flex items-center p-3 text-gray-800 active:bg-gray-50">
+                    <a href="#" class="menu-item flex items-center p-3 text-gray-800">
                         <span class="text-xl w-8 text-center mr-3">👥</span>
-                        <span class="flex-1 font-medium text-sm">จัดการผู้ใช้งานทั้งหมด (User Management)</span>
+                        <span class="flex-1 font-medium text-sm">User Management</span>
                         <span class="text-gray-400">›</span>
                     </a>
-                    <a href="#" class="flex items-center p-3 text-gray-800 active:bg-gray-50">
-                        <span class="text-xl w-8 text-center mr-3">🔐</span>
-                        <span class="flex-1 font-medium text-sm">จัดการสิทธิ์ระบบ (Role Management)</span>
+                    <a href="#" class="menu-item flex items-center p-3 text-gray-800">
+                        <span class="text-xl w-8 text-center mr-3">🔑</span>
+                        <span class="flex-1 font-medium text-sm">Role Management</span>
                         <span class="text-gray-400">›</span>
                     </a>
                 </div>
             </section>
 
-            <!-- GENERAL MENU GROUP[cite: 1] -->
+            <!-- GROUP 2: Applications (ใช้ปุ่มจำลองการทำ CRUD ตามสิทธิ์)[cite: 1] -->
             <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="bg-gray-50 p-3 border-b border-gray-100">
-                    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wide">📋 My Applications</h2>
+                    <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wide" id="menuTitle">🚀 My Applications</h2>
                 </div>
                 <div class="p-4 grid grid-cols-2 gap-3">
-                    <button class="perm-required perm-create w-full bg-line-primary text-white font-medium py-3 rounded-lg text-sm shadow-sm active:bg-blue-700">
+                    <button class="perm-required perm-create w-full bg-line-primary text-white font-medium py-3 rounded-lg text-sm shadow-sm active:bg-blue-700 transition">
                         ➕ สร้างเอกสาร
                     </button>
-                    <button class="perm-required perm-edit w-full bg-line-warning text-white font-medium py-3 rounded-lg text-sm shadow-sm active:bg-yellow-600">
+                    <button class="perm-required perm-edit w-full bg-line-warning text-white font-medium py-3 rounded-lg text-sm shadow-sm active:bg-yellow-600 transition">
                         ✏️ แก้ไขข้อมูล
                     </button>
-                    <button class="perm-required perm-approve w-full bg-line-success text-white font-medium py-3 rounded-lg text-sm shadow-sm col-span-2 active:bg-green-700">
+                    <button class="perm-required perm-approve w-full bg-line-success text-white font-medium py-3 rounded-lg text-sm shadow-sm col-span-2 active:bg-green-700 transition">
                         ✅ อนุมัติรายการ (Approve)
+                    </button>
+                    <button class="perm-required perm-delete w-full bg-line-danger text-white font-medium py-3 rounded-lg text-sm shadow-sm col-span-2 active:bg-red-700 transition">
+                        🗑️ ลบข้อมูล (Delete)
                     </button>
                 </div>
             </section>
 
-            <!-- REPORTS GROUP[cite: 1] -->
+            <!-- GROUP 3: Reports[cite: 1] -->
             <section class="perm-required perm-read bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="bg-gray-50 p-3 border-b border-gray-100">
                     <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wide">📊 Reports</h2>
                 </div>
-                <div class="p-2">
-                    <a href="#" class="flex items-center p-3 text-gray-800 active:bg-gray-50">
+                <div class="p-2 divide-y divide-gray-100">
+                    <a href="#" class="menu-item flex items-center p-3 text-gray-800">
                         <span class="text-xl w-8 text-center mr-3">📝</span>
                         <span class="flex-1 font-medium text-sm">Activity Log</span>
+                        <span class="text-gray-400">›</span>
+                    </a>
+                    <a href="#" class="menu-item flex items-center p-3 text-gray-800">
+                        <span class="text-xl w-8 text-center mr-3">🔍</span>
+                        <span class="flex-1 font-medium text-sm">Audit Trail</span>
                         <span class="text-gray-400">›</span>
                     </a>
                 </div>
@@ -119,19 +147,27 @@
         </main>
     </div>
 
+    <!-- 🧠 Application Logic -->
     <script>
         async function initApp() {
             try {
                 await liff.init({ liffId: LIFF_ID });
+                
                 if (!liff.isLoggedIn()) {
                     liff.login();
                     return;
                 }
+
+                // ดึงข้อมูลโปรไฟล์จาก LINE
                 const profile = await liff.getProfile();
                 document.getElementById('displayName').textContent = profile.displayName;
+                
+                // ส่ง userId ไปตรวจสอบสิทธิ์
                 await verifyAccess(profile.userId);
+
             } catch (err) {
-                alert("LIFF Error: ไม่สามารถเชื่อมต่อ LINE ได้");
+                console.error("LIFF Init Error:", err);
+                alert("ไม่สามารถเชื่อมต่อระบบ LINE ได้");
             }
         }
 
@@ -139,43 +175,56 @@
             try {
                 const response = await fetch(CENTRAL_API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'verifyAccess', userId: userId, menuId: CURRENT_MENU_ID })
+                    headers: { 'Content-Type': 'text/plain' }, // ใช้ text/plain ป้องกัน CORS Preflight บน GAS
+                    body: JSON.stringify({
+                        action: 'verifyAccess',
+                        userId: userId,
+                        menuId: CURRENT_MENU_ID
+                    })
                 });
 
                 const data = await response.json();
+                
+                // ปิดหน้าจอโหลดดิ้ง
                 document.getElementById('loadingScreen').classList.add('hidden');
 
                 if (data.status === 'not_registered') {
-                    alert('คุณยังไม่ได้ลงทะเบียนในระบบ');
+                    alert('คุณยังไม่ได้ลงทะเบียนในระบบ กรุณาติดต่อ HR');
                     liff.closeWindow();
                     return;
                 }
 
                 if (!data.allowed) {
-                    alert('Access Denied: คุณไม่มีสิทธิ์เข้าใช้งาน Portal นี้');
+                    alert('Access Denied: คุณไม่มีสิทธิ์เข้าใช้งานเมนูนี้');
                     liff.closeWindow();
                     return;
                 }
 
-                // แสดงผล Portal
+                // สิทธิ์ผ่าน -> แสดงผลหน้าจอหลัก
                 document.getElementById('appScreen').classList.remove('hidden');
                 document.getElementById('userRoleBadge').textContent = data.jobPosition;
                 document.getElementById('empIdDisplay').textContent = 'ID: ' + data.empId;
+                
+                if (data.menuName) {
+                    document.getElementById('menuTitle').textContent = `🚀 ${data.menuName}`;
+                }
 
-                // ถ้าเป็น ADMIN ให้ปลดล็อกเมนูแอดมิน
+                // เปิดการมองเห็นเมนู Administration หากเป็น ADMIN
                 if (data.isAdmin) {
                     document.getElementById('adminPortal').classList.remove('perm-required');
                 }
 
+                // นำค่า permissions มากรอง DOM[cite: 1]
                 applyPermissions(data.permissions);
 
             } catch (error) {
+                console.error(error);
                 alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
             }
         }
 
         function applyPermissions(perms) {
+            // ระบบจะลบคลาส 'perm-required' ออก เพื่อให้ปุ่ม/เมนู แสดงผลตามปกติ (ลบ display: none ออก)
             if (perms.read) document.querySelectorAll('.perm-read').forEach(el => el.classList.remove('perm-required'));
             if (perms.create) document.querySelectorAll('.perm-create').forEach(el => el.classList.remove('perm-required'));
             if (perms.edit) document.querySelectorAll('.perm-edit').forEach(el => el.classList.remove('perm-required'));
@@ -183,6 +232,7 @@
             if (perms.approve) document.querySelectorAll('.perm-approve').forEach(el => el.classList.remove('perm-required'));
         }
 
+        // เริ่มต้นการทำงานเมื่อโหลด DOM เสร็จสิ้น
         window.onload = initApp;
     </script>
 </body>
