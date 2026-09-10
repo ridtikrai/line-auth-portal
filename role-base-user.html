@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <!-- LINE Template Colors[cite: 2] -->
+  <!-- LINE Template Colors[cite: 1, 2] -->
   <script>
     tailwind.config = {
       theme: {
@@ -27,8 +27,7 @@
   </script>
   <style>
     .perm-hide { display: none !important; }
-    /* Responsive Table ให้เลื่อนได้บนจอแคบ แต่ปุ่มจัดการแสดงผลชัดเจน */
-    .table-container { overflow-x: auto; }
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   </style>
 </head>
 <body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
@@ -38,8 +37,8 @@
     // Configuration[cite: 2]
     // ==========================================
     const LIFF_ID = "2011487100-dldPQItq";
-    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // แทนที่ด้วย URL Web App ของคุณ
-    const CURRENT_MENU_ID = "901"; // รหัสเมนูระบบจัดการพนักงาน
+    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // ระบุ URL Web App ของคุณ
+    const CURRENT_MENU_ID = "901"; 
   </script>
 
   <!-- Header Classic Design[cite: 1] -->
@@ -50,7 +49,8 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 id="menu-title" class="text-base font-bold tracking-wide leading-tight">จัดการข้อมูลพนักงาน</h1>
-            <button onclick="window.location.reload()" class="text-[10px] bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded text-white transition">หน้าหลัก</button>
+            <!-- แก้ไขปุ่มหน้าหลักให้ลิ้งค์กลับไปที่ index.html หรือรีเซ็ตหน้าจอหลัก -->
+            <button onclick="goToHome()" class="text-[10px] bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded text-white transition font-medium">หน้าหลัก</button>
           </div>
           <p id="user-info" class="text-[11px] opacity-90">กำลังตรวจสอบ...</p>
         </div>
@@ -83,14 +83,14 @@
           <h2 class="text-lg font-bold text-gray-800">📋 รายชื่อพนักงานทั้งหมดในระบบ</h2>
           <p class="text-xs text-gray-500">จัดการ เพิ่ม ลบ แก้ไข ข้อมูลพนักงานตามมาตรฐานสิทธิ์</p>
         </div>
-        <button onclick="openForm('add')" class="perm-hide perm-create bg-linePrimary text-white font-bold py-2.5 px-4 rounded-lg shadow-sm hover:bg-blue-600 transition text-sm flex items-center gap-1">
+        <button onclick="openForm('add')" id="btn-add-emp" class="perm-hide bg-linePrimary text-white font-bold py-2.5 px-4 rounded-lg shadow-sm hover:bg-blue-600 transition text-sm flex items-center gap-1">
           <span>➕</span> เพิ่มพนักงาน
         </button>
       </div>
 
       <!-- Responsive Data Table -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden table-container">
-        <table class="w-full text-left text-sm text-gray-600 min-w-[700px]">
+        <table class="w-full text-left text-sm text-gray-600 min-w-[750px]">
             <thead class="bg-gray-50 text-gray-700 border-b">
                 <tr>
                     <th class="p-3.5">Emp ID</th>
@@ -182,6 +182,7 @@
     let lineProfile = null;
     let allUsersData = [];
     let currentActionEmpId = ""; 
+    let currentPermissions = { create: false, edit: false, delete: false }; // Global permission store
     
     // Timer System 60 นาที[cite: 1]
     let timeoutLimit = 3600; 
@@ -245,17 +246,21 @@
         document.getElementById('user-info').textContent = `${lineProfile.displayName} | ตำแหน่ง: ${data.jobPosition} (ID: ${data.empId})`;
         
         currentActionEmpId = data.empId; 
+        currentPermissions = data.permissions; // บันทึกสิทธิ์ไว้ใช้ส่วนกลาง
 
-        applyPermissions(data.permissions);
+        applyPermissions(currentPermissions);
         await loadUsers();
 
       } catch (error) { alert("เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์"); }
     }
 
     function applyPermissions(perms) {
-      if (perms.create) document.querySelectorAll('.perm-create').forEach(el => el.classList.remove('perm-hide'));
-      if (perms.edit) document.querySelectorAll('.perm-edit').forEach(el => el.classList.remove('perm-hide'));
-      if (perms.delete) document.querySelectorAll('.perm-delete').forEach(el => el.classList.remove('perm-hide'));
+      const btnAdd = document.getElementById('btn-add-emp');
+      if (perms.create) {
+        if (btnAdd) btnAdd.classList.remove('perm-hide');
+      } else {
+        if (btnAdd) btnAdd.classList.add('perm-hide');
+      }
     }
 
     async function loadUsers() {
@@ -273,6 +278,10 @@
             ? '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">Active</span>' 
             : '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold">Inactive</span>';
 
+          // ตรวจสอบคลาสซ่อน/แสดงปุ่มแก้ไขและลบตามสิทธิ์ global
+          let editClass = currentPermissions.edit ? '' : 'perm-hide';
+          let deleteClass = currentPermissions.delete ? '' : 'perm-hide';
+
           html += `
           <tr class="hover:bg-gray-50 transition border-b border-gray-100">
               <td class="p-3.5 font-bold text-linePrimary">${u.Emp_ID || '-'}</td>
@@ -281,22 +290,14 @@
               <td class="p-3.5">${statusBadge}</td>
               <td class="p-3.5 text-xs text-gray-500">${lastUpdate}<br>By: ${u.updateEmpId || '-'}</td>
               <td class="p-3.5 text-center">
-                <div class="inline-flex space-x-1 sm:space-x-2">
-                  <button onclick="openForm('edit', '${u.Emp_ID}')" class="perm-hide perm-edit bg-lineWarning text-white px-2.5 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm">แก้ไข</button>
-                  <button onclick="deleteUser('${u.Emp_ID}')" class="perm-hide perm-delete bg-lineDanger text-white px-2.5 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm">ลบ</button>
+                <div class="inline-flex space-x-1.5 sm:space-x-2">
+                  <button onclick="openForm('edit', '${u.Emp_ID}')" class="${editClass} bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">แก้ไข</button>
+                  <button onclick="deleteUser('${u.Emp_ID}')" class="${deleteClass} bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">ลบ</button>
                 </div>
               </td>
           </tr>`;
       });
       document.getElementById('adminUserList').innerHTML = html;
-      
-      // Re-apply permissions to newly rendered table rows
-      if (document.querySelector('.perm-create')) {
-        const hasCreate = !document.querySelector('.perm-create').classList.contains('perm-hide');
-        const hasEdit = document.querySelector('.perm-edit') ? !document.querySelector('.perm-edit').classList.contains('perm-hide') : true;
-        const hasDelete = document.querySelector('.perm-delete') ? !document.querySelector('.perm-delete').classList.contains('perm-hide') : true;
-        applyPermissions({ create: hasCreate, edit: hasEdit, delete: hasDelete });
-      }
     }
 
     function openForm(mode, empId = null) {
@@ -385,6 +386,11 @@
       } else {
         alert(result.message);
       }
+    }
+
+    function goToHome() {
+      // นำทางกลับไปยังหน้าแรกหรือรีเซ็ต LIFF View ถ้าจำเป็น (สามารถเปลี่ยน URL เป็นหน้า Portal หลักของคุณได้)
+      window.location.href = window.location.pathname;
     }
 
     function logoutApp() {
