@@ -2,13 +2,14 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Dashboard & User Management</title>
     
+    <!-- Load Tailwind CSS & LINE LIFF -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-    <!-- Tailwind Config: อิงตาม LINE Official Palette[cite: 1] -->
+    <!-- Tailwind Config: LINE Template Colors -->
     <script>
         tailwind.config = {
             theme: {
@@ -19,7 +20,8 @@
                             success: '#17C950',
                             warning: '#FFC300',
                             danger: '#FF4458',
-                            bg: '#F7F7F7'
+                            gray: '#B6C2C7',
+                            lightBg: '#F7F7F7'
                         }
                     }
                 }
@@ -28,9 +30,15 @@
     </script>
     <style>
         body { background-color: #F7F7F7; font-family: -apple-system, sans-serif; }
-        .line-app { max-width: 500px; margin: 0 auto; min-height: 100vh; background-color: #F7F7F7; position: relative; }
+        /* รองรับ Desktop & Mobile */
+        .line-app { max-width: 1024px; margin: 0 auto; min-height: 100vh; background-color: #F7F7F7; }
         .line-header { background: linear-gradient(135deg, #0084FF 0%, #0066cc 100%); color: white; }
         .perm-hide { display: none !important; }
+        /* การจัดการ Layout สำหรับตารางบน Desktop */
+        @media (max-width: 768px) {
+            .line-app { max-width: 500px; }
+            .admin-table { display: block; overflow-x: auto; white-space: nowrap; }
+        }
     </style>
 </head>
 <body>
@@ -38,100 +46,125 @@
     <script>
         // === CONFIGURATION ===
         const LIFF_ID = "2011487100-dldPQItq"; 
-        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // วาง URL API กลาง
-        const CURRENT_MENU_ID = "901"; 
+        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // ระบุ URL ของคุณ
+        const CURRENT_MENU_ID = "901"; // ระบุ Menu ID สำหรับแอปนี้
     </script>
 
-    <div id="loading" class="line-app flex flex-col items-center justify-center">
+    <!-- Loading Screen -->
+    <div id="loading" class="line-app flex flex-col items-center justify-center h-screen">
         <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-line-primary"></div>
+        <p class="mt-4 text-gray-500 text-sm">กำลังโหลดระบบ...</p>
     </div>
 
     <!-- MAIN DASHBOARD -->
-    <div id="app" class="line-app hidden pb-20">
+    <div id="app" class="line-app hidden pb-20 shadow-xl bg-white md:bg-transparent">
         
-        <!-- HEADER (อิงจากไฟล์ภาพ) -->
-        <header class="line-header px-5 py-6 rounded-b-2xl shadow-sm mb-4">
+        <!-- HEADER -->
+        <header class="line-header px-5 py-8 rounded-b-2xl shadow-sm mb-6">
             <h1 class="text-2xl font-bold mb-2">👋 Welcome, <span id="displayName">User</span></h1>
             <div class="flex items-center text-xs font-semibold mt-1">
-                <span id="userRoleBadge" class="bg-white/30 px-3 py-1 rounded-full uppercase tracking-wider mr-2 text-white shadow-sm">ROLE</span>
+                <span id="userRoleBadge" class="bg-white/30 px-3 py-1 rounded-full uppercase tracking-wider mr-2 shadow-sm">ROLE</span>
                 <span class="text-blue-100" id="empIdDisplay">ID: --</span>
             </div>
         </header>
 
-        <main class="px-4 space-y-4">
+        <main class="px-4 md:px-8 space-y-6">
             
-            <!-- ADMIN SECTION (User Management) -->
-            <button id="adminManageBtn" onclick="openUserManagement()" class="perm-hide w-full bg-gray-800 text-white font-bold py-3 rounded-lg text-sm flex items-center justify-center mb-2 shadow-sm">
-                ⚙️ เข้าสู่ระบบจัดการพนักงานทั้งหมด (Admin)
+            <!-- ADMIN SECTION: จัดการพนักงาน -->
+            <button id="adminManageBtn" onclick="openUserManagement()" class="perm-hide w-full md:w-1/2 mx-auto bg-gray-800 text-white font-bold py-4 rounded-xl text-sm flex items-center justify-center shadow-lg transition hover:bg-gray-900">
+                ⚙️ จัดการข้อมูลพนักงานทั้งหมด (Admin Only)
             </button>
 
-            <!-- SECTION 1: จัดการสิทธิ์ผู้ใช้งาน (ตามภาพอ้างอิง) -->
-            <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-3 border-b border-gray-50 bg-gray-50">
-                    <h2 class="text-sm font-bold text-gray-600">🚀 จัดการสิทธิ์ผู้ใช้งาน</h2>
-                </div>
-                <div class="p-4 grid grid-cols-2 gap-3">
-                    <button class="perm-hide perm-create w-full bg-line-primary text-white font-bold py-3 rounded-lg text-sm shadow-sm">➕ สร้างเอกสาร</button>
-                    <button class="perm-hide perm-edit w-full bg-line-warning text-white font-bold py-3 rounded-lg text-sm shadow-sm">✏️ แก้ไขข้อมูล</button>
-                    <button class="perm-hide perm-approve w-full bg-line-success text-white font-bold py-3 rounded-lg text-sm shadow-sm col-span-2">☑️ อนุมัติรายการ (Approve)</button>
-                    <button class="perm-hide perm-delete w-full bg-line-danger text-white font-bold py-3 rounded-lg text-sm shadow-sm col-span-2">🗑️ ลบข้อมูล (Delete)</button>
-                </div>
-            </section>
+            <!-- Grid Layout สำหรับ Desktop -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- SECTION 1: สิทธิ์ใช้งานแอปพลิเคชัน -->
+                <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 border-b border-gray-50 bg-gray-50">
+                        <h2 class="text-sm font-bold text-gray-700">🚀 จัดการข้อมูลระบบ</h2>
+                    </div>
+                    <div class="p-5 grid grid-cols-2 gap-3">
+                        <button class="perm-hide perm-create w-full bg-line-primary text-white font-bold py-3 rounded-lg text-sm shadow-sm active:scale-95 transition">➕ สร้างเอกสาร</button>
+                        <button class="perm-hide perm-edit w-full bg-line-warning text-white font-bold py-3 rounded-lg text-sm shadow-sm active:scale-95 transition">✏️ แก้ไขข้อมูล</button>
+                        <button class="perm-hide perm-approve w-full bg-line-success text-white font-bold py-3 rounded-lg text-sm shadow-sm col-span-2 active:scale-95 transition">☑️ อนุมัติรายการ (Approve)</button>
+                        <button class="perm-hide perm-delete w-full bg-line-danger text-white font-bold py-3 rounded-lg text-sm shadow-sm col-span-2 active:scale-95 transition">🗑️ ลบข้อมูล (Delete)</button>
+                    </div>
+                </section>
 
-            <!-- SECTION 2: REPORTS (ตามภาพอ้างอิง) -->
-            <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-3 border-b border-gray-50 bg-gray-50">
-                    <h2 class="text-xs font-bold text-gray-500 uppercase">📊 REPORTS</h2>
-                </div>
-                <div class="divide-y divide-gray-50">
-                    <a href="#" class="flex items-center p-3 text-gray-700">
-                        <span class="text-xl w-8 text-center mr-3">📝</span>
-                        <span class="flex-1 font-semibold text-sm">Activity Log</span>
-                        <span class="text-gray-300">›</span>
-                    </a>
-                    <a href="#" class="flex items-center p-3 text-gray-700">
-                        <span class="text-xl w-8 text-center mr-3">🔍</span>
-                        <span class="flex-1 font-semibold text-sm">Audit Trail</span>
-                        <span class="text-gray-300">›</span>
-                    </a>
-                </div>
-            </section>
+                <!-- SECTION 2: REPORTS -->
+                <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 border-b border-gray-50 bg-gray-50">
+                        <h2 class="text-xs font-bold text-gray-500 uppercase">📊 Reports & Audit</h2>
+                    </div>
+                    <div class="divide-y divide-gray-50">
+                        <a href="#" class="flex items-center p-4 text-gray-700 hover:bg-gray-50 transition">
+                            <span class="text-2xl w-10 text-center mr-3">📝</span>
+                            <span class="flex-1 font-semibold text-sm">Activity Log</span>
+                            <span class="text-gray-300">›</span>
+                        </a>
+                        <a href="#" class="flex items-center p-4 text-gray-700 hover:bg-gray-50 transition">
+                            <span class="text-2xl w-10 text-center mr-3">🔍</span>
+                            <span class="flex-1 font-semibold text-sm">Audit Trail</span>
+                            <span class="text-gray-300">›</span>
+                        </a>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 
-    <!-- ADMIN MODAL: USER MANAGEMENT LIST & FORM -->
-    <div id="userManagementModal" class="hidden fixed inset-0 bg-gray-100 z-50 overflow-y-auto line-app">
-        <header class="bg-gray-800 text-white px-4 py-4 flex justify-between items-center sticky top-0">
-            <h2 class="font-bold">👥 การจัดการผู้ใช้งาน (Admin)</h2>
-            <button onclick="closeUserManagement()" class="text-xl px-2">✕</button>
+    <!-- ADMIN MODAL: USER MANAGEMENT LIST -->
+    <div id="userManagementModal" class="hidden fixed inset-0 bg-gray-100 z-50 overflow-y-auto">
+        <header class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center sticky top-0 shadow-md">
+            <h2 class="font-bold">👥 การจัดการผู้ใช้งานระบบ</h2>
+            <button onclick="document.getElementById('userManagementModal').classList.add('hidden')" class="text-xl px-2">✕</button>
         </header>
-        <div class="p-4">
-            <button onclick="openForm('add')" class="w-full bg-line-primary text-white font-bold py-3 rounded-lg text-sm mb-4">➕ เพิ่มพนักงานใหม่</button>
-            <div id="adminUserList" class="space-y-3"></div>
+        <div class="p-4 md:p-8 max-w-6xl mx-auto">
+            <button onclick="openForm('add')" class="w-full md:w-auto bg-line-primary text-white font-bold py-3 px-6 rounded-lg text-sm mb-6 shadow-md transition hover:bg-blue-600">➕ เพิ่มพนักงานใหม่</button>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden admin-table">
+                <table class="w-full text-left text-sm text-gray-600">
+                    <thead class="bg-gray-50 text-gray-700 border-b">
+                        <tr>
+                            <th class="p-4">Emp ID</th>
+                            <th class="p-4">Name</th>
+                            <th class="p-4">Position</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4">Last Update</th>
+                            <th class="p-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUserList" class="divide-y divide-gray-100">
+                        <!-- Data Appends Here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- FORM MODAL (All Emp Columns) -->
-    <div id="formModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-xl overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
-            <div class="bg-line-primary p-4 text-white font-bold" id="modalTitle">ฟอร์มพนักงาน</div>
-            <div class="p-4 space-y-3 text-sm">
+    <!-- FORM MODAL (CRUD All Columns) -->
+    <div id="formModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="bg-line-primary p-5 text-white font-bold text-lg" id="modalTitle">ฟอร์มพนักงาน</div>
+            <div class="p-6 space-y-4 text-sm overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input type="hidden" id="formMode">
-                <div><label class="block font-bold text-gray-600">LINE User ID *</label><input type="text" id="v_userId" class="w-full border rounded p-2"></div>
-                <div><label class="block font-bold text-gray-600">Emp ID *</label><input type="text" id="v_Emp_ID" class="w-full border rounded p-2"></div>
-                <div><label class="block font-bold text-gray-600">Job Position *</label><input type="text" id="v_Job_Position" class="w-full border rounded p-2"></div>
-                <div><label class="block font-bold text-gray-600">Status</label><input type="text" id="v_Status" class="w-full border rounded p-2"></div>
-                <div><label class="block font-bold text-gray-600">Full Name</label><input type="text" id="v_Emp_Name" class="w-full border rounded p-2"></div>
-                <div><label class="block font-bold text-gray-600">Name & Nickname</label><input type="text" id="v_Emp_Name_Nickname" class="w-full border rounded p-2"></div>
-                <div><label class="block font-bold text-gray-600">ID Card No</label><input type="text" id="v_Emp_IDCard_No" class="w-full border rounded p-2"></div>
-                <div><label class="block font-bold text-gray-600">Birth Date</label><input type="date" id="v_Emp_BirthDate" class="w-full border rounded p-2"></div>
-                <div><label class="block font-bold text-gray-600">Phone No</label><input type="text" id="v_Emp_Phone_No" class="w-full border rounded p-2"></div>
-                <div><label class="block font-bold text-gray-600">Bank Account</label><input type="text" id="v_Emp_BankAccount" class="w-full border rounded p-2"></div>
-                <div><label class="block font-bold text-gray-600">Bank Account No</label><input type="text" id="v_Emp_BankAccountNo" class="w-full border rounded p-2"></div>
+                <div class="md:col-span-2 text-xs text-gray-400 mb-2">Audit: <span id="auditInfo">--</span></div>
+                
+                <div><label class="block font-bold text-gray-700 mb-1">LINE User ID *</label><input type="text" id="v_userId" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
+                <div><label class="block font-bold text-gray-700 mb-1">Emp ID *</label><input type="text" id="v_Emp_ID" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
+                <div><label class="block font-bold text-gray-700 mb-1">Status</label><input type="text" id="v_Emp_ID_Status" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
+                <div><label class="block font-bold text-gray-700 mb-1">Job Position *</label><input type="text" id="v_Job_Position" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
+                
+                <div class="md:col-span-2"><label class="block font-bold text-gray-700 mb-1">Full Name</label><input type="text" id="v_Emp_Name" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
+                <div><label class="block font-bold text-gray-700 mb-1">Name & Nickname</label><input type="text" id="v_Emp_Name_Nickname" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
+                <div><label class="block font-bold text-gray-700 mb-1">ID Card No</label><input type="text" id="v_Emp_IDCard_No" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
+                <div><label class="block font-bold text-gray-700 mb-1">Birth Date</label><input type="date" id="v_Emp_BirthDate" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
+                <div><label class="block font-bold text-gray-700 mb-1">Phone No</label><input type="text" id="v_Emp_Phone_No" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
+                <div><label class="block font-bold text-gray-700 mb-1">Bank Account</label><input type="text" id="v_Emp_BankAccount" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
+                <div><label class="block font-bold text-gray-700 mb-1">Bank Account No</label><input type="text" id="v_Emp_BankAccountNo" class="w-full border rounded-lg p-2.5 outline-none focus:border-line-primary"></div>
             </div>
-            <div class="p-4 border-t flex justify-end space-x-2 bg-gray-50">
-                <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-4 py-2 bg-gray-200 rounded-lg">ยกเลิก</button>
-                <button onclick="saveUser()" class="px-4 py-2 bg-line-success text-white font-bold rounded-lg">บันทึกข้อมูล</button>
+            <div class="p-5 border-t flex justify-end space-x-3 bg-gray-50">
+                <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-5 py-2.5 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300">ยกเลิก</button>
+                <button onclick="saveUser()" class="px-5 py-2.5 bg-line-success text-white font-bold rounded-xl shadow-md transition hover:bg-green-600">บันทึกข้อมูล</button>
             </div>
         </div>
     </div>
@@ -139,6 +172,7 @@
     <!-- LOGIC SCRIPT -->
     <script>
         let allUsersData = [];
+        let currentActionEmpId = ""; // ตัวแปรเก็บผู้ใช้งานปัจจุบันสำหรับ Audit Trail
 
         async function initApp() {
             try {
@@ -164,6 +198,8 @@
                 document.getElementById('app').classList.remove('hidden');
                 document.getElementById('userRoleBadge').textContent = data.jobPosition;
                 document.getElementById('empIdDisplay').textContent = 'ID: ' + data.empId;
+                
+                currentActionEmpId = data.empId; // เก็บ ID สำหรับบันทึก Audit
 
                 if (data.isAdmin) document.getElementById('adminManageBtn').classList.remove('perm-hide');
 
@@ -183,10 +219,9 @@
             document.getElementById('userManagementModal').classList.remove('hidden');
             await loadUsers();
         }
-        function closeUserManagement() { document.getElementById('userManagementModal').classList.add('hidden'); }
 
         async function loadUsers() {
-            document.getElementById('adminUserList').innerHTML = '<div class="text-center py-4">กำลังโหลดข้อมูล...</div>';
+            document.getElementById('adminUserList').innerHTML = '<tr><td colspan="6" class="text-center p-6">กำลังโหลดข้อมูล...</td></tr>';
             const res = await fetch(CENTRAL_API_URL, {
                 method: 'POST', headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({ action: 'getUsers' })
@@ -196,17 +231,19 @@
             
             let html = '';
             allUsersData.forEach(u => {
+                let lastUpdate = u.updateDate ? new Date(u.updateDate).toLocaleString('th-TH') : '-';
                 html += `
-                <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center">
-                    <div>
-                        <div class="font-bold text-sm text-line-primary">${u.Emp_ID || 'No ID'}</div>
-                        <div class="text-xs text-gray-500">${u.Emp_Name || u.userId} - <span class="font-bold text-gray-700">${u.Job_Position}</span></div>
-                    </div>
-                    <div class="flex space-x-1">
-                        <button onclick="openForm('edit', '${u.userId}')" class="bg-line-warning text-white text-xs px-3 py-2 rounded">แก้</button>
-                        <button onclick="deleteUser('${u.userId}')" class="bg-line-danger text-white text-xs px-3 py-2 rounded">ลบ</button>
-                    </div>
-                </div>`;
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="p-4 font-bold text-line-primary">${u.Emp_ID || '-'}</td>
+                    <td class="p-4">${u.Emp_Name || '-'}</td>
+                    <td class="p-4"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">${u.Job_Position || '-'}</span></td>
+                    <td class="p-4">${u.Emp_ID_Status || '-'}</td>
+                    <td class="p-4 text-xs text-gray-500">${lastUpdate}<br>By: ${u.updateEmpId || '-'}</td>
+                    <td class="p-4 flex space-x-2">
+                        <button onclick="openForm('edit', '${u.userId}')" class="bg-line-warning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80">แก้ไข</button>
+                        <button onclick="deleteUser('${u.userId}')" class="bg-line-danger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80">ลบ</button>
+                    </td>
+                </tr>`;
             });
             document.getElementById('adminUserList').innerHTML = html;
         }
@@ -216,11 +253,12 @@
             document.getElementById('formMode').value = mode;
             document.getElementById('modalTitle').textContent = mode === 'add' ? '➕ เพิ่มพนักงาน' : '✏️ แก้ไขพนักงาน';
             
-            const fields = ['userId', 'Emp_ID', 'Job_Position', 'Status', 'Emp_Name', 'Emp_Name_Nickname', 'Emp_IDCard_No', 'Emp_BirthDate', 'Emp_Phone_No', 'Emp_BankAccount', 'Emp_BankAccountNo'];
+            const fields = ['userId', 'Emp_ID', 'Emp_ID_Status', 'Job_Position', 'Emp_Name', 'Emp_Name_Nickname', 'Emp_IDCard_No', 'Emp_BirthDate', 'Emp_Phone_No', 'Emp_BankAccount', 'Emp_BankAccountNo'];
             
             if (mode === 'add') {
                 fields.forEach(f => document.getElementById('v_' + f).value = '');
                 document.getElementById('v_userId').readOnly = false;
+                document.getElementById('auditInfo').textContent = `New Record - Will be created by ${currentActionEmpId}`;
             } else {
                 const user = allUsersData.find(u => String(u.userId) === String(userId));
                 fields.forEach(f => {
@@ -230,6 +268,9 @@
                     document.getElementById('v_' + f).value = val;
                 });
                 document.getElementById('v_userId').readOnly = true;
+                
+                let createDate = user.createDate ? new Date(user.createDate).toLocaleString('th-TH') : '-';
+                document.getElementById('auditInfo').textContent = `Created by: ${user.createEmpId || '-'} (${createDate})`;
             }
         }
 
@@ -237,11 +278,12 @@
             const payload = {
                 action: 'manageUser',
                 mode: document.getElementById('formMode').value,
+                actionByEmpId: currentActionEmpId, // ส่ง Emp_ID ของคนทำรายการไปให้ Backend
                 user: {
                     userId: document.getElementById('v_userId').value,
                     Emp_ID: document.getElementById('v_Emp_ID').value,
+                    Emp_ID_Status: document.getElementById('v_Emp_ID_Status').value,
                     Job_Position: document.getElementById('v_Job_Position').value,
-                    Status: document.getElementById('v_Status').value,
                     Emp_Name: document.getElementById('v_Emp_Name').value,
                     "Emp_Name_&_Nickname": document.getElementById('v_Emp_Name_Nickname').value,
                     Emp_IDCard_No: document.getElementById('v_Emp_IDCard_No').value,
@@ -259,7 +301,7 @@
         }
 
         async function deleteUser(userId) {
-            if(!confirm("ยืนยันการลบผู้ใช้?")) return;
+            if(!confirm("คุณต้องการลบผู้ใช้งานนี้อย่างถาวรหรือไม่?")) return;
             await fetch(CENTRAL_API_URL, {
                 method: 'POST', headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({ action: 'manageUser', mode: 'delete', user: { userId: userId } })
