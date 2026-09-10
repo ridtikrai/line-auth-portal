@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
+  <!-- LINE Template Colors -->
   <script>
     tailwind.config = {
       theme: {
@@ -36,13 +37,13 @@
       </div>
       
       <div class="flex flex-col items-end gap-1">
-        <!-- ออกจากระบบบน Header -->
-        <button onclick="logoutApp()" class="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded border border-white/30 transition flex items-center shadow-sm font-medium">
+        <!-- ออกจากระบบ -->
+        <button onclick="logoutApp()" class="text-[11px] sm:text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded border border-white/30 transition flex items-center shadow-sm font-medium">
           ออกจากระบบ
         </button>
-        <!-- Auto TimeOut -->
-        <div class="text-[10px] opacity-90 flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded">
-          <span>⏱️ หมดเวลา:</span>
+        <!-- Auto TimeOut 60 นาที -->
+        <div class="text-[9px] sm:text-[10px] opacity-90 flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded bg-black/10">
+          <span>⏱️</span>
           <span id="timer-display" class="font-mono font-bold tracking-wider">60:00</span>
         </div>
       </div>
@@ -64,16 +65,17 @@
       <form id="phone-form" class="space-y-4">
         <div>
           <input type="text" id="phone-input" maxlength="10" required
-            class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-linePrimary"
+            class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-linePrimary text-center tracking-widest text-lg"
             placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
+        <!-- Button size optimized for Touch-Friendly[cite: 1] -->
         <button type="submit" class="w-full bg-linePrimary text-white font-bold py-3.5 rounded-lg hover:bg-blue-700 transition">
           ตรวจสอบข้อมูล
         </button>
       </form>
     </div>
 
-    <!-- 3. Copy User ID Screen (ให้ Admin จัดการ) -->
+    <!-- 3. Copy User ID Screen -->
     <div id="copy-screen" class="hidden max-w-md mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
       <div class="text-4xl mb-3">📱</div>
       <h2 class="text-lg font-bold mb-2">ยืนยันสำเร็จ</h2>
@@ -106,12 +108,12 @@
     // Configuration
     // ==========================================
     const LIFF_ID = "2011487100-dldPQItq";
-    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzDpOrouurlO_Wlr5RikWVYf8gAmQcN-TTC8yIk7nKLLEvwjYRio5utMrEdxUm4m5Ia/exec"; // วาง URL Web App 
+    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzDpOrouurlO_Wlr5RikWVYf8gAmQcN-TTC8yIk7nKLLEvwjYRio5utMrEdxUm4m5Ia/exec"; // วาง URL Web App ของคุณ
     
     let lineProfile = null;
     let clientInfo = { ip: "Unknown", location: "Unknown", device: navigator.userAgent };
     
-    // Auto TimeOut
+    // Auto TimeOut 60 นาที
     let timeoutLimit = 3600; 
     let timeRemaining = timeoutLimit;
     let timerInterval;
@@ -145,7 +147,7 @@
         window.addEventListener(evt, resetTimer, { passive: true })
       );
 
-      // นับถอยหลัง 60 นาที
+      // นับถอยหลัง 60 นาที UI
       timerInterval = setInterval(() => {
         timeRemaining--;
         let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
@@ -160,7 +162,7 @@
         }
       }, 1000);
 
-      // แจ้งเซิร์ฟเวอร์ทุกๆ 15 นาที เพื่อต่ออายุ lastLogin
+      // แจ้งเซิร์ฟเวอร์ทุกๆ 15 นาที เพื่อต่ออายุ lastLogin ในชีต
       keepAliveInterval = setInterval(() => {
         if (timeRemaining > 300) { 
           fetch(CENTRAL_API_URL, {
@@ -246,7 +248,7 @@
       });
     }
 
-    // ฟังก์ชัน Render เมนู (แบ่งกลุ่ม และบังคับ grid-cols-3 บนมือถือ)
+    // Render แบ่งกลุ่ม และบังคับแสดงอย่างน้อย 3 เมนู/แถว บนมือถือ
     function renderDashboard(data) {
       showScreen('dashboard-screen');
       document.getElementById('user-info').textContent = `${lineProfile.displayName} | ตำแหน่ง: ${data.jobPosition}`;
@@ -263,18 +265,18 @@
         const groupSection = document.createElement('div');
         
         const menusHtml = group.menus.map(menu => `
-          <a href="${menu.menuUrl}" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-linePrimary transition active:scale-95 h-full">
+          <a href="${menu.menuUrl}" class="flex flex-col items-center justify-start p-3 sm:p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-linePrimary transition active:scale-95 h-full">
             <div class="bg-blue-50 text-linePrimary p-2.5 sm:p-3 rounded-full mb-2 sm:mb-3">
               <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             </div>
-            <h3 class="text-[11px] sm:text-xs font-bold text-gray-800 text-center leading-tight line-clamp-2">${menu.menuName}</h3>
+            <h3 class="text-[11px] sm:text-xs font-bold text-gray-800 text-center leading-tight line-clamp-2 w-full">${menu.menuName}</h3>
           </a>
         `).join('');
 
-        // บังคับการแสดงผล grid-cols-3 บนมือถือ (3 เมนูต่อแถว)
+        // บังคับ 3 คอลัมน์บนมือถือ (grid-cols-3)[cite: 1]
         groupSection.innerHTML = `
-          <h2 class="text-[13px] font-bold text-linePrimary mb-3 tracking-wide pl-2 border-l-[3px] border-linePrimary leading-none">#${group.groupName}</h2>
-          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 sm:gap-4">
+          <h2 class="text-[14px] font-bold text-linePrimary mb-3 tracking-wide pl-2 border-l-[3px] border-linePrimary leading-none">#${group.groupName}</h2>
+          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
               ${menusHtml}
           </div>
         `;
