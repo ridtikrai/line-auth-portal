@@ -123,6 +123,7 @@
                   <th class="p-3.5 font-bold w-12">➕</th>
                   <th class="p-3.5 font-bold">Job Position</th>
                   <th class="p-3.5 font-bold">Menu ID</th>
+                  <th class="p-3.5 font-bold">Menu Name</th>
                   <th class="p-3.5 font-bold">สิทธิ์ (R/C/E/D/A)</th>
                   <th class="p-3.5 font-bold">Audit Trail</th>
                   <th class="p-3.5 font-bold text-center">จัดการ</th>
@@ -454,7 +455,7 @@
         html += `
         <tr class="group-row group-row-expand" onclick="toggleGroupRole('${jobPos}')">
             <td class="p-3.5"><span id="toggle-role-${jobPos}" class="font-bold">▼</span></td>
-            <td class="p-3.5 font-bold text-blue-700" colspan="5">
+            <td class="p-3.5 font-bold text-blue-700" colspan="6">
               👤 ${jobPos}
               <span class="text-xs text-gray-500 ml-2">(${items.length} items)</span>
             </td>
@@ -462,6 +463,10 @@
         
         html += `<tbody id="group-role-${jobPos}" class="divide-y divide-gray-100">`;
         items.forEach((r) => {
+          // ค้นหา Menu Name จากรายการเมนูด้วย Menu ID
+          const menu = allMenus.find(m => String(m.menuId) === String(r.menuId));
+          const menuName = menu ? menu.menuName : '-';
+
           const perms = [];
           if (String(r.canRead).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">R</span>');
           if (String(r.canCreate).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">C</span>');
@@ -474,6 +479,7 @@
               <td class="p-3.5"></td>
               <td class="p-3.5"></td>
               <td class="p-3.5 font-bold text-sm">${r.menuId}</td>
+              <td class="p-3.5">${menuName}</td>
               <td class="p-3.5">
                 <div class="flex gap-1">${perms.join('')}</div>
               </td>
@@ -494,7 +500,7 @@
         html += `</tbody></tr>`;
       });
 
-      document.getElementById('tbody-role').innerHTML = html || '<tr><td colspan="6" class="text-center p-6 text-gray-400">ไม่มีข้อมูล</td></tr>';
+      document.getElementById('tbody-role').innerHTML = html || '<tr><td colspan="7" class="text-center p-6 text-gray-400">ไม่มีข้อมูล</td></tr>';
     }
 
     function renderRoleMobile(editClass, deleteClass) {
@@ -523,6 +529,10 @@
           <!-- Group Items -->
           <div id="mobile-role-items-${jobPos}" class="divide-y divide-gray-200">
             ${items.map((r) => {
+              // ค้นหา Menu Name จากรายการเมนูด้วย Menu ID
+              const menu = allMenus.find(m => String(m.menuId) === String(r.menuId));
+              const menuName = menu ? menu.menuName : '-';
+
               const perms = [];
               if (String(r.canRead).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">R</span>');
               if (String(r.canCreate).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">C</span>');
@@ -543,6 +553,11 @@
                   </div>
                 </div>
                 
+                <div>
+                  <p class="text-xs text-gray-500">Menu Name</p>
+                  <p class="text-sm font-semibold text-gray-700">${menuName}</p>
+                </div>
+
                 <div>
                   <p class="text-xs text-gray-500">Menu URL</p>
                   <p class="text-xs text-gray-600 break-all">${r.menuUrl || '-'}</p>
