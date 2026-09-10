@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>User Management System</title>
+    <title>System Dashboard & User Management</title>
     
-    <!-- Load Tailwind & LINE LIFF -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-    <!-- Tailwind Config: LINE Template Colors[cite: 1] -->
+    <!-- Tailwind Config: อิงตาม LINE Official Palette[cite: 1] -->
     <script>
         tailwind.config = {
             theme: {
@@ -20,8 +19,6 @@
                             success: '#17C950',
                             warning: '#FFC300',
                             danger: '#FF4458',
-                            gray: '#B6C2C7',
-                            darkGray: '#6C757D',
                             bg: '#F7F7F7'
                         }
                     }
@@ -29,15 +26,11 @@
             }
         }
     </script>
-    
     <style>
-        /* สไตล์หลักตามมาตรฐาน LINE Template[cite: 1] */
-        body { background-color: #F7F7F7; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background-color: #F7F7F7; font-family: -apple-system, sans-serif; }
         .line-app { max-width: 500px; margin: 0 auto; min-height: 100vh; background-color: #F7F7F7; position: relative; }
         .line-header { background: linear-gradient(135deg, #0084FF 0%, #0066cc 100%); color: white; }
-        
-        /* Class สำหรับซ่อน DOM ตามสิทธิ์ที่ถูกดึงมาจาก API */
-        .perm-req { display: none !important; }
+        .perm-hide { display: none !important; }
     </style>
 </head>
 <body>
@@ -45,242 +38,235 @@
     <script>
         // === CONFIGURATION ===
         const LIFF_ID = "2011487100-dldPQItq"; 
-        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // วาง URL จาก Google Apps Script ที่นี่
-        const CURRENT_MENU_ID = "901"; // รหัสเมนูสำหรับหน้าจอนี้
+        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec"; // วาง URL API กลาง
+        const CURRENT_MENU_ID = "901"; 
     </script>
 
-    <!-- หน้าต่าง Loading -->
     <div id="loading" class="line-app flex flex-col items-center justify-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-line-primary"></div>
-        <p class="mt-4 text-line-darkGray text-sm">กำลังโหลดระบบส่วนกลาง...</p>
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-line-primary"></div>
     </div>
 
-    <!-- หน้าต่างหลักของแอปพลิเคชัน (ซ่อนไว้จนกว่าสิทธิ์จะผ่าน) -->
+    <!-- MAIN DASHBOARD -->
     <div id="app" class="line-app hidden pb-20">
         
-        <!-- HEADER (LINE Style)[cite: 1] -->
-        <header class="line-header px-4 py-6 rounded-b-2xl shadow-sm">
-            <h1 class="text-2xl font-bold mb-1" id="pageTitle">ระบบจัดการผู้ใช้งาน</h1>
-            <div class="flex items-center text-sm mt-2 opacity-90">
-                <span id="userRole" class="bg-white/30 px-3 py-1 rounded-full text-xs font-semibold mr-2">Role</span>
-                <span id="userEmpId">ID: --</span>
+        <!-- HEADER (อิงจากไฟล์ภาพ) -->
+        <header class="line-header px-5 py-6 rounded-b-2xl shadow-sm mb-4">
+            <h1 class="text-2xl font-bold mb-2">👋 Welcome, <span id="displayName">User</span></h1>
+            <div class="flex items-center text-xs font-semibold mt-1">
+                <span id="userRoleBadge" class="bg-white/30 px-3 py-1 rounded-full uppercase tracking-wider mr-2 text-white shadow-sm">ROLE</span>
+                <span class="text-blue-100" id="empIdDisplay">ID: --</span>
             </div>
         </header>
 
-        <main class="p-4 space-y-4">
+        <main class="px-4 space-y-4">
             
-            <!-- ส่วนแผงควบคุมหลัก -->
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-sm font-bold text-gray-600 uppercase tracking-wide">👥 รายชื่อพนักงาน</h2>
-                <!-- ปุ่มเพิ่มผู้ใช้ (แสดงเฉพาะมีสิทธิ์ canCreate) -->
-                <button onclick="openModal('add')" class="perm-req perm-create bg-line-primary text-white text-xs font-bold px-4 py-2 rounded-full shadow-sm active:bg-blue-700">
-                    + เพิ่มข้อมูล
-                </button>
-            </div>
+            <!-- ADMIN SECTION (User Management) -->
+            <button id="adminManageBtn" onclick="openUserManagement()" class="perm-hide w-full bg-gray-800 text-white font-bold py-3 rounded-lg text-sm flex items-center justify-center mb-2 shadow-sm">
+                ⚙️ เข้าสู่ระบบจัดการพนักงานทั้งหมด (Admin)
+            </button>
 
-            <!-- กล่องแสดงรายการผู้ใช้งาน -->
-            <div id="userList" class="space-y-3">
-                <!-- ข้อมูลผู้ใช้งานจะถูก Render ที่นี่ -->
-            </div>
+            <!-- SECTION 1: จัดการสิทธิ์ผู้ใช้งาน (ตามภาพอ้างอิง) -->
+            <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-3 border-b border-gray-50 bg-gray-50">
+                    <h2 class="text-sm font-bold text-gray-600">🚀 จัดการสิทธิ์ผู้ใช้งาน</h2>
+                </div>
+                <div class="p-4 grid grid-cols-2 gap-3">
+                    <button class="perm-hide perm-create w-full bg-line-primary text-white font-bold py-3 rounded-lg text-sm shadow-sm">➕ สร้างเอกสาร</button>
+                    <button class="perm-hide perm-edit w-full bg-line-warning text-white font-bold py-3 rounded-lg text-sm shadow-sm">✏️ แก้ไขข้อมูล</button>
+                    <button class="perm-hide perm-approve w-full bg-line-success text-white font-bold py-3 rounded-lg text-sm shadow-sm col-span-2">☑️ อนุมัติรายการ (Approve)</button>
+                    <button class="perm-hide perm-delete w-full bg-line-danger text-white font-bold py-3 rounded-lg text-sm shadow-sm col-span-2">🗑️ ลบข้อมูล (Delete)</button>
+                </div>
+            </section>
 
+            <!-- SECTION 2: REPORTS (ตามภาพอ้างอิง) -->
+            <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-3 border-b border-gray-50 bg-gray-50">
+                    <h2 class="text-xs font-bold text-gray-500 uppercase">📊 REPORTS</h2>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    <a href="#" class="flex items-center p-3 text-gray-700">
+                        <span class="text-xl w-8 text-center mr-3">📝</span>
+                        <span class="flex-1 font-semibold text-sm">Activity Log</span>
+                        <span class="text-gray-300">›</span>
+                    </a>
+                    <a href="#" class="flex items-center p-3 text-gray-700">
+                        <span class="text-xl w-8 text-center mr-3">🔍</span>
+                        <span class="flex-1 font-semibold text-sm">Audit Trail</span>
+                        <span class="text-gray-300">›</span>
+                    </a>
+                </div>
+            </section>
         </main>
     </div>
 
-    <!-- Modal Form (สำหรับ Add / Edit) -->
-    <div id="userModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-xl overflow-hidden shadow-xl">
-            <div class="bg-line-primary p-4 text-white font-bold" id="modalTitle">จัดการผู้ใช้งาน</div>
-            <div class="p-4 space-y-3">
+    <!-- ADMIN MODAL: USER MANAGEMENT LIST & FORM -->
+    <div id="userManagementModal" class="hidden fixed inset-0 bg-gray-100 z-50 overflow-y-auto line-app">
+        <header class="bg-gray-800 text-white px-4 py-4 flex justify-between items-center sticky top-0">
+            <h2 class="font-bold">👥 การจัดการผู้ใช้งาน (Admin)</h2>
+            <button onclick="closeUserManagement()" class="text-xl px-2">✕</button>
+        </header>
+        <div class="p-4">
+            <button onclick="openForm('add')" class="w-full bg-line-primary text-white font-bold py-3 rounded-lg text-sm mb-4">➕ เพิ่มพนักงานใหม่</button>
+            <div id="adminUserList" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- FORM MODAL (All Emp Columns) -->
+    <div id="formModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-xl overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
+            <div class="bg-line-primary p-4 text-white font-bold" id="modalTitle">ฟอร์มพนักงาน</div>
+            <div class="p-4 space-y-3 text-sm">
                 <input type="hidden" id="formMode">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1">LINE User ID</label>
-                    <input type="text" id="inputUserId" class="w-full border rounded p-2 text-sm focus:border-line-primary outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1">Employee ID</label>
-                    <input type="text" id="inputEmpId" class="w-full border rounded p-2 text-sm focus:border-line-primary outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1">Job Position (Role)</label>
-                    <input type="text" id="inputPosition" class="w-full border rounded p-2 text-sm focus:border-line-primary outline-none">
-                </div>
+                <div><label class="block font-bold text-gray-600">LINE User ID *</label><input type="text" id="v_userId" class="w-full border rounded p-2"></div>
+                <div><label class="block font-bold text-gray-600">Emp ID *</label><input type="text" id="v_Emp_ID" class="w-full border rounded p-2"></div>
+                <div><label class="block font-bold text-gray-600">Job Position *</label><input type="text" id="v_Job_Position" class="w-full border rounded p-2"></div>
+                <div><label class="block font-bold text-gray-600">Status</label><input type="text" id="v_Status" class="w-full border rounded p-2"></div>
+                <div><label class="block font-bold text-gray-600">Full Name</label><input type="text" id="v_Emp_Name" class="w-full border rounded p-2"></div>
+                <div><label class="block font-bold text-gray-600">Name & Nickname</label><input type="text" id="v_Emp_Name_Nickname" class="w-full border rounded p-2"></div>
+                <div><label class="block font-bold text-gray-600">ID Card No</label><input type="text" id="v_Emp_IDCard_No" class="w-full border rounded p-2"></div>
+                <div><label class="block font-bold text-gray-600">Birth Date</label><input type="date" id="v_Emp_BirthDate" class="w-full border rounded p-2"></div>
+                <div><label class="block font-bold text-gray-600">Phone No</label><input type="text" id="v_Emp_Phone_No" class="w-full border rounded p-2"></div>
+                <div><label class="block font-bold text-gray-600">Bank Account</label><input type="text" id="v_Emp_BankAccount" class="w-full border rounded p-2"></div>
+                <div><label class="block font-bold text-gray-600">Bank Account No</label><input type="text" id="v_Emp_BankAccountNo" class="w-full border rounded p-2"></div>
             </div>
             <div class="p-4 border-t flex justify-end space-x-2 bg-gray-50">
-                <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-bold rounded-lg">ยกเลิก</button>
-                <button onclick="saveUser()" class="px-4 py-2 bg-line-success text-white text-sm font-bold rounded-lg shadow-sm">บันทึก</button>
+                <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-4 py-2 bg-gray-200 rounded-lg">ยกเลิก</button>
+                <button onclick="saveUser()" class="px-4 py-2 bg-line-success text-white font-bold rounded-lg">บันทึกข้อมูล</button>
             </div>
         </div>
     </div>
 
+    <!-- LOGIC SCRIPT -->
     <script>
-        // ตัวแปรเก็บสิทธิ์ที่ได้จาก API
-        let userPermissions = {}; 
-        let globalUsersData = [];
+        let allUsersData = [];
 
-        // 1. เริ่มต้นระบบและ Login ผ่าน LIFF
         async function initApp() {
             try {
                 await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
+                if (!liff.isLoggedIn()) { liff.login(); return; }
                 const profile = await liff.getProfile();
+                document.getElementById('displayName').textContent = profile.displayName;
                 await verifyAccess(profile.userId);
-            } catch (err) {
-                alert("ระบบขัดข้อง ไม่สามารถเชื่อมต่อ LINE ได้");
-            }
+            } catch (err) { alert("เชื่อมต่อ LINE ล้มเหลว"); }
         }
 
-        // 2. เรียก API กลางเพื่อตรวจสอบสิทธิ์
         async function verifyAccess(userId) {
             try {
-                const response = await fetch(CENTRAL_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
+                const res = await fetch(CENTRAL_API_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ action: 'verifyAccess', userId: userId, menuId: CURRENT_MENU_ID })
                 });
-
-                const data = await response.json();
-                
-                if (!data.allowed) {
-                    alert('Access Denied: คุณไม่มีสิทธิ์เข้าใช้งานหน้านี้');
-                    liff.closeWindow();
-                    return;
-                }
-
-                // สิทธิ์ผ่าน -> แสดงหน้าจอและตั้งค่าสิทธิ์
+                const data = await res.json();
                 document.getElementById('loading').classList.add('hidden');
+
+                if (!data.allowed) { alert('Access Denied'); liff.closeWindow(); return; }
+
                 document.getElementById('app').classList.remove('hidden');
-                
-                document.getElementById('userRole').textContent = data.jobPosition;
-                document.getElementById('userEmpId').textContent = 'ID: ' + data.empId;
-                if(data.menuName) document.getElementById('pageTitle').textContent = data.menuName;
+                document.getElementById('userRoleBadge').textContent = data.jobPosition;
+                document.getElementById('empIdDisplay').textContent = 'ID: ' + data.empId;
 
-                userPermissions = data.permissions;
-                applyPermissionsToDOM();
-                
-                // โหลดรายชื่อพนักงาน
-                await loadUsersList();
+                if (data.isAdmin) document.getElementById('adminManageBtn').classList.remove('perm-hide');
 
-            } catch (error) {
-                alert("เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์");
-            }
+                applyPermissions(data.permissions);
+            } catch (error) { alert("เกิดข้อผิดพลาดในการดึงสิทธิ์"); }
         }
 
-        // 3. จัดการ DOM เปิดปุ่มต่างๆ ตามสิทธิ์ที่มี
-        function applyPermissionsToDOM() {
-            if (userPermissions.read) document.querySelectorAll('.perm-read').forEach(el => el.classList.remove('perm-req'));
-            if (userPermissions.create) document.querySelectorAll('.perm-create').forEach(el => el.classList.remove('perm-req'));
-            if (userPermissions.edit) document.querySelectorAll('.perm-edit').forEach(el => el.classList.remove('perm-req'));
-            if (userPermissions.delete) document.querySelectorAll('.perm-delete').forEach(el => el.classList.remove('perm-req'));
-            if (userPermissions.approve) document.querySelectorAll('.perm-approve').forEach(el => el.classList.remove('perm-req'));
+        function applyPermissions(perms) {
+            if (perms.create) document.querySelectorAll('.perm-create').forEach(el => el.classList.remove('perm-hide'));
+            if (perms.edit) document.querySelectorAll('.perm-edit').forEach(el => el.classList.remove('perm-hide'));
+            if (perms.approve) document.querySelectorAll('.perm-approve').forEach(el => el.classList.remove('perm-hide'));
+            if (perms.delete) document.querySelectorAll('.perm-delete').forEach(el => el.classList.remove('perm-hide'));
         }
 
-        // 4. ดึงข้อมูลรายการผู้ใช้งานจาก Sheet
-        async function loadUsersList() {
-            const listEl = document.getElementById('userList');
-            listEl.innerHTML = '<div class="text-center text-sm text-gray-500 py-4">กำลังโหลดข้อมูล...</div>';
-            
-            const response = await fetch(CENTRAL_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
+        // --- ADMIN USER MANAGEMENT FUNCTIONS ---
+        async function openUserManagement() {
+            document.getElementById('userManagementModal').classList.remove('hidden');
+            await loadUsers();
+        }
+        function closeUserManagement() { document.getElementById('userManagementModal').classList.add('hidden'); }
+
+        async function loadUsers() {
+            document.getElementById('adminUserList').innerHTML = '<div class="text-center py-4">กำลังโหลดข้อมูล...</div>';
+            const res = await fetch(CENTRAL_API_URL, {
+                method: 'POST', headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({ action: 'getUsers' })
             });
-            const result = await response.json();
-            globalUsersData = result.data;
-            renderUsers();
-        }
-
-        // 5. แสดงผลรายการผู้ใช้งานลงใน List
-        function renderUsers() {
-            const listEl = document.getElementById('userList');
-            listEl.innerHTML = '';
+            const result = await res.json();
+            allUsersData = result.data;
             
-            globalUsersData.forEach(user => {
-                // สร้างการแสดงผลแต่ละบุคคลเป็นรูปแบบ Card ตามหลัก Touch-Friendly ของ LINE[cite: 1]
-                let html = `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+            let html = '';
+            allUsersData.forEach(u => {
+                html += `
+                <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center">
                     <div>
-                        <div class="font-bold text-gray-800 text-sm">${user.Emp_ID}</div>
-                        <div class="text-xs text-gray-500 mt-1">Role: <span class="text-line-primary font-semibold">${user.Job_Position}</span></div>
+                        <div class="font-bold text-sm text-line-primary">${u.Emp_ID || 'No ID'}</div>
+                        <div class="text-xs text-gray-500">${u.Emp_Name || u.userId} - <span class="font-bold text-gray-700">${u.Job_Position}</span></div>
                     </div>
-                    <div class="flex space-x-2">`;
-                
-                // ตรวจสอบสิทธิ์ว่าจะให้เห็นปุ่ม Edit / Delete หรือไม่
-                if (userPermissions.edit) {
-                    html += `<button onclick="openModal('edit', '${user.userId}')" class="bg-line-warning text-white text-xs px-3 py-2 rounded font-bold">แก้ไข</button>`;
-                }
-                if (userPermissions.delete) {
-                    html += `<button onclick="deleteUser('${user.userId}')" class="bg-line-danger text-white text-xs px-3 py-2 rounded font-bold">ลบ</button>`;
-                }
-
-                html += `</div></div>`;
-                listEl.insertAdjacentHTML('beforeend', html);
+                    <div class="flex space-x-1">
+                        <button onclick="openForm('edit', '${u.userId}')" class="bg-line-warning text-white text-xs px-3 py-2 rounded">แก้</button>
+                        <button onclick="deleteUser('${u.userId}')" class="bg-line-danger text-white text-xs px-3 py-2 rounded">ลบ</button>
+                    </div>
+                </div>`;
             });
+            document.getElementById('adminUserList').innerHTML = html;
         }
 
-        // ================= UI HANDLERS =================
-        function openModal(mode, userId = null) {
-            document.getElementById('userModal').classList.remove('hidden');
+        function openForm(mode, userId = null) {
+            document.getElementById('formModal').classList.remove('hidden');
             document.getElementById('formMode').value = mode;
+            document.getElementById('modalTitle').textContent = mode === 'add' ? '➕ เพิ่มพนักงาน' : '✏️ แก้ไขพนักงาน';
+            
+            const fields = ['userId', 'Emp_ID', 'Job_Position', 'Status', 'Emp_Name', 'Emp_Name_Nickname', 'Emp_IDCard_No', 'Emp_BirthDate', 'Emp_Phone_No', 'Emp_BankAccount', 'Emp_BankAccountNo'];
             
             if (mode === 'add') {
-                document.getElementById('modalTitle').textContent = '➕ เพิ่มผู้ใช้งานใหม่';
-                document.getElementById('inputUserId').value = '';
-                document.getElementById('inputEmpId').value = '';
-                document.getElementById('inputPosition').value = '';
-                document.getElementById('inputUserId').readOnly = false;
-            } else if (mode === 'edit') {
-                document.getElementById('modalTitle').textContent = '✏️ แก้ไขข้อมูล';
-                const user = globalUsersData.find(u => String(u.userId) === String(userId));
-                document.getElementById('inputUserId').value = user.userId;
-                document.getElementById('inputUserId').readOnly = true; // ล็อคไม่ให้แก้ key หลัก
-                document.getElementById('inputEmpId').value = user.Emp_ID;
-                document.getElementById('inputPosition').value = user.Job_Position;
+                fields.forEach(f => document.getElementById('v_' + f).value = '');
+                document.getElementById('v_userId').readOnly = false;
+            } else {
+                const user = allUsersData.find(u => String(u.userId) === String(userId));
+                fields.forEach(f => {
+                    let mapKey = f === 'Emp_Name_Nickname' ? 'Emp_Name_&_Nickname' : f;
+                    let val = user[mapKey] || '';
+                    if (f === 'Emp_BirthDate' && val) val = new Date(val).toISOString().split('T')[0];
+                    document.getElementById('v_' + f).value = val;
+                });
+                document.getElementById('v_userId').readOnly = true;
             }
-        }
-
-        function closeModal() {
-            document.getElementById('userModal').classList.add('hidden');
         }
 
         async function saveUser() {
-            const mode = document.getElementById('formMode').value;
             const payload = {
                 action: 'manageUser',
-                mode: mode,
+                mode: document.getElementById('formMode').value,
                 user: {
-                    userId: document.getElementById('inputUserId').value,
-                    Emp_ID: document.getElementById('inputEmpId').value,
-                    Job_Position: document.getElementById('inputPosition').value
+                    userId: document.getElementById('v_userId').value,
+                    Emp_ID: document.getElementById('v_Emp_ID').value,
+                    Job_Position: document.getElementById('v_Job_Position').value,
+                    Status: document.getElementById('v_Status').value,
+                    Emp_Name: document.getElementById('v_Emp_Name').value,
+                    "Emp_Name_&_Nickname": document.getElementById('v_Emp_Name_Nickname').value,
+                    Emp_IDCard_No: document.getElementById('v_Emp_IDCard_No').value,
+                    Emp_BirthDate: document.getElementById('v_Emp_BirthDate').value,
+                    Emp_Phone_No: document.getElementById('v_Emp_Phone_No').value,
+                    Emp_BankAccount: document.getElementById('v_Emp_BankAccount').value,
+                    Emp_BankAccountNo: document.getElementById('v_Emp_BankAccountNo').value
                 }
             };
             
             document.getElementById('modalTitle').textContent = 'กำลังบันทึก...';
-            
-            await fetch(CENTRAL_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(payload)
-            });
-            
-            closeModal();
-            loadUsersList(); // รีเฟรชรายการ
+            await fetch(CENTRAL_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+            document.getElementById('formModal').classList.add('hidden');
+            loadUsers();
         }
 
         async function deleteUser(userId) {
-            if(!confirm("ยืนยันการลบผู้ใช้นี้ออกจากระบบ?")) return;
-            
+            if(!confirm("ยืนยันการลบผู้ใช้?")) return;
             await fetch(CENTRAL_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
+                method: 'POST', headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({ action: 'manageUser', mode: 'delete', user: { userId: userId } })
             });
-            loadUsersList();
+            loadUsers();
         }
 
-        // โหลดฟังก์ชันเริ่มต้นเมื่อ DOM พร้อม
         window.onload = initApp;
     </script>
 </body>
