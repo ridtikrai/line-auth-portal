@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Enterprise System</title>
+    <title>Enterprise Permission System</title>
     
     <!-- LINE LIFF SDK -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -11,7 +11,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script>
-        // กำหนด LINE Official Palette ตาม Design System
+        // กำหนด LINE Official Palette และ Layout 
         tailwind.config = {
             theme: {
                 extend: {
@@ -26,7 +26,7 @@
                         }
                     },
                     maxWidth: {
-                        'line-app': '500px'
+                        'line-app': '500px' // อิงความกว้างสูงสุดของ Flex Message
                     }
                 }
             }
@@ -34,7 +34,9 @@
     </script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        .hide { display: none !important; }
+        
+        /* Utility สำหรับซ่อน Component ผ่าน DOM DOM manipulation */
+        .hide-perm { display: none !important; }
         
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -42,16 +44,17 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         
-        /* รองรับการสัมผัส (Touch-Friendly) ขั้นต่ำ 44x44px */
+        /* Touch-Friendly Buttons (Min 44x44px) */
         .btn-touch { min-height: 44px; display: flex; justify-content: center; align-items: center; }
     </style>
 </head>
 <body class="bg-line-bg text-gray-800 antialiased">
 
+    <!-- Configuration พื้นฐาน -->
     <script>
         const LIFF_ID = "2011487100-dldPQItq";
-        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbwT92lC6xrr0MuDUNdjJKjL_jvkMZb7AjbOmA81uWKONXOf9dG2U-_6Y8qqW8bGsvoY/exec"; // ระบุ URL ของ Web App ใหม่
-        const CURRENT_MENU_ID = "902"; 
+        const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbwT92lC6xrr0MuDUNdjJKjL_jvkMZb7AjbOmA81uWKONXOf9dG2U-_6Y8qqW8bGsvoY/exec"; // ระบุ URL ของ Central API
+        const CURRENT_MENU_ID = "902"; // เปลี่ยนตาม ID ของเมนูในระบบนี้
     </script>
 
     <!-- Loading Screen -->
@@ -60,10 +63,10 @@
         <p id="loaderText" class="text-line-primary font-bold text-sm">กำลังเชื่อมต่อ LINE...</p>
     </div>
 
-    <!-- Main Container Layout แบบ Flex Message (Max 500px) -->
+    <!-- Main Container -->
     <div class="max-w-line-app mx-auto bg-white min-h-screen shadow-md relative pb-10">
         
-        <!-- Header -->
+        <!-- Header LINE Style -->
         <header class="bg-gradient-to-br from-line-primary to-blue-600 text-white p-5 shadow-sm">
             <h1 id="headerMenuName" class="text-xl font-bold mb-1">ระบบกำลังโหลด...</h1>
             <div class="flex items-center text-xs opacity-90 mt-2">
@@ -74,37 +77,39 @@
         <main class="p-4 space-y-4">
             
             <!-- Alert Box (กรณีแสดงข้อผิดพลาด หรือ ไม่มีสิทธิ์) -->
-            <div id="alertBox" class="bg-red-50 border-l-4 border-line-danger p-4 rounded-lg hide">
+            <div id="alertBox" class="bg-red-50 border-l-4 border-line-danger p-4 rounded-lg hidden">
                 <p id="alertMessage" class="text-sm text-red-700 font-bold">⛔ เกิดข้อผิดพลาด</p>
                 <button onclick="liff.closeWindow()" class="mt-3 text-xs bg-red-100 text-red-800 px-4 py-2 rounded font-bold">ปิดหน้าจอ</button>
             </div>
 
-            <!-- Workspace Area (ซ่อนไว้จนกว่าจะโหลดสิทธิ์ผ่าน) -->
-            <div id="workspace" class="hide space-y-4">
+            <!-- Workspace Area -->
+            <div id="workspace" class="hidden space-y-4">
                 
-                <!-- Action Buttons: เชื่อมโยงกับ permissions ฝั่ง Backend -->
+                <!-- กลุ่มปุ่มจัดการข้อมูล (เชื่อมโยงกับสิทธิ์ผ่าน data-permission) -->
                 <div class="grid grid-cols-2 gap-3">
-                    <button data-perm="create" class="btn-touch bg-line-success hover:bg-green-600 text-white font-bold rounded-lg shadow-sm text-sm transition">
+                    <button data-permission="create" class="btn-touch bg-line-success hover:bg-green-600 text-white font-bold rounded-lg shadow-sm text-sm transition">
                         ➕ สร้างเอกสาร
                     </button>
-                    <button data-perm="approve" class="btn-touch bg-line-warning hover:bg-yellow-500 text-white font-bold rounded-lg shadow-sm text-sm transition">
+                    <button data-permission="approve" class="btn-touch bg-line-warning hover:bg-yellow-500 text-white font-bold rounded-lg shadow-sm text-sm transition">
                         ✅ อนุมัติข้อมูล
                     </button>
                 </div>
 
-                <!-- Data Card Layout -->
+                <!-- Data Card -->
                 <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                     <div class="flex justify-between items-start mb-4 pb-3 border-b border-gray-100">
                         <div>
                             <h3 class="font-bold text-gray-800">เอกสารรหัส #DOC-2026</h3>
-                            <p class="text-xs text-line-gray mt-1">ข้อมูลตัวอย่างสำหรับการทดสอบ</p>
+                            <p class="text-xs text-line-gray mt-1">ข้อมูลตัวอย่างสำหรับการทดสอบระบบสิทธิ์</p>
                         </div>
-                        <button data-perm="delete" class="text-line-danger bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100">
+                        <!-- ปุ่มลบถูกซ่อนหรือแสดงตามสิทธิ์ -->
+                        <button data-permission="delete" class="text-line-danger bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 transition">
                             🗑️ ลบ
                         </button>
                     </div>
                     
-                    <button data-perm="edit" class="btn-touch w-full bg-blue-50 text-line-primary border border-blue-200 font-bold rounded-lg text-sm hover:bg-blue-100">
+                    <!-- ปุ่มแก้ไขถูกซ่อนหรือแสดงตามสิทธิ์ -->
+                    <button data-permission="edit" class="btn-touch w-full bg-blue-50 text-line-primary border border-blue-200 font-bold rounded-lg text-sm hover:bg-blue-100 transition">
                         ✏️ แก้ไขข้อมูลเอกสาร
                     </button>
                 </div>
@@ -113,19 +118,19 @@
         </main>
     </div>
 
-    <!-- Application Core Logic -->
+    <!-- Application Logic -->
     <script>
-        // Utility Functions
         const ui = {
-            hideLoader: () => document.getElementById('loader').classList.add('hide'),
+            hideLoader: () => document.getElementById('loader').style.display = 'none',
             showLoaderText: (text) => document.getElementById('loaderText').innerText = text,
             showError: (msg) => {
                 ui.hideLoader();
-                document.getElementById('alertBox').classList.remove('hide');
+                document.getElementById('alertBox').classList.remove('hidden');
                 document.getElementById('alertMessage').innerText = "⛔ " + msg;
             }
         };
 
+        // 1. ฟังก์ชันเริ่มต้น
         async function initApp() {
             try {
                 await liff.init({ liffId: LIFF_ID });
@@ -135,22 +140,24 @@
                     return;
                 }
 
-                ui.showLoaderText("กำลังโหลดสิทธิ์การใช้งาน...");
+                ui.showLoaderText("กำลังตรวจสอบสิทธิ์การใช้งาน...");
                 const profile = await liff.getProfile();
-                await verifyAccess(profile.userId);
+                await checkPermission(profile.userId);
 
             } catch (err) {
                 console.error("LIFF Init Error:", err);
-                ui.showError("ไม่สามารถเชื่อมต่อ LINE ได้ กรุณาลองใหม่");
+                ui.showError("ไม่สามารถเชื่อมต่อ LINE SDK ได้");
             }
         }
 
-        async function verifyAccess(userId) {
+        // 2. ฟังก์ชันตรวจสอบสิทธิ์ (แก้ไข Failed to Fetch แล้ว)
+        async function checkPermission(userId) {
             try {
                 const response = await fetch(CENTRAL_API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    redirect: "follow", // ป้องกันปัญหา GAS CORS Redirect Issue
+                    // เปลี่ยน Content-Type เป็น text/plain เพื่อเลี่ยง Preflight ของ GAS
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    redirect: "follow", // ป้องกัน 302 Redirect หายไปกลางทาง
                     body: JSON.stringify({
                         action: 'verifyAccess',
                         userId: userId,
@@ -164,47 +171,49 @@
                 ui.hideLoader();
 
                 if (data.status === 'not_registered') {
-                    ui.showError("ระบบไม่พบข้อมูลพนักงานของคุณ");
+                    ui.showError("ไม่พบข้อมูลผู้ใช้งานของคุณในระบบ");
                     return;
                 }
 
                 if (data.status === 'error') {
-                    ui.showError("ข้อผิดพลาดจากฐานข้อมูล: " + data.message);
+                    ui.showError("ข้อผิดพลาดฝั่งเซิร์ฟเวอร์: " + data.message);
                     return;
                 }
 
                 if (data.allowed === false || data.permissions.read === false) {
-                    ui.showError(`คุณไม่มีสิทธิ์เข้าถึงเมนู: ${data.menuName}`);
+                    ui.showError(`คุณไม่มีสิทธิ์เข้าถึง: ${data.menuName}`);
                     return;
                 }
 
-                // การอนุญาตเข้าสู่ระบบสำเร็จ
-                document.getElementById('workspace').classList.remove('hide');
+                // 3. อนุญาตให้เข้าถึงพื้นที่การทำงาน
+                document.getElementById('workspace').classList.remove('hidden');
                 document.getElementById('headerMenuName').innerText = data.menuName;
                 document.getElementById('headerRole').innerText = `👤 ${data.jobPosition} (รหัส: ${data.empId})`;
                 
-                applyDomPermissions(data.permissions);
+                // นำสิทธิ์ไปซ่อนปุ่มต่างๆ ใน DOM
+                applyPermissionsToDOM(data.permissions);
 
             } catch (err) {
-                console.error("API Fetch Error:", err);
+                console.error("Fetch Error:", err);
                 ui.showError("เซิร์ฟเวอร์ส่วนกลางไม่ตอบสนอง (" + err.message + ")");
             }
         }
 
-        // จัดการซ่อน/แสดงปุ่มต่างๆ ผ่าน Data Attribute
-        function applyDomPermissions(perms) {
-            // perms = { read: true, create: false, edit: true, delete: false, approve: false }
-            const elements = document.querySelectorAll('[data-perm]');
+        // 4. ฟังก์ชันซ่อน/แสดงปุ่มจากสิทธิ์
+        function applyPermissionsToDOM(permissions) {
+            // permissions = { read: true, create: false, edit: true, delete: false, approve: false }
+            const actionElements = document.querySelectorAll('[data-permission]');
             
-            elements.forEach(el => {
-                const reqPerm = el.getAttribute('data-perm'); // ดึงค่า create, edit, delete
+            actionElements.forEach(el => {
+                const reqPerm = el.getAttribute('data-permission'); // ดึงค่า create, edit, delete, approve
                 
-                if (perms[reqPerm] === false) {
-                    el.classList.add('hide'); // ซ่อน Element ทันที
+                if (permissions[reqPerm] === false) {
+                    el.classList.add('hide-perm');
                 }
             });
         }
 
+        // โหลดแอปเมื่อหน้าเว็บพร้อม
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
