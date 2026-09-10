@@ -343,13 +343,18 @@
       });
 
       let html = '';
-      Object.keys(groupedMenus).forEach(group => {
+        Object.keys(groupedMenus).forEach(group => {
         const items = groupedMenus[group];
+        
+        // ดึงชื่อ MenuGroup จากรายการแรกของกลุ่ม (ถ้ามี)
+        const menuGroupName = items[0].menuGroup ? items[0].menuGroup : '';
+        const displayGroupTitle = menuGroupName ? `${group} : ${menuGroupName}` : group;
+
         html += `
         <tr class="group-row group-row-expand" onclick="toggleGroupMenu('${group}')">
             <td class="p-3.5"><span id="toggle-menu-${group}" class="font-bold">▼</span></td>
             <td class="p-3.5 font-bold text-linePrimary" colspan="5">
-              📁 ${group}
+              📁 ${displayGroupTitle}
               <span class="text-xs text-gray-500 ml-2">(${items.length} items)</span>
             </td>
         </tr>`;
@@ -390,8 +395,13 @@
       });
 
       let html = '';
-      Object.keys(groupedMenus).forEach(group => {
+     Object.keys(groupedMenus).forEach(group => {
         const items = groupedMenus[group];
+        
+        // ดึงชื่อ MenuGroup จากรายการแรกของกลุ่ม (ถ้ามี)
+        const menuGroupName = items[0].menuGroup ? items[0].menuGroup : '';
+        const displayGroupTitle = menuGroupName ? `${group} : ${menuGroupName}` : group;
+
         html += `
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <!-- Group Header -->
@@ -399,7 +409,7 @@
             <div class="flex items-center gap-2">
               <span class="font-bold text-lg">▼</span>
               <div>
-                <p class="font-bold text-linePrimary text-base">📁 ${group}</p>
+                <p class="font-bold text-linePrimary text-base">📁 ${displayGroupTitle}</p>
                 <p class="text-xs text-gray-600">${items.length} รายการ</p>
               </div>
             </div>
@@ -407,6 +417,7 @@
           
           <!-- Group Items -->
           <div id="mobile-group-items-${group}" class="divide-y divide-gray-200">
+        
             ${items.map((m, idx) => `
               <div class="p-3 space-y-2">
                 <div class="flex justify-between items-start">
