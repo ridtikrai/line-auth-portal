@@ -105,189 +105,544 @@
 
   <script>
     // ==========================================
-    // Configuration
+    // Version 2 - Portal Authentication
     // ==========================================
     const LIFF_ID = "2011487100-dldPQItq";
-    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzDpOrouurlO_Wlr5RikWVYf8gAmQcN-TTC8yIk7nKLLEvwjYRio5utMrEdxUm4m5Ia/exec"; // วาง URL Web App ของคุณ
-    
-    let lineProfile = null;
-    let clientInfo = { ip: "Unknown", location: "Unknown", device: navigator.userAgent };
-    
-    // Auto TimeOut 60 นาที
-    let timeoutLimit = 3600; 
-    let timeRemaining = timeoutLimit;
-    let timerInterval;
-    let keepAliveInterval;
+    //const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzDpOrouurlO_Wlr5RikWVYf8gAmQcN-TTC8yIk7nKLLEvwjYRio5utMrEdxUm4m5Ia/exec";
+    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22cE9ph1eYPscyrxdw29T44DaUT9/exec";
 
+    // Session policy
+    const INACTIVITY_LIMIT = 60 * 60;          // 60 นาที
+    const KEEP_ALIVE_INTERVAL = 10 * 60 * 1000; // 10 นาที
+
+    let lineProfile = null;
+    let clientInfo = {
+      ip: "Unknown",
+      location: "Unknown",
+      device: navigator.userAgent
+    };
+
+    let portalSessionId = null;
+    let timeRemaining = INACTIVITY_LIMIT;
+    let timerInterval = null;
+    let keepAliveInterval = null;
+    let lastActivityAt = Date.now();
+    let isLoggingOut = false;
+
+    // ------------------------------------------------
+    // เริ่มต้นระบบ
+    // ------------------------------------------------
     async function initApp() {
       try {
+        showScreen('loading-screen');
+
         await liff.init({ liffId: LIFF_ID });
+
         if (!liff.isLoggedIn()) {
           liff.login();
-        } else {
-          lineProfile = await liff.getProfile();
-          document.getElementById('profile-img').src = lineProfile.pictureUrl;
-          document.getElementById('profile-img').classList.remove('hidden');
-          
-          await fetchClientInfo(); 
-          await loadDashboard();
-          
-          startActivityTracker();
+          return;
         }
+
+        // LINE Profile ใช้สำหรับแสดงข้อมูลและ registration flow
+        // การอนุญาตเข้า Portal จริงต้องผ่าน Central Auth + Emp + Session
+        lineProfile = await liff.getProfile();
+
+        document.getElementById('profile-img').src =
+          lineProfile.pictureUrl || "";
+        document.getElementById('profile-img').classList.remove('hidden');
+
+        await fetchClientInfo();
+
+        // Login จริง:
+        // Central Auth ตรวจ LINE UID กับ Emp.userId
+        // ถ้าไม่พบ/ยังไม่ผูก -> registration
+        // ถ้าผูกและ Active -> สร้าง Portal Session
+        await loginToPortal();
+
       } catch (err) {
-        showError("พบข้อผิดพลาด", "ไม่สามารถเชื่อมต่อ LINE LIFF ได้");
+        console.error(err);
+        showError(
+          "พบข้อผิดพลาด",
+          "ไม่สามารถเชื่อมต่อ LINE หรือระบบยืนยันตัวตนได้"
+        );
       }
     }
 
-    function startActivityTracker() {
-      const resetTimer = () => { timeRemaining = timeoutLimit; };
-      
-      // ดักจับการกระทำเพื่อรีเซ็ต TimeOut
-      ['mousemove', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => 
-        window.addEventListener(evt, resetTimer, { passive: true })
-      );
-
-      // นับถอยหลัง 60 นาที UI
-      timerInterval = setInterval(() => {
-        timeRemaining--;
-        let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
-        let s = (timeRemaining % 60).toString().padStart(2, '0');
-        document.getElementById('timer-display').textContent = `${m}:${s}`;
-        
-        if (timeRemaining <= 0) {
-          clearInterval(timerInterval);
-          clearInterval(keepAliveInterval);
-          alert("หมดเวลาการเชื่อมต่อ กรุณาเข้าสู่ระบบใหม่");
-          logoutApp();
-        }
-      }, 1000);
-
-      // แจ้งเซิร์ฟเวอร์ทุกๆ 15 นาที เพื่อต่ออายุ lastLogin ในชีต
-      keepAliveInterval = setInterval(() => {
-        if (timeRemaining > 300) { 
-          fetch(CENTRAL_API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'keepAlive', userId: lineProfile.userId })
-          });
-        }
-      }, 15 * 60 * 1000); 
-    }
-
-    async function fetchClientInfo() {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        if (res.ok) {
-          const data = await res.json();
-          clientInfo.ip = data.ip;
-          clientInfo.location = `${data.city}, ${data.country_name}`;
-        }
-      } catch (e) {}
-    }
-
-    async function loadDashboard() {
+    // ------------------------------------------------
+    // Login -> Central Auth
+    // ------------------------------------------------
+    async function loginToPortal() {
       showScreen('loading-screen');
+
       try {
         const response = await fetch(CENTRAL_API_URL, {
           method: 'POST',
-          body: JSON.stringify({ 
-            action: 'getDashboard', 
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify({
+            action: 'login',
+
+            // UID นี้ได้จาก LINE LIFF หลัง liff.getProfile()
+            // Central Auth ต้องตรวจสอบกับ Emp.userId
             userId: lineProfile.userId,
-            profile: lineProfile,
+
+            profile: {
+              displayName: lineProfile.displayName || "",
+              pictureUrl: lineProfile.pictureUrl || ""
+            },
+
             clientInfo: clientInfo
           })
         });
-        
+
         const data = await response.json();
 
         if (data.status === 'not_registered') {
+          // ยังไม่ผูก LINE UID กับ Emp
           showScreen('register-screen');
-          document.getElementById('user-info').textContent = 'กรุณายืนยันตัวตน';
-        } else if (data.status === 'success') {
-          renderDashboard(data);
-        } else {
-          showError("ข้อผิดพลาด", data.message || "เกิดข้อผิดพลาดในระบบ");
+          document.getElementById('user-info').textContent =
+            'กรุณายืนยันตัวตนด้วยเบอร์โทรศัพท์';
+          return;
         }
+
+        if (data.status === 'error') {
+          showError(
+            "ไม่สามารถเข้าใช้งานได้",
+            data.message || "บัญชีไม่สามารถใช้งานได้"
+          );
+          return;
+        }
+
+        if (data.status !== 'success') {
+          showError(
+            "เข้าสู่ระบบไม่สำเร็จ",
+            data.message || "เกิดข้อผิดพลาดในระบบ"
+          );
+          return;
+        }
+
+        // สำคัญ:
+        // เก็บเฉพาะ Session ID ไม่ใช้ LINE UID เป็น Session Credential
+        portalSessionId = data.sessionId;
+
+        if (!portalSessionId) {
+          throw new Error("Central Auth ไม่ได้ส่ง sessionId กลับมา");
+        }
+
+        // sessionStorage เหมาะสำหรับเก็บ session ระหว่าง tab/page
+        // แต่ไม่ใช่ HttpOnly cookie และยังต้องป้องกัน XSS ฝั่งหน้าเว็บ
+        sessionStorage.setItem('portalSessionId', portalSessionId);
+
+        renderDashboard(data);
+        startActivityTracker();
+
       } catch (error) {
-        showError("พบข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+        console.error(error);
+        showError(
+          "พบข้อผิดพลาด",
+          "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้"
+        );
       }
     }
 
-    document.getElementById('phone-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const phoneInput = document.getElementById('phone-input').value;
-      if (phoneInput.length !== 10) return alert("กรุณากรอกเบอร์โทรศัพท์ 10 หลัก");
+    // ------------------------------------------------
+    // Activity / Inactivity Timeout
+    // ------------------------------------------------
+    function startActivityTracker() {
+      stopActivityTracker();
 
-      showScreen('loading-screen');
+      lastActivityAt = Date.now();
+      timeRemaining = INACTIVITY_LIMIT;
+
+      const markActivity = () => {
+        lastActivityAt = Date.now();
+        timeRemaining = INACTIVITY_LIMIT;
+      };
+
+      [
+        'mousemove',
+        'keydown',
+        'touchstart',
+        'scroll',
+        'click'
+      ].forEach(evt => {
+        window.addEventListener(evt, markActivity, { passive: true });
+      });
+
+      timerInterval = setInterval(async () => {
+        const idleSeconds =
+          Math.floor((Date.now() - lastActivityAt) / 1000);
+
+        timeRemaining = Math.max(
+          0,
+          INACTIVITY_LIMIT - idleSeconds
+        );
+
+        updateTimerDisplay();
+
+        if (timeRemaining <= 0) {
+          await forceLogout(
+            "หมดเวลาการเชื่อมต่อเนื่องจากไม่มีการใช้งาน 60 นาที"
+          );
+        }
+      }, 1000);
+
+      // ต่ออายุ Server Session ทุก 10 นาที
+      keepAliveInterval = setInterval(async () => {
+        if (isLoggingOut || !portalSessionId) return;
+
+        // ไม่ต่ออายุถ้าใกล้หมด inactivity
+        if (timeRemaining <= 300) return;
+
+        await keepAlive();
+      }, KEEP_ALIVE_INTERVAL);
+
+      updateTimerDisplay();
+    }
+
+    function stopActivityTracker() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+        keepAliveInterval = null;
+      }
+    }
+
+    function updateTimerDisplay() {
+      const total = Math.max(0, timeRemaining);
+      const m = Math.floor(total / 60).toString().padStart(2, '0');
+      const s = (total % 60).toString().padStart(2, '0');
+
+      const el = document.getElementById('timer-display');
+      if (el) el.textContent = `${m}:${s}`;
+    }
+
+    // ------------------------------------------------
+    // KeepAlive
+    // ------------------------------------------------
+    async function keepAlive() {
       try {
         const response = await fetch(CENTRAL_API_URL, {
           method: 'POST',
-          body: JSON.stringify({ 
-            action: 'verifyPhone', 
-            userId: lineProfile.userId, 
-            phone: phoneInput,
-            profile: lineProfile,
-            clientInfo: clientInfo 
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify({
+            action: 'keepAlive',
+            sessionId: portalSessionId
           })
         });
-        
-        const data = await response.json();
-        if (data.status === 'show_userid') {
-          showScreen('copy-screen');
-          document.getElementById('display-userid').textContent = data.lineUserId;
-        } else {
-          showError("ตรวจสอบไม่สำเร็จ", data.message);
-        }
-      } catch (error) {
-        showError("การตรวจสอบล้มเหลว", "โปรดลองอีกครั้ง");
-      }
-    });
 
-    function copyUserId() {
-      navigator.clipboard.writeText(lineProfile.userId).then(() => {
-        alert("คัดลอกรหัสสำเร็จ นำส่ง Admin ได้เลยครับ");
-      });
+        const data = await response.json();
+
+        if (data.status !== 'success') {
+          await forceLogout("Session หมดอายุ กรุณาเข้าสู่ระบบใหม่");
+        }
+
+      } catch (error) {
+        console.error("KeepAlive failed:", error);
+        // ไม่ Logout ทันทีเพราะอาจเป็น network ชั่วคราว
+      }
     }
 
-    // Render แบ่งกลุ่ม และบังคับแสดงอย่างน้อย 3 เมนู/แถว บนมือถือ
+    // ------------------------------------------------
+    // ตรวจสอบ Session กับ Server
+    // ------------------------------------------------
+    async function verifyPortalSession() {
+      if (!portalSessionId) return false;
+
+      try {
+        const response = await fetch(CENTRAL_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify({
+            action: 'verifySession',
+            sessionId: portalSessionId,
+            menuId: 'PORTAL'
+          })
+        });
+
+        const data = await response.json();
+        return data.status === 'success';
+
+      } catch (error) {
+        console.error("verifySession failed:", error);
+        return false;
+      }
+    }
+
+    // ------------------------------------------------
+    // Verify Phone - Registration Flow เดิม
+    // ------------------------------------------------
+    document.getElementById('phone-form').addEventListener(
+      'submit',
+      async (e) => {
+        e.preventDefault();
+
+        const phoneInput =
+          document.getElementById('phone-input').value.trim();
+
+        if (!/^\d{10}$/.test(phoneInput)) {
+          alert("กรุณากรอกเบอร์โทรศัพท์ 10 หลัก");
+          return;
+        }
+
+        showScreen('loading-screen');
+
+        try {
+          const response = await fetch(CENTRAL_API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({
+              action: 'verifyPhone',
+
+              // UID จาก LINE
+              userId: lineProfile.userId,
+
+              phone: phoneInput,
+
+              profile: {
+                displayName: lineProfile.displayName || "",
+                pictureUrl: lineProfile.pictureUrl || ""
+              },
+
+              clientInfo: clientInfo
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.status === 'show_userid') {
+            showScreen('copy-screen');
+
+            // ใช้ UID ที่ Server ส่งกลับ
+            document.getElementById('display-userid').textContent =
+              data.lineUserId || lineProfile.userId;
+
+          } else {
+            showError(
+              "ตรวจสอบไม่สำเร็จ",
+              data.message || "ไม่สามารถตรวจสอบข้อมูลได้"
+            );
+          }
+
+        } catch (error) {
+          console.error(error);
+          showError(
+            "การตรวจสอบล้มเหลว",
+            "โปรดลองอีกครั้ง"
+          );
+        }
+      }
+    );
+
+    // ------------------------------------------------
+    // Copy LINE UID -> ส่งให้ Admin
+    // ------------------------------------------------
+    function copyUserId() {
+      const uid =
+        lineProfile?.userId || "";
+
+      if (!uid) {
+        alert("ไม่พบ LINE UID");
+        return;
+      }
+
+      navigator.clipboard.writeText(uid)
+        .then(() => {
+          alert(
+            "คัดลอกรหัสสำเร็จ นำส่ง Admin เพื่อดำเนินการผูกบัญชี"
+          );
+        })
+        .catch(() => {
+          alert(
+            "ไม่สามารถคัดลอกอัตโนมัติ กรุณาคัดลอกรหัสจากหน้าจอ"
+          );
+        });
+    }
+
+    // ------------------------------------------------
+    // Render Dashboard
+    // ------------------------------------------------
     function renderDashboard(data) {
       showScreen('dashboard-screen');
-      document.getElementById('user-info').textContent = `${lineProfile.displayName} | ตำแหน่ง: ${data.jobPosition}`;
-      
-      const container = document.getElementById('menu-container');
+
+      document.getElementById('user-info').textContent =
+        `${escapeHtml(lineProfile.displayName)} | ตำแหน่ง: ${escapeHtml(data.jobPosition || '-')}`;
+
+      const container =
+        document.getElementById('menu-container');
+
       container.innerHTML = '';
 
       if (!data.menuGroups || data.menuGroups.length === 0) {
-        container.innerHTML = `<div class="bg-white p-6 rounded-lg text-lineDarkGray text-center border shadow-sm">คุณไม่มีสิทธิ์เข้าถึงเมนูใดๆ</div>`;
+        container.innerHTML =
+          `<div class="bg-white p-6 rounded-lg text-lineDarkGray text-center border shadow-sm">
+             คุณไม่มีสิทธิ์เข้าถึงเมนูใดๆ
+           </div>`;
         return;
       }
 
       data.menuGroups.forEach(group => {
         const groupSection = document.createElement('div');
-        
-        const menusHtml = group.menus.map(menu => `
-          <a href="${menu.menuUrl}" class="flex flex-col items-center justify-start p-3 sm:p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-linePrimary transition active:scale-95 h-full">
-            <div class="bg-blue-50 text-linePrimary p-2.5 sm:p-3 rounded-full mb-2 sm:mb-3">
-              <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-            </div>
-            <h3 class="text-[11px] sm:text-xs font-bold text-gray-800 text-center leading-tight line-clamp-2 w-full">${menu.menuName}</h3>
-          </a>
-        `).join('');
 
-        // บังคับ 3 คอลัมน์บนมือถือ (grid-cols-3)[cite: 1]
+        const menusHtml = group.menus.map(menu => {
+          /*
+           * Version 2:
+           * ไม่ควรใช้ menuUrl เป็น Security Credential
+           * ในขั้นถัดไปควรเปลี่ยน href เป็นการเรียก
+           * createLaunchToken แล้วจึงไป Dashboard
+           */
+          const safeUrl = sanitizeUrl(menu.menuUrl);
+
+          return `
+            <a href="${safeUrl}"
+               class="flex flex-col items-center justify-start p-3 sm:p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-linePrimary transition active:scale-95 h-full">
+              <div class="bg-blue-50 text-linePrimary p-2.5 sm:p-3 rounded-full mb-2 sm:mb-3">
+                <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                  </path>
+                </svg>
+              </div>
+              <h3 class="text-[11px] sm:text-xs font-bold text-gray-800 text-center leading-tight line-clamp-2 w-full">
+                ${escapeHtml(menu.menuName || '')}
+              </h3>
+            </a>
+          `;
+        }).join('');
+
         groupSection.innerHTML = `
-          <h2 class="text-[14px] font-bold text-linePrimary mb-3 tracking-wide pl-2 border-l-[3px] border-linePrimary leading-none">${group.groupName}</h2>
+          <h2 class="text-[14px] font-bold text-linePrimary mb-3 tracking-wide pl-2 border-l-[3px] border-linePrimary leading-none">
+            ${escapeHtml(group.groupName || 'ทั่วไป')}
+          </h2>
           <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
-              ${menusHtml}
+            ${menusHtml}
           </div>
         `;
+
         container.appendChild(groupSection);
       });
     }
 
+    // ------------------------------------------------
+    // URL validation / HTML escaping
+    // ------------------------------------------------
+    function sanitizeUrl(url) {
+      try {
+        if (!url) return '#';
+
+        const parsed = new URL(url, window.location.href);
+
+        // ไม่อนุญาต javascript:, data:, vbscript:
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          return '#';
+        }
+
+        return parsed.href;
+      } catch (e) {
+        return '#';
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // ------------------------------------------------
+    // Logout
+    // ------------------------------------------------
+    async function logoutApp() {
+      if (isLoggingOut) return;
+
+      isLoggingOut = true;
+      stopActivityTracker();
+
+      try {
+        if (portalSessionId) {
+          await fetch(CENTRAL_API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({
+              action: 'logout',
+              sessionId: portalSessionId
+            })
+          });
+        }
+      } catch (error) {
+        console.error("Logout server error:", error);
+      }
+
+      sessionStorage.removeItem('portalSessionId');
+      portalSessionId = null;
+
+      try {
+        if (liff.isLoggedIn()) {
+          liff.logout();
+        }
+      } catch (e) {
+        console.error("LINE logout error:", e);
+      }
+
+      window.location.reload();
+    }
+
+    async function forceLogout(message) {
+      if (isLoggingOut) return;
+
+      alert(message);
+      await logoutApp();
+    }
+
+    // ------------------------------------------------
+    // Client information
+    // ------------------------------------------------
+    async function fetchClientInfo() {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+
+        if (res.ok) {
+          const data = await res.json();
+
+          clientInfo.ip = data.ip || "Unknown";
+          clientInfo.location =
+            `${data.city || "Unknown"}, ${data.country_name || "Unknown"}`;
+        }
+      } catch (e) {
+        // ไม่ให้ระบบ Login ล้มเพียงเพราะบริการ IP lookup ใช้งานไม่ได้
+      }
+    }
+
+    // ------------------------------------------------
+    // Screen helper
+    // ------------------------------------------------
     function showScreen(id) {
-      ['loading-screen', 'register-screen', 'error-screen', 'dashboard-screen', 'copy-screen'].forEach(s => {
+      [
+        'loading-screen',
+        'register-screen',
+        'error-screen',
+        'dashboard-screen',
+        'copy-screen'
+      ].forEach(s => {
         document.getElementById(s).classList.add('hidden');
       });
+
       document.getElementById(id).classList.remove('hidden');
     }
 
@@ -297,14 +652,7 @@
       showScreen('error-screen');
     }
 
-    function logoutApp() {
-      if (liff.isLoggedIn()) {
-        liff.logout();
-        window.location.reload();
-      }
-    }
-
     window.onload = initApp;
-  </script>
+</script>
 </body>
 </html>
