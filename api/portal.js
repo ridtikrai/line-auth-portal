@@ -1,32 +1,17 @@
-const CENTRAL_API_URL =
+/*************************************************
+ * api/portal.js
+ * Vercel → Portal GAS Proxy
+ *************************************************/
+
+const PORTAL_GAS_URL =
   "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22C0e9ph1eYPscyrxdw29T44DaUT9/exec";
-
-
-async function postToPortal_(url, payload) {
-
-  const response = await fetch(url, {
-    method: "POST",
-
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8"
-    },
-
-    body: JSON.stringify(payload),
-
-    // สำคัญมากสำหรับ Google Apps Script
-    redirect: "manual"
-  });
-
-  return response;
-}
 
 
 export default async function handler(req, res) {
 
-  // ==========================================
-  // CORS
-  // ==========================================
-
+  /*
+   * CORS
+   */
   res.setHeader(
     "Access-Control-Allow-Origin",
     "*"
@@ -43,31 +28,31 @@ export default async function handler(req, res) {
   );
 
 
-  // ==========================================
-  // OPTIONS
-  // ==========================================
-
+  /*
+   * OPTIONS
+   */
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
 
-  // ==========================================
-  // POST ONLY
-  // ==========================================
-
+  /*
+   * Browser → Vercel ต้องเป็น POST
+   */
   if (req.method !== "POST") {
 
     return res.status(405).json({
       status: "error",
       message: "Method not allowed"
     });
-
   }
 
 
   try {
 
+    /*
+     * รับ JSON จาก index.html
+     */
     const payload =
       typeof req.body === "string"
         ? JSON.parse(req.body || "{}")
@@ -80,80 +65,52 @@ export default async function handler(req, res) {
     );
 
 
-    // ==========================================
-    // 1. เรียก Portal ครั้งแรก
-    // ==========================================
+    /*
+     * Encode payload
+     */
+    const json =
+      JSON.stringify(payload);
 
-    let response =
-      await postToPortal_(
-        CENTRAL_API_URL,
-        payload
-      );
+    const base64 =
+      Buffer
+        .from(json, "utf8")
+        .toString("base64");
+
+
+    /*
+     * เรียก Portal GAS ด้วย GET
+     */
+    const url =
+      PORTAL_GAS_URL +
+      "?action=" +
+      encodeURIComponent(
+        String(payload.action || "")
+      ) +
+      "&payload=" +
+      encodeURIComponent(base64);
 
 
     console.log(
-      "Portal First Response:",
-      response.status
+      "Portal GAS URL:",
+      PORTAL_GAS_URL
     );
 
 
-    // ==========================================
-    // 2. Google Apps Script Redirect
-    // ==========================================
+    const response =
+      await fetch(url, {
+        method: "GET",
+        redirect: "follow"
+      });
 
-    if (
-      response.status >= 300 &&
-      response.status < 400
-    ) {
-
-      const location =
-        response.headers.get("location");
-
-
-      console.log(
-        "Portal Redirect Location:",
-        location
-      );
-
-
-      if (!location) {
-
-        return res.status(502).json({
-
-          status: "error",
-
-          message:
-            "Portal GAS redirect without Location header"
-        });
-
-      }
-
-
-      // ========================================
-      // POST ซ้ำไปยัง URL ที่ Google ส่งกลับมา
-      // ========================================
-
-      response =
-        await postToPortal_(
-          location,
-          payload
-        );
-
-
-      console.log(
-        "Portal Redirect Response:",
-        response.status
-      );
-
-    }
-
-
-    // ==========================================
-    // 3. อ่าน Response
-    // ==========================================
 
     const text =
       await response.text();
+
+
+    console.log(
+      "Portal GAS HTTP:",
+      response.status
+    );
 
 
     console.log(
@@ -161,10 +118,6 @@ export default async function handler(req, res) {
       text.substring(0, 2000)
     );
 
-
-    // ==========================================
-    // 4. ตรวจ HTTP
-    // ==========================================
 
     if (!response.ok) {
 
@@ -182,27 +135,20 @@ export default async function handler(req, res) {
           text.substring(0, 2000)
 
       });
-
     }
 
 
-    // ==========================================
-    // 5. Parse JSON
-    // ==========================================
-
+    /*
+     * Parse JSON
+     */
     let result;
 
     try {
 
-      result = JSON.parse(text);
+      result =
+        JSON.parse(text);
 
     } catch (err) {
-
-      console.error(
-        "Portal GAS returned invalid JSON:",
-        text.substring(0, 2000)
-      );
-
 
       return res.status(502).json({
 
@@ -218,15 +164,15 @@ export default async function handler(req, res) {
           text.substring(0, 2000)
 
       });
-
     }
 
 
-    // ==========================================
-    // 6. ส่งกลับ Vercel → Browser
-    // ==========================================
-
-    return res.status(200).json(result);
+    /*
+     * ส่งกลับ Browser
+     */
+    return res
+      .status(200)
+      .json(result);
 
 
   } catch (error) {
@@ -248,7 +194,5 @@ export default async function handler(req, res) {
         error.message
 
     });
-
   }
-
 }
