@@ -1394,129 +1394,122 @@ async function loadMenu() {
 /*************************************************
  * RENDER DASHBOARD
  *************************************************/
-
-function renderDashboard(
-  result
-) {
+function renderDashboard(result) {
 
   const menuContainer =
-    document.getElementById(
-      "menuContainer"
-    );
+    document.getElementById("menuContainer");
 
+  menuContainer.innerHTML = "";
 
-  menuContainer.innerHTML =
-    "";
-
-
-  /***********************************************
-   * User
-   ***********************************************/
+  /* =====================================================
+     USER
+  ===================================================== */
 
   const user =
     currentUser || {};
 
+  document.getElementById("userName").textContent =
+    user.name || "ผู้ใช้งาน";
 
-  document.getElementById(
-    "userName"
-  ).textContent =
-    user.name ||
-    "ผู้ใช้งาน";
-
-
-  document.getElementById(
-    "userRole"
-  ).textContent =
+  document.getElementById("userRole").textContent =
     user.role
       ? "Role: " + user.role
       : "";
 
-
-  document.getElementById(
-    "welcomeText"
-  ).textContent =
+  document.getElementById("welcomeText").textContent =
     "คุณสามารถเข้าใช้งานระบบที่คุณได้รับอนุญาต";
 
 
-  /***********************************************
-   * Menu
-   ***********************************************/
+  /* =====================================================
+     MENU GROUP
+  ===================================================== */
 
   const menuGroups =
-    Array.isArray(
-      result.menuGroups
-    )
+    Array.isArray(result.menuGroups)
       ? result.menuGroups
       : [];
+
+
+  /*
+   * เรียง group จากเลขน้อย → มาก
+   *
+   * group ใช้สำหรับจัดลำดับเท่านั้น
+   * ไม่แสดงเลข group บนหน้าจอ
+   */
+  const sortedGroups =
+    [...menuGroups].sort(
+      function(a, b) {
+
+        return (
+          Number(a.group || 0) -
+          Number(b.group || 0)
+        );
+
+      }
+    );
 
 
   let menuCount = 0;
 
 
-  menuGroups.forEach(
+  /* =====================================================
+     GROUP
+  ===================================================== */
+
+  sortedGroups.forEach(
     function(group) {
 
       const groupElement =
-        document.createElement(
-          "div"
-        );
-
+        document.createElement("div");
 
       groupElement.className =
         "menu-group";
 
 
-      const groupTitle =
-        document.createElement(
-          "div"
-        );
-
-
-      groupTitle.className =
-        "menu-group-title";
-
-
-      groupTitle.textContent =
-        group.group ||
-        "ระบบ";
-
-
-      groupElement.appendChild(
-        groupTitle
-      );
-
-
       const subGroups =
-        Array.isArray(
-          group.menuGroups
-        )
+        Array.isArray(group.menuGroups)
           ? group.menuGroups
           : [];
 
+
+      /* ===================================================
+         SUB GROUP
+      =================================================== */
 
       subGroups.forEach(
         function(subGroup) {
 
           const menus =
-            Array.isArray(
-              subGroup.menus
-            )
+            Array.isArray(subGroup.menus)
               ? subGroup.menus
               : [];
 
 
-          /*****************************************
-           * สำคัญ:
-           * แสดงเฉพาะ canRead
-           *****************************************/
-
+          /*
+           * ตรวจ canRead
+           *
+           * รองรับทั้ง
+           * true
+           * "true"
+           * 1
+           * "1"
+           */
           const readableMenus =
             menus.filter(
               function(menu) {
 
+                if (!menu) {
+                  return false;
+                }
+
+                const value =
+                  menu.canRead;
+
                 return (
-                  menu &&
-                  menu.canRead === true
+                  value === true ||
+                  value === "true" ||
+                  value === 1 ||
+                  value === "1"
                 );
 
               }
@@ -1532,33 +1525,34 @@ function renderDashboard(
           }
 
 
-          const subGroupElement =
-            document.createElement(
-              "div"
-            );
+          /* ===============================================
+             SUB GROUP CONTAINER
+          =============================================== */
 
+          const subGroupElement =
+            document.createElement("div");
 
           subGroupElement.className =
             "menu-subgroup";
 
 
+          /*
+           * แสดง menuGroup
+           *
+           * ไม่แสดง group
+           */
           if (
             subGroup.menuGroup
           ) {
 
             const subGroupTitle =
-              document.createElement(
-                "div"
-              );
-
+              document.createElement("div");
 
             subGroupTitle.className =
               "menu-subgroup-title";
 
-
             subGroupTitle.textContent =
               subGroup.menuGroup;
-
 
             subGroupElement.appendChild(
               subGroupTitle
@@ -1567,66 +1561,53 @@ function renderDashboard(
           }
 
 
-          const grid =
-            document.createElement(
-              "div"
-            );
+          /* ===============================================
+             GRID
+          =============================================== */
 
+          const grid =
+            document.createElement("div");
 
           grid.className =
             "menu-grid";
 
 
+          /* ===============================================
+             MENU CARD
+          =============================================== */
+
           readableMenus.forEach(
             function(menu) {
 
+              /*
+               * menuUrl ใช้สำหรับเปิดระบบ
+               */
               const url =
                 sanitizeUrl(
                   menu.menuUrl
                 );
 
 
-              if (!url) {
-
-                return;
-
-              }
-
-
+              /*
+               * ถ้าไม่มี URL
+               *
+               * ยังไม่ทิ้งเมนู
+               *
+               * แต่สร้างเป็น disabled card
+               */
               const link =
-                document.createElement(
-                  "a"
-                );
+                document.createElement("a");
 
 
               link.className =
                 "menu-card";
 
 
-              link.href =
-                url;
-
-
-              /*
-               * เปิดปลายทางใน tab ใหม่
-               */
-              link.target =
-                "_blank";
-
-
-              link.rel =
-                "noopener noreferrer";
-
-
               const name =
-                document.createElement(
-                  "div"
-                );
-
+                document.createElement("div");
 
               name.className =
                 "menu-name";
-
 
               name.textContent =
                 menu.menuName ||
@@ -1634,31 +1615,51 @@ function renderDashboard(
                 "ระบบ";
 
 
-              const id =
-                document.createElement(
-                  "div"
-                );
-
-
-              id.className =
-                "menu-id";
-
-
-              id.textContent =
-                menu.menuId ||
-                "";
-
-
               link.appendChild(
                 name
               );
 
 
-              link.appendChild(
-                id
-              );
+              /*
+               * มี URL
+               * เปิดระบบได้
+               */
+              if (url) {
+
+                link.href =
+                  url;
+
+                link.target =
+                  "_blank";
+
+                link.rel =
+                  "noopener noreferrer";
+
+              } else {
+
+                /*
+                 * ไม่มี URL
+                 *
+                 * แสดงให้เห็นว่าเมนูมีอยู่
+                 * แต่ยังไม่มีปลายทาง
+                 */
+                link.removeAttribute("href");
+
+                link.style.cursor =
+                  "default";
+
+                link.style.opacity =
+                  "0.55";
+
+                link.title =
+                  "เมนูนี้ยังไม่ได้กำหนด URL";
+
+              }
 
 
+              /*
+               * ไม่แสดง menuId
+               */
               grid.appendChild(
                 link
               );
@@ -1677,7 +1678,6 @@ function renderDashboard(
             subGroupElement.appendChild(
               grid
             );
-
 
             groupElement.appendChild(
               subGroupElement
@@ -1705,14 +1705,13 @@ function renderDashboard(
   );
 
 
-  /***********************************************
-   * ไม่มี Menu
-   ***********************************************/
+  /* =====================================================
+     EMPTY
+  ===================================================== */
 
   if (menuCount === 0) {
 
     menuContainer.innerHTML = `
-
       <div class="empty-menu">
 
         <div style="
@@ -1728,11 +1727,14 @@ function renderDashboard(
         </div>
 
       </div>
-
     `;
 
   }
 
+
+  /* =====================================================
+     SHOW DASHBOARD
+  ===================================================== */
 
   showOnly(
     "dashboardScreen"
@@ -1740,15 +1742,9 @@ function renderDashboard(
 
 
   document
-    .getElementById(
-      "sessionBar"
-    )
-    .classList.remove(
-      "hidden"
-    );
-
+    .getElementById("sessionBar")
+    .classList.remove("hidden");
 }
-
 
 /*************************************************
  * SANITIZE URL
