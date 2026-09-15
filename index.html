@@ -1,534 +1,3089 @@
+html
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>Portal</title>
+  <meta charset="UTF-8">
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-<style>
-* {
-  box-sizing: border-box;
-}
+  <meta name="theme-color" content="#16a34a">
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f5f7f6;
-  color: #333;
-}
+  <title>Portal</title>
 
-.container {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 20px;
-}
+  <!-- LINE LIFF -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-.card {
-  background: white;
-  border-radius: 14px;
-  padding: 30px;
-  box-shadow: 0 5px 20px rgba(0,0,0,.08);
-}
 
-h1 {
-  margin-top: 0;
-}
+  <style>
 
-button {
-  width: 100%;
-  padding: 13px;
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  margin-top: 10px;
-}
+    :root {
+      --primary: #16a34a;
+      --primary-dark: #15803d;
+      --primary-light: #f0fdf4;
+      --primary-border: #bbf7d0;
 
-.primary {
-  background: #06c755;
-  color: white;
-}
+      --danger: #dc2626;
+      --warning: #d97706;
 
-.secondary {
-  background: #eee;
-}
+      --text: #1f2937;
+      --muted: #6b7280;
 
-input {
-  width: 100%;
-  padding: 13px;
-  margin: 8px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
-}
+      --bg: #f8fafc;
+      --white: #ffffff;
 
-.menu {
-  padding: 18px;
-  margin: 10px 0;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  cursor: pointer;
-}
+      --border: #e5e7eb;
 
-.menu:hover {
-  background: #f5f5f5;
-}
+      --shadow:
+        0 4px 15px rgba(0,0,0,.05);
+    }
 
-.hidden {
-  display: none;
-}
 
-.message {
-  margin-top: 15px;
-  text-align: center;
-}
-</style>
+    * {
+      box-sizing: border-box;
+    }
+
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        "Noto Sans Thai",
+        Arial,
+        sans-serif;
+
+      background: var(--bg);
+      color: var(--text);
+    }
+
+
+    body {
+      min-height: 100vh;
+
+      display: flex;
+      flex-direction: column;
+    }
+
+
+    button,
+    input {
+      font-family: inherit;
+    }
+
+
+    button {
+      cursor: pointer;
+    }
+
+
+    .hidden {
+      display: none !important;
+    }
+
+
+    .container {
+      width: 100%;
+      max-width: 960px;
+
+      margin: 0 auto;
+
+      padding: 0 16px;
+    }
+
+
+    /* =========================================================
+       HEADER
+    ========================================================= */
+
+    .app-header {
+      position: sticky;
+      top: 0;
+
+      z-index: 100;
+
+      background:
+        rgba(255,255,255,.96);
+
+      backdrop-filter:
+        blur(10px);
+
+      border-bottom:
+        1px solid var(--border);
+
+      box-shadow:
+        0 2px 10px rgba(0,0,0,.04);
+    }
+
+
+    .header-inner {
+      min-height: 68px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      gap: 12px;
+    }
+
+
+    .profile-area {
+      min-width: 0;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 10px;
+    }
+
+
+    .profile-image {
+      width: 42px;
+      height: 42px;
+
+      border-radius: 50%;
+
+      object-fit: cover;
+
+      border:
+        2px solid var(--primary);
+
+      background: #f3f4f6;
+
+      flex-shrink: 0;
+    }
+
+
+    .profile-text {
+      min-width: 0;
+    }
+
+
+    .portal-title {
+      font-size: 15px;
+      font-weight: 700;
+
+      color: var(--primary-dark);
+    }
+
+
+    .user-info {
+      margin-top: 3px;
+
+      font-size: 11px;
+
+      color: var(--muted);
+
+      white-space: nowrap;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+
+      max-width: 300px;
+    }
+
+
+    .header-actions {
+      display: flex;
+
+      flex-direction: column;
+
+      align-items: flex-end;
+
+      gap: 4px;
+
+      flex-shrink: 0;
+    }
+
+
+    .logout-button {
+      border:
+        1px solid #fecaca;
+
+      background: white;
+
+      color: #dc2626;
+
+      border-radius: 8px;
+
+      padding: 6px 10px;
+
+      font-size: 11px;
+
+      font-weight: 700;
+    }
+
+
+    .timer {
+      font-size: 9px;
+
+      color: var(--muted);
+
+      background: #f8fafc;
+
+      padding: 2px 7px;
+
+      border-radius: 6px;
+    }
+
+
+    /* =========================================================
+       MAIN
+    ========================================================= */
+
+    main {
+      flex: 1;
+      width: 100%;
+    }
+
+
+    .main-container {
+      padding-top: 22px;
+      padding-bottom: 40px;
+    }
+
+
+    /* =========================================================
+       LOADING
+    ========================================================= */
+
+    .loading-screen {
+      min-height: 55vh;
+
+      display: flex;
+
+      flex-direction: column;
+
+      align-items: center;
+
+      justify-content: center;
+    }
+
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+
+      border:
+        4px solid #dcfce7;
+
+      border-top-color:
+        var(--primary);
+
+      border-radius: 50%;
+
+      animation:
+        spin .8s linear infinite;
+    }
+
+
+    @keyframes spin {
+
+      to {
+        transform: rotate(360deg);
+      }
+
+    }
+
+
+    .loading-text {
+      margin-top: 15px;
+
+      font-size: 13px;
+
+      color: var(--muted);
+    }
+
+
+    /* =========================================================
+       CARD
+    ========================================================= */
+
+    .card {
+      width: 100%;
+
+      max-width: 460px;
+
+      margin: 40px auto 0;
+
+      background: var(--white);
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 16px;
+
+      box-shadow: var(--shadow);
+
+      padding: 25px;
+    }
+
+
+    .card-icon {
+      width: 54px;
+      height: 54px;
+
+      margin: 0 auto 15px;
+
+      border-radius: 50%;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      background:
+        var(--primary-light);
+
+      color:
+        var(--primary);
+
+      font-size: 25px;
+    }
+
+
+    .card-title {
+      margin: 0;
+
+      text-align: center;
+
+      font-size: 20px;
+
+      font-weight: 700;
+    }
+
+
+    .card-description {
+      margin: 8px 0 20px;
+
+      text-align: center;
+
+      font-size: 13px;
+
+      line-height: 1.6;
+
+      color: var(--muted);
+    }
+
+
+    /* =========================================================
+       INPUT
+    ========================================================= */
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+
+    .form-label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      font-size: 12px;
+
+      font-weight: 700;
+    }
+
+
+    .phone-input {
+      width: 100%;
+
+      padding: 13px 15px;
+
+      border:
+        1px solid #d1d5db;
+
+      border-radius: 10px;
+
+      outline: none;
+
+      text-align: center;
+
+      letter-spacing: 2px;
+
+      font-size: 18px;
+    }
+
+
+    .phone-input:focus {
+      border-color:
+        var(--primary);
+
+      box-shadow:
+        0 0 0 3px
+        rgba(22,163,74,.10);
+    }
+
+
+    /* =========================================================
+       BUTTON
+    ========================================================= */
+
+    .primary-button {
+      width: 100%;
+
+      border: 0;
+
+      border-radius: 10px;
+
+      padding: 13px 16px;
+
+      background:
+        var(--primary);
+
+      color: white;
+
+      font-size: 14px;
+
+      font-weight: 700;
+    }
+
+
+    .primary-button:hover {
+      background:
+        var(--primary-dark);
+    }
+
+
+    .primary-button:disabled {
+      opacity: .6;
+
+      cursor: not-allowed;
+    }
+
+
+    .secondary-button {
+      width: 100%;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 10px;
+
+      padding: 12px;
+
+      background: white;
+
+      color: #374151;
+
+      font-size: 13px;
+
+      font-weight: 700;
+    }
+
+
+    /* =========================================================
+       UID
+    ========================================================= */
+
+    .uid-box {
+      margin: 18px 0;
+
+      padding: 14px;
+
+      border-radius: 10px;
+
+      background:
+        var(--primary-light);
+
+      border:
+        1px dashed #86efac;
+
+      text-align: center;
+    }
+
+
+    .uid-label {
+      font-size: 11px;
+
+      color: var(--muted);
+
+      margin-bottom: 7px;
+    }
+
+
+    .uid-value {
+      word-break: break-all;
+
+      font-size: 13px;
+
+      font-weight: 700;
+
+      color:
+        var(--primary-dark);
+    }
+
+
+    .notice {
+      margin-top: 15px;
+
+      padding: 12px;
+
+      border-radius: 10px;
+
+      background: #fffbeb;
+
+      border:
+        1px solid #fde68a;
+
+      color: #92400e;
+
+      font-size: 12px;
+
+      line-height: 1.6;
+
+      text-align: center;
+    }
+
+
+    /* =========================================================
+       ERROR
+    ========================================================= */
+
+    .error-icon {
+      color: var(--danger);
+
+      font-size: 42px;
+
+      text-align: center;
+
+      margin-bottom: 10px;
+    }
+
+
+    .error-title {
+      text-align: center;
+
+      font-size: 18px;
+
+      font-weight: 700;
+    }
+
+
+    .error-message {
+      text-align: center;
+
+      color: var(--muted);
+
+      font-size: 13px;
+
+      line-height: 1.6;
+
+      margin: 10px 0 20px;
+    }
+
+
+    /* =========================================================
+       DASHBOARD
+    ========================================================= */
+
+    .dashboard {
+      width: 100%;
+    }
+
+
+    .dashboard-welcome {
+      margin-bottom: 24px;
+
+      background: white;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 14px;
+
+      padding: 15px 17px;
+
+      box-shadow:
+        var(--shadow);
+    }
+
+
+    .dashboard-welcome-title {
+      font-size: 14px;
+
+      font-weight: 700;
+
+      color:
+        var(--primary-dark);
+    }
+
+
+    .dashboard-welcome-text {
+      margin-top: 3px;
+
+      font-size: 11px;
+
+      color: var(--muted);
+    }
+
+
+    /* =========================================================
+       MENU
+    ========================================================= */
+
+    .menu-group {
+      margin-bottom: 25px;
+    }
+
+
+    .menu-group-title {
+      display: flex;
+
+      align-items: center;
+
+      gap: 8px;
+
+      margin-bottom: 10px;
+
+      font-size: 14px;
+
+      font-weight: 700;
+
+      color:
+        var(--primary-dark);
+    }
+
+
+    .menu-group-title::before {
+      content: "";
+
+      width: 4px;
+      height: 20px;
+
+      border-radius: 5px;
+
+      background:
+        var(--primary);
+    }
+
+
+    .menu-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3,minmax(0,1fr));
+
+      gap: 10px;
+    }
+
+
+    .menu-card {
+      display: flex;
+
+      flex-direction: column;
+
+      align-items: center;
+
+      justify-content: center;
+
+      min-height: 100px;
+
+      padding: 13px 8px;
+
+      background: white;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 12px;
+
+      text-decoration: none;
+
+      color: var(--text);
+
+      box-shadow:
+        0 2px 8px rgba(0,0,0,.03);
+
+      transition:
+        .15s;
+    }
+
+
+    .menu-card:hover {
+      border-color:
+        #86efac;
+
+      box-shadow:
+        0 5px 15px
+        rgba(22,163,74,.10);
+
+      transform:
+        translateY(-1px);
+    }
+
+
+    .menu-icon {
+      width: 42px;
+      height: 42px;
+
+      margin-bottom: 8px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      border-radius: 50%;
+
+      background:
+        var(--primary-light);
+
+      color:
+        var(--primary);
+
+      font-size: 20px;
+    }
+
+
+    .menu-name {
+      width: 100%;
+
+      font-size: 11px;
+
+      line-height: 1.35;
+
+      font-weight: 700;
+
+      text-align: center;
+
+      color: #374151;
+    }
+
+
+    .empty-menu {
+      padding: 30px 20px;
+
+      text-align: center;
+
+      background: white;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 14px;
+
+      color: var(--muted);
+
+      font-size: 13px;
+    }
+
+
+    footer {
+      padding: 15px;
+
+      text-align: center;
+
+      font-size: 10px;
+
+      color: #9ca3af;
+    }
+
+
+    @media (max-width: 480px) {
+
+      .container {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+
+      .user-info {
+        max-width: 180px;
+      }
+
+
+      .card {
+        margin-top: 20px;
+
+        padding: 20px 16px;
+      }
+
+
+      .menu-grid {
+        grid-template-columns:
+          repeat(3,minmax(0,1fr));
+
+        gap: 7px;
+      }
+
+
+      .menu-card {
+        min-height: 88px;
+
+        padding: 9px 5px;
+      }
+
+
+      .menu-icon {
+        width: 34px;
+        height: 34px;
+
+        font-size: 17px;
+
+        margin-bottom: 6px;
+      }
+
+
+      .menu-name {
+        font-size: 10px;
+      }
+
+    }
+
+
+    @media (min-width: 640px) {
+
+      .menu-grid {
+        grid-template-columns:
+          repeat(4,minmax(0,1fr));
+
+        gap: 14px;
+      }
+
+
+      .menu-card {
+        min-height: 120px;
+      }
+
+
+      .menu-icon {
+        width: 46px;
+        height: 46px;
+      }
+
+
+      .menu-name {
+        font-size: 12px;
+      }
+
+    }
+
+
+    @media (min-width: 900px) {
+
+      .menu-grid {
+        grid-template-columns:
+          repeat(5,minmax(0,1fr));
+      }
+
+    }
+
+  </style>
+
 </head>
+
 
 <body>
 
-<div class="container">
 
-  <!-- LOGIN -->
-  <div id="loginPage" class="card">
+<!-- =========================================================
+     HEADER
+========================================================= -->
 
-    <h1>Portal</h1>
+<header class="app-header">
 
-    <p>เข้าสู่ระบบด้วย LINE</p>
+  <div class="container header-inner">
 
-    <button
-      class="primary"
-      onclick="loginLINE()">
-      เข้าสู่ระบบ
-    </button>
+    <div class="profile-area">
 
-    <div id="loginMessage" class="message"></div>
+      <img
+        id="profile-img"
+        class="profile-image hidden"
+        src=""
+        alt="Profile">
 
-  </div>
+      <div class="profile-text">
 
+        <div class="portal-title">
+          Portal
+        </div>
 
-  <!-- REGISTER -->
-  <div id="registerPage" class="card hidden">
+        <div
+          id="user-info"
+          class="user-info">
+          กำลังตรวจสอบ...
+        </div>
 
-    <h1>ลงทะเบียน</h1>
+      </div>
 
-    <p>กรุณากรอกเบอร์โทรศัพท์</p>
-
-    <input
-      id="phone"
-      type="tel"
-      placeholder="เบอร์โทรศัพท์">
-
-    <button
-      class="primary"
-      onclick="register()">
-      ลงทะเบียน
-    </button>
-
-    <button
-      class="secondary"
-      onclick="location.reload()">
-      กลับ
-    </button>
-
-    <div id="registerMessage" class="message"></div>
-
-  </div>
+    </div>
 
 
-  <!-- MENU -->
-  <div id="menuPage" class="card hidden">
+    <div
+      id="header-actions"
+      class="header-actions hidden">
 
-    <h1>ระบบ Portal</h1>
+      <button
+        type="button"
+        class="logout-button"
+        onclick="logoutApp()">
 
-    <div id="userInfo"></div>
+        ออกจากระบบ
 
-    <hr>
+      </button>
 
-    <div id="menuList"></div>
 
-    <button
-      class="secondary"
-      onclick="logout()">
-      ออกจากระบบ
-    </button>
+      <div class="timer">
+
+        ⏱️
+        <span id="timer-display">
+          60:00
+        </span>
+
+      </div>
+
+    </div>
 
   </div>
 
-</div>
+</header>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+
+<main>
+
+  <div class="container main-container">
+
+
+    <!-- =====================================================
+         LOADING
+    ===================================================== -->
+
+    <section
+      id="loading-screen"
+      class="loading-screen">
+
+      <div class="spinner"></div>
+
+      <div
+        id="loading-text"
+        class="loading-text">
+
+        กำลังตรวจสอบ LINE Account...
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         REGISTER
+    ===================================================== -->
+
+    <section
+      id="register-screen"
+      class="card hidden">
+
+      <div class="card-icon">
+        📱
+      </div>
+
+
+      <h2 class="card-title">
+        ลงทะเบียนใช้งาน
+      </h2>
+
+
+      <p class="card-description">
+
+        ยังไม่พบ LINE Account นี้ในระบบ<br>
+
+        กรุณากรอกเบอร์โทรศัพท์
+        เพื่อยืนยันตัวตน
+
+      </p>
+
+
+      <form id="phone-form">
+
+        <div class="form-group">
+
+          <label
+            class="form-label"
+            for="phone-input">
+
+            เบอร์โทรศัพท์
+
+          </label>
+
+
+          <input
+            id="phone-input"
+            class="phone-input"
+            type="tel"
+            inputmode="numeric"
+            autocomplete="tel"
+            maxlength="10"
+            placeholder="08xxxxxxxx"
+            required>
+
+        </div>
+
+
+        <button
+          id="verify-phone-button"
+          type="submit"
+          class="primary-button">
+
+          ตรวจสอบข้อมูล
+
+        </button>
+
+      </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         WAITING
+    ===================================================== -->
+
+    <section
+      id="waiting-screen"
+      class="card hidden">
+
+      <div class="card-icon">
+        ⏳
+      </div>
+
+
+      <h2 class="card-title">
+        รอการอนุมัติ
+      </h2>
+
+
+      <p
+        id="waiting-message"
+        class="card-description">
+
+        บัญชีของคุณอยู่ระหว่างรอ
+        ผู้ดูแลระบบอนุมัติ
+
+      </p>
+
+
+      <div class="notice">
+
+        กรุณากลับเข้าสู่ Portal
+        หลังจากได้รับการอนุมัติ
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         COPY UID
+    ===================================================== -->
+
+    <section
+      id="copy-screen"
+      class="card hidden">
+
+      <div class="card-icon">
+        ✅
+      </div>
+
+
+      <h2 class="card-title">
+        พบข้อมูลผู้ใช้งาน
+      </h2>
+
+
+      <p class="card-description">
+
+        ระบบตรวจสอบเบอร์โทรศัพท์แล้ว<br>
+
+        กรุณาส่ง LINE UID ให้ผู้ดูแลระบบ
+
+      </p>
+
+
+      <div class="uid-box">
+
+        <div class="uid-label">
+          LINE UID
+        </div>
+
+
+        <div
+          id="display-userid"
+          class="uid-value">
+
+          -
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="primary-button"
+        onclick="copyUserId()">
+
+        คัดลอก LINE UID
+
+      </button>
+
+
+      <div class="notice">
+
+        หลังจาก Admin ผูก LINE UID
+        กับบัญชีแล้ว
+        ให้กลับเข้าสู่ Portal อีกครั้ง
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ERROR
+    ===================================================== -->
+
+    <section
+      id="error-screen"
+      class="card hidden">
+
+      <div class="error-icon">
+        ⚠️
+      </div>
+
+
+      <h2
+        id="error-title"
+        class="error-title">
+
+        ข้อผิดพลาด
+
+      </h2>
+
+
+      <p
+        id="error-message"
+        class="error-message">
+
+        ไม่สามารถดำเนินการได้
+
+      </p>
+
+
+      <button
+        type="button"
+        class="secondary-button"
+        onclick="retryLogin()">
+
+        ลองอีกครั้ง
+
+      </button>
+
+    </section>
+
+
+    <!-- =====================================================
+         DASHBOARD
+    ===================================================== -->
+
+    <section
+      id="dashboard-screen"
+      class="dashboard hidden">
+
+      <div class="dashboard-welcome">
+
+        <div class="dashboard-welcome-title">
+
+          ระบบ Portal
+
+        </div>
+
+
+        <div class="dashboard-welcome-text">
+
+          เลือกระบบที่คุณมีสิทธิ์เข้าใช้งาน
+
+        </div>
+
+      </div>
+
+
+      <div id="menu-container"></div>
+
+    </section>
+
+  </div>
+
+</main>
+
+
+<footer>
+
+  Portal Authentication System
+
+</footer>
+
 
 
 <script>
 
-/*************************************************
- * 🔧 ตั้งค่าเพียง 2 จุด
- *************************************************/
+/* =========================================================
+   CONFIGURATION
+========================================================= */
 
 const LIFF_ID =
-  '2011487100-dldPQItq';
-
-const PORTAL_API =
-  'https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22cE9ph1eYPscyrxdw29T44DaUT9/exec';
+  "2011487100-dldPQItq";
 
 
-let lineUserId = '';
-let sessionId = '';
+const CENTRAL_API_URL =
+  "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22cE9ph1eYPscyrxdw29T44DaUT9/exec";
 
 
-/*************************************************
- * เริ่มระบบ
- *************************************************/
+/* =========================================================
+   SESSION
+========================================================= */
 
-async function init() {
+const INACTIVITY_LIMIT =
+  60 * 60;
+
+
+const KEEP_ALIVE_INTERVAL =
+  10 * 60 * 1000;
+
+
+let portalSessionId = null;
+
+let lineProfile = null;
+
+let clientInfo = {
+
+  ip: "Unknown",
+
+  location: "Unknown",
+
+  device:
+    navigator.userAgent
+
+};
+
+
+let USER = null;
+
+let timerInterval = null;
+
+let keepAliveInterval = null;
+
+let lastActivityAt =
+  Date.now();
+
+let isLoggingOut = false;
+
+
+/* =========================================================
+   READY
+========================================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function () {
+
+    const phoneInput =
+      document.getElementById(
+        "phone-input"
+      );
+
+
+    if (phoneInput) {
+
+      phoneInput.addEventListener(
+        "input",
+        function () {
+
+          this.value =
+            this.value.replace(
+              /[^0-9]/g,
+              ""
+            );
+
+        }
+      );
+
+    }
+
+
+    const phoneForm =
+      document.getElementById(
+        "phone-form"
+      );
+
+
+    if (phoneForm) {
+
+      phoneForm.addEventListener(
+        "submit",
+        handlePhoneSubmit
+      );
+
+    }
+
+
+    initApp();
+
+  }
+);
+
+
+/* =========================================================
+   INIT
+========================================================= */
+
+async function initApp() {
 
   try {
+
+    showScreen(
+      "loading-screen"
+    );
+
+
+    /*
+     * -------------------------------------------------------
+     * 1. ตรวจ Session เดิม
+     * -------------------------------------------------------
+     */
+
+    const savedSession =
+      sessionStorage.getItem(
+        "portalSessionId"
+      );
+
+
+    if (savedSession) {
+
+      portalSessionId =
+        savedSession;
+
+
+      const valid =
+        await verifyPortalSession();
+
+
+      if (valid) {
+
+        await loadLineProfile();
+
+        await loadMenu();
+
+        startActivityTracker();
+
+        return;
+
+      }
+
+
+      sessionStorage.removeItem(
+        "portalSessionId"
+      );
+
+      portalSessionId = null;
+
+    }
+
+
+    /*
+     * -------------------------------------------------------
+     * 2. LINE LIFF
+     * -------------------------------------------------------
+     */
 
     await liff.init({
       liffId: LIFF_ID
     });
 
+
     if (!liff.isLoggedIn()) {
 
-      document
-        .getElementById('loginPage')
-        .classList.remove('hidden');
+      liff.login();
 
       return;
+
     }
 
-    const profile = await liff.getProfile();
 
-    lineUserId = profile.userId;
+    /*
+     * -------------------------------------------------------
+     * 3. อ่าน LINE Profile
+     * -------------------------------------------------------
+     */
 
-    await login();
+    await loadLineProfile();
 
-  } catch (err) {
 
-    show(
-      'loginMessage',
-      'ไม่สามารถเชื่อมต่อระบบได้'
+    /*
+     * -------------------------------------------------------
+     * 4. Client Info
+     * -------------------------------------------------------
+     */
+
+    await fetchClientInfo();
+
+
+    /*
+     * -------------------------------------------------------
+     * 5. ตรวจ User
+     *
+     * IMPORTANT:
+     *
+     * ขั้นตอนนี้ตรวจเฉพาะ Emp
+     *
+     * ยังไม่โหลด Menu
+     * -------------------------------------------------------
+     */
+
+    await checkUser();
+
+
+  } catch (error) {
+
+    console.error(
+      "initApp:",
+      error
     );
 
-    console.error(err);
+
+    showError(
+      "ไม่สามารถเข้าสู่ระบบ",
+      "ไม่สามารถเชื่อมต่อ LINE หรือ Portal ได้"
+    );
+
   }
+
 }
 
 
-/*************************************************
- * LINE Login
- *************************************************/
+/* =========================================================
+   LOAD LINE PROFILE
+========================================================= */
 
-async function loginLINE() {
+async function loadLineProfile() {
 
-  if (!liff.isLoggedIn()) {
+  lineProfile =
+    await liff.getProfile();
 
-    liff.login({
-      redirectUri: location.href
+
+  if (
+    !lineProfile ||
+    !lineProfile.userId
+  ) {
+
+    throw new Error(
+      "ไม่สามารถอ่าน LINE UID"
+    );
+
+  }
+
+
+  const profileImg =
+    document.getElementById(
+      "profile-img"
+    );
+
+
+  if (
+    profileImg &&
+    lineProfile.pictureUrl
+  ) {
+
+    profileImg.src =
+      lineProfile.pictureUrl;
+
+    profileImg.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+  const userInfo =
+    document.getElementById(
+      "user-info"
+    );
+
+
+  if (userInfo) {
+
+    userInfo.textContent =
+      lineProfile.displayName ||
+      "ผู้ใช้งาน";
+
+  }
+
+}
+
+
+/* =========================================================
+   CLIENT INFO
+========================================================= */
+
+async function fetchClientInfo() {
+
+  try {
+
+    const response =
+      await fetch(
+        "https://ipapi.co/json/"
+      );
+
+
+    if (!response.ok) {
+
+      return;
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    if (data.ip) {
+
+      clientInfo.ip =
+        data.ip;
+
+    }
+
+
+    if (
+      data.city ||
+      data.country_name
+    ) {
+
+      clientInfo.location =
+        `${data.city || ""}, ${data.country_name || ""}`
+          .replace(
+            /^,\s*/,
+            ""
+          )
+          .trim();
+
+    }
+
+  } catch (error) {
+
+    console.warn(
+      "Client information unavailable"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CHECK USER
+========================================================= */
+
+/*
+ * สำคัญมาก
+ *
+ * จุดนี้ต้องตรวจเฉพาะ Employee
+ *
+ * ยังไม่ตรวจ Menu
+ */
+
+async function checkUser() {
+
+  setLoadingText(
+    "กำลังตรวจสอบข้อมูลผู้ใช้งาน..."
+  );
+
+
+  const result =
+    await portalRequest({
+
+      action:
+        "checkUser",
+
+      userId:
+        lineProfile.userId,
+
+      profile: {
+
+        displayName:
+          lineProfile.displayName || "",
+
+        pictureUrl:
+          lineProfile.pictureUrl || ""
+
+      },
+
+      clientInfo:
+        clientInfo
+
     });
 
-    return;
-  }
 
-  await login();
-}
+  console.log(
+    "checkUser:",
+    result
+  );
 
 
-/*************************************************
- * Login Portal
- *************************************************/
+  /*
+   * -------------------------------------------------------
+   * ไม่พบ Employee
+   * -------------------------------------------------------
+   */
 
-async function login() {
+  if (
+    result.status ===
+    "not_registered"
+  ) {
 
-  const result = await api({
-    action: 'login',
-    userId: lineUserId
-  });
-
-  if (result.status !== 'success') {
-
-    if (result.code === 'NOT_REGISTERED') {
-
-      showPage('registerPage');
-
-      return;
-    }
-
-    show(
-      'loginMessage',
-      result.message
+    showScreen(
+      "register-screen"
     );
 
     return;
+
   }
 
-  sessionId = result.sessionId;
 
-  sessionStorage.setItem(
-    'portalSession',
-    sessionId
+  /*
+   * -------------------------------------------------------
+   * รอ Admin
+   * -------------------------------------------------------
+   */
+
+  if (
+    result.status ===
+    "pending"
+  ) {
+
+    const message =
+      document.getElementById(
+        "waiting-message"
+      );
+
+
+    if (message) {
+
+      message.textContent =
+        result.message ||
+        "บัญชีของคุณอยู่ระหว่างรอ Admin อนุมัติ";
+
+    }
+
+
+    showScreen(
+      "waiting-screen"
+    );
+
+    return;
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * ถูกระงับ / ไม่ Active
+   * -------------------------------------------------------
+   */
+
+  if (
+    result.status ===
+    "inactive"
+  ) {
+
+    showError(
+      "ไม่สามารถเข้าใช้งานได้",
+      result.message ||
+      "บัญชีของคุณไม่ได้อยู่ในสถานะ Active"
+    );
+
+    return;
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * ACTIVE
+   * -------------------------------------------------------
+   */
+
+  if (
+    result.status ===
+    "success"
+  ) {
+
+    USER =
+      result.user || null;
+
+
+    /*
+     * ได้ Session จาก Portal
+     */
+
+    if (result.sessionId) {
+
+      portalSessionId =
+        result.sessionId;
+
+
+      sessionStorage.setItem(
+        "portalSessionId",
+        portalSessionId
+      );
+
+    }
+
+
+    /*
+     * ตอนนี้เท่านั้น
+     * จึงโหลด Menu
+     */
+
+    await loadMenu();
+
+    startActivityTracker();
+
+    return;
+
+  }
+
+
+  /*
+   * -------------------------------------------------------
+   * ERROR
+   * -------------------------------------------------------
+   */
+
+  showError(
+    "ตรวจสอบผู้ใช้งานไม่สำเร็จ",
+    result.message ||
+    "เกิดข้อผิดพลาด"
   );
 
-  await loadMenu();
 }
 
 
-/*************************************************
- * Registration
- *************************************************/
+/* =========================================================
+   VERIFY EXISTING SESSION
+========================================================= */
 
-async function register() {
+async function verifyPortalSession() {
 
-  const phone =
-    document
-      .getElementById('phone')
-      .value
-      .trim();
+  if (!portalSessionId) {
 
-  const result = await api({
-    action: 'register',
-    userId: lineUserId,
-    phone: phone
-  });
+    return false;
 
-  show(
-    'registerMessage',
-    result.message
-  );
-
-  if (result.status === 'success') {
-
-    setTimeout(() => {
-      location.reload();
-    }, 1500);
   }
+
+
+  try {
+
+    const result =
+      await portalRequest({
+
+        action:
+          "verifySession",
+
+        sessionId:
+          portalSessionId
+
+      });
+
+
+    return (
+      result.status ===
+      "success"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "verifyPortalSession:",
+      error
+    );
+
+
+    return false;
+
+  }
+
 }
 
 
-/*************************************************
- * Load Menu
- *************************************************/
+/* =========================================================
+   LOAD MENU
+========================================================= */
 
 async function loadMenu() {
 
-  const result = await api({
-    action: 'menu',
-    sessionId: sessionId
-  });
+  setLoadingText(
+    "กำลังโหลดระบบที่คุณมีสิทธิ์..."
+  );
 
-  if (result.status !== 'success') {
 
-    sessionStorage.removeItem('portalSession');
+  /*
+   * -------------------------------------------------------
+   * สำคัญ:
+   *
+   * Menu ถูกเรียกหลังจาก
+   * User ผ่าน checkUser แล้วเท่านั้น
+   * -------------------------------------------------------
+   */
 
-    showPage('loginPage');
+  const result =
+    await portalRequest({
 
-    show(
-      'loginMessage',
-      result.message
+      action:
+        "getMenu",
+
+      sessionId:
+        portalSessionId
+
+    });
+
+
+  console.log(
+    "getMenu:",
+    result
+  );
+
+
+  if (
+    result.status !==
+    "success"
+  ) {
+
+    showError(
+      "โหลด Menu ไม่สำเร็จ",
+      result.message ||
+      "ไม่สามารถโหลดรายการระบบได้"
     );
 
     return;
+
   }
 
-  document
-    .getElementById('userInfo')
-    .innerHTML =
-      `<b>${result.user.name}</b>
-       (${result.user.role})`;
 
-  const list =
-    document.getElementById('menuList');
-
-  list.innerHTML = '';
-
-  if (!result.menus.length) {
-
-    list.innerHTML =
-      '<p>คุณไม่มีสิทธิ์เข้าถึงเมนูใดๆ</p>';
-
-    showPage('menuPage');
-
-    return;
-  }
-
-  result.menus.forEach(menu => {
-
-    const div =
-      document.createElement('div');
-
-    div.className = 'menu';
-
-    div.innerHTML =
-      `<b>${menu.menuName}</b>
-       <br>
-       <small>${menu.group}</small>`;
-
-    div.onclick = () => openSystem(menu);
-
-    list.appendChild(div);
-  });
-
-  showPage('menuPage');
-
-  startKeepAlive();
-}
-
-
-/*************************************************
- * เปิดระบบปลายทาง
- *************************************************/
-
-async function openSystem(menu) {
-
-  const result = await api({
-    action: 'launch',
-    sessionId: sessionId
-  });
-
-  if (result.status !== 'success') {
-
-    alert(result.message);
-
-    return;
-  }
-
-  /*
-   * POST Launch Token ไปยัง Destination
-   * ไม่ใส่ Token ใน URL
-   */
-
-  const form =
-    document.createElement('form');
-
-  form.method = 'POST';
-  form.action = menu.url;
-  form.target = '_blank';
-
-  const input =
-    document.createElement('input');
-
-  input.type = 'hidden';
-  input.name = 'launchToken';
-  input.value = result.launchToken;
-
-  form.appendChild(input);
-
-  document.body.appendChild(form);
-
-  form.submit();
-
-  form.remove();
-}
-
-
-/*************************************************
- * KeepAlive
- *************************************************/
-
-function startKeepAlive() {
-
-  setInterval(async () => {
-
-    if (!sessionId) return;
-
-    const result = await api({
-      action: 'keepAlive',
-      sessionId: sessionId
-    });
-
-    if (result.status !== 'success') {
-
-      sessionStorage.removeItem(
-        'portalSession'
-      );
-
-      location.reload();
-    }
-
-  }, 10 * 60 * 1000);
-}
-
-
-/*************************************************
- * Logout
- *************************************************/
-
-async function logout() {
-
-  await api({
-    action: 'logout',
-    sessionId: sessionId
-  });
-
-  sessionStorage.removeItem(
-    'portalSession'
+  renderDashboard(
+    result
   );
 
-  sessionId = '';
-
-  location.reload();
 }
 
 
-/*************************************************
- * API
- *************************************************/
+/* =========================================================
+   PHONE SUBMIT
+========================================================= */
 
-async function api(data) {
+async function handlePhoneSubmit(
+  event
+) {
+
+  event.preventDefault();
+
+
+  const phoneInput =
+    document.getElementById(
+      "phone-input"
+    );
+
+
+  const button =
+    document.getElementById(
+      "verify-phone-button"
+    );
+
+
+  const phone =
+    phoneInput.value.trim();
+
+
+  if (
+    !/^\d{10}$/.test(phone)
+  ) {
+
+    alert(
+      "กรุณากรอกเบอร์โทรศัพท์ 10 หลัก"
+    );
+
+    return;
+
+  }
+
+
+  button.disabled =
+    true;
+
+
+  button.textContent =
+    "กำลังตรวจสอบ...";
+
+
+  showScreen(
+    "loading-screen"
+  );
+
+
+  setLoadingText(
+    "กำลังตรวจสอบเบอร์โทรศัพท์..."
+  );
+
+
+  try {
+
+    const result =
+      await portalRequest({
+
+        action:
+          "verifyPhone",
+
+        userId:
+          lineProfile.userId,
+
+        phone:
+          phone,
+
+        profile: {
+
+          displayName:
+            lineProfile.displayName || "",
+
+          pictureUrl:
+            lineProfile.pictureUrl || ""
+
+        },
+
+        clientInfo:
+          clientInfo
+
+      });
+
+
+    console.log(
+      "verifyPhone:",
+      result
+    );
+
+
+    if (
+      result.status ===
+      "show_userid"
+    ) {
+
+      document.getElementById(
+        "display-userid"
+      ).textContent =
+        result.lineUserId ||
+        lineProfile.userId;
+
+
+      showScreen(
+        "copy-screen"
+      );
+
+
+      return;
+
+    }
+
+
+    if (
+      result.status ===
+      "pending"
+    ) {
+
+      showScreen(
+        "waiting-screen"
+      );
+
+
+      const message =
+        document.getElementById(
+          "waiting-message"
+        );
+
+
+      if (message) {
+
+        message.textContent =
+          result.message ||
+          "ลงทะเบียนสำเร็จ กรุณารอ Admin อนุมัติ";
+
+      }
+
+
+      return;
+
+    }
+
+
+    showError(
+      "ตรวจสอบไม่สำเร็จ",
+      result.message ||
+      "ไม่สามารถตรวจสอบข้อมูลได้"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "verifyPhone:",
+      error
+    );
+
+
+    showError(
+      "การตรวจสอบล้มเหลว",
+      "โปรดลองอีกครั้ง"
+    );
+
+
+  } finally {
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "ตรวจสอบข้อมูล";
+
+  }
+
+}
+
+
+/* =========================================================
+   GENERIC PORTAL REQUEST
+========================================================= */
+
+async function portalRequest(
+  payload
+) {
 
   const response =
-    await fetch(PORTAL_API, {
+    await fetch(
+      CENTRAL_API_URL,
+      {
 
-      method: 'POST',
+        method:
+          "POST",
 
-      headers: {
-        'Content-Type':
-          'text/plain;charset=utf-8'
-      },
+        headers: {
 
-      body: JSON.stringify(data)
-    });
+          "Content-Type":
+            "text/plain;charset=utf-8"
+
+        },
+
+        body:
+          JSON.stringify(
+            payload
+          )
+
+      }
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      "HTTP " +
+      response.status
+    );
+
+  }
+
 
   return await response.json();
+
 }
 
 
-/*************************************************
- * UI
- *************************************************/
+/* =========================================================
+   RENDER DASHBOARD
+========================================================= */
 
-function showPage(id) {
+function renderDashboard(
+  data
+) {
+
+  showScreen(
+    "dashboard-screen"
+  );
+
+
+  const headerActions =
+    document.getElementById(
+      "header-actions"
+    );
+
+
+  if (headerActions) {
+
+    headerActions.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+  const userInfo =
+    document.getElementById(
+      "user-info"
+    );
+
+
+  if (userInfo) {
+
+    const name =
+      lineProfile?.displayName ||
+      "-";
+
+
+    const position =
+      data.jobPosition ||
+      USER?.role ||
+      "-";
+
+
+    userInfo.textContent =
+      `${name} | ${position}`;
+
+  }
+
+
+  const container =
+    document.getElementById(
+      "menu-container"
+    );
+
+
+  container.innerHTML =
+    "";
+
+
+  if (
+    !Array.isArray(
+      data.menuGroups
+    ) ||
+    data.menuGroups.length === 0
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-menu">
+
+        คุณไม่มีสิทธิ์เข้าถึงเมนูใดๆ
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  data.menuGroups.forEach(
+    function (group) {
+
+      const menus =
+        Array.isArray(
+          group.menus
+        )
+          ? group.menus
+          : [];
+
+
+      /*
+       * แสดงเฉพาะ Menu
+       * ที่ Portal ส่งกลับมา
+       *
+       * Portal เป็นผู้ตัดสิน canRead
+       */
+
+      const readableMenus =
+        menus.filter(
+          function (menu) {
+
+            return (
+              menu.canRead === true ||
+              menu.canRead === "TRUE" ||
+              menu.canRead === 1
+            );
+
+          }
+        );
+
+
+      if (
+        readableMenus.length === 0
+      ) {
+
+        return;
+
+      }
+
+
+      const section =
+        document.createElement(
+          "section"
+        );
+
+
+      section.className =
+        "menu-group";
+
+
+      const title =
+        escapeHtml(
+          group.groupName ||
+          "ทั่วไป"
+        );
+
+
+      const menuHtml =
+        readableMenus
+          .map(
+            function (menu) {
+
+              const menuName =
+                escapeHtml(
+                  menu.menuName ||
+                  ""
+                );
+
+
+              /*
+               * รองรับ menuUrl
+               * เป็น field หลักของระบบ
+               */
+
+              const safeUrl =
+                sanitizeUrl(
+                  menu.menuUrl ||
+                  menu.url
+                );
+
+
+              if (!safeUrl) {
+
+                return "";
+
+              }
+
+
+              return `
+
+                <a
+                  href="${safeUrl}"
+                  class="menu-card">
+
+                  <div class="menu-icon">
+                    ▦
+                  </div>
+
+                  <div class="menu-name">
+                    ${menuName}
+                  </div>
+
+                </a>
+
+              `;
+
+            }
+          )
+          .join("");
+
+
+      if (!menuHtml) {
+
+        return;
+
+      }
+
+
+      section.innerHTML = `
+
+        <div class="menu-group-title">
+
+          ${title}
+
+        </div>
+
+        <div class="menu-grid">
+
+          ${menuHtml}
+
+        </div>
+
+      `;
+
+
+      container.appendChild(
+        section
+      );
+
+    }
+  );
+
+
+  if (
+    !container.children.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-menu">
+
+        คุณไม่มีสิทธิ์เข้าถึงเมนูใดๆ
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+/* =========================================================
+   ACTIVITY TRACKER
+========================================================= */
+
+function startActivityTracker() {
+
+  stopActivityTracker();
+
+
+  lastActivityAt =
+    Date.now();
+
+
+  timeRemaining =
+    INACTIVITY_LIMIT;
+
+
+  const markActivity =
+    function () {
+
+      lastActivityAt =
+        Date.now();
+
+    };
+
 
   [
-    'loginPage',
-    'registerPage',
-    'menuPage'
-  ].forEach(page => {
+    "mousemove",
+    "keydown",
+    "touchstart",
+    "scroll",
+    "click"
+  ].forEach(
+    function (eventName) {
 
-    document
-      .getElementById(page)
-      .classList.add('hidden');
-  });
+      window.addEventListener(
+        eventName,
+        markActivity,
+        {
+          passive: true
+        }
+      );
 
-  document
-    .getElementById(id)
-    .classList.remove('hidden');
+    }
+  );
+
+
+  timerInterval =
+    setInterval(
+      async function () {
+
+        const idleSeconds =
+          Math.floor(
+            (
+              Date.now() -
+              lastActivityAt
+            ) / 1000
+          );
+
+
+        timeRemaining =
+          Math.max(
+            0,
+            INACTIVITY_LIMIT -
+            idleSeconds
+          );
+
+
+        updateTimerDisplay();
+
+
+        if (
+          timeRemaining <= 0
+        ) {
+
+          await forceLogout(
+            "หมดเวลาการเชื่อมต่อเนื่องจากไม่มีการใช้งาน 60 นาที"
+          );
+
+        }
+
+      },
+      1000
+    );
+
+
+  keepAliveInterval =
+    setInterval(
+      async function () {
+
+        if (
+          !portalSessionId ||
+          isLoggingOut
+        ) {
+
+          return;
+
+        }
+
+
+        /*
+         * ต่อ Session เฉพาะเมื่อ
+         * User ยังใช้งานอยู่
+         */
+
+        if (
+          timeRemaining <= 300
+        ) {
+
+          return;
+
+        }
+
+
+        await keepAlive();
+
+      },
+      KEEP_ALIVE_INTERVAL
+    );
+
+
+  updateTimerDisplay();
+
 }
 
 
-function show(id, text) {
+/* =========================================================
+   STOP TRACKER
+========================================================= */
 
-  document
-    .getElementById(id)
-    .textContent = text;
+function stopActivityTracker() {
+
+  if (timerInterval) {
+
+    clearInterval(
+      timerInterval
+    );
+
+    timerInterval =
+      null;
+
+  }
+
+
+  if (keepAliveInterval) {
+
+    clearInterval(
+      keepAliveInterval
+    );
+
+    keepAliveInterval =
+      null;
+
+  }
+
 }
 
 
-init();
+/* =========================================================
+   TIMER
+========================================================= */
+
+function updateTimerDisplay() {
+
+  const total =
+    Math.max(
+      0,
+      timeRemaining
+    );
+
+
+  const minutes =
+    Math.floor(
+      total / 60
+    )
+      .toString()
+      .padStart(
+        2,
+        "0"
+      );
+
+
+  const seconds =
+    (
+      total % 60
+    )
+      .toString()
+      .padStart(
+        2,
+        "0"
+      );
+
+
+  const element =
+    document.getElementById(
+      "timer-display"
+    );
+
+
+  if (element) {
+
+    element.textContent =
+      `${minutes}:${seconds}`;
+
+  }
+
+}
+
+
+/* =========================================================
+   KEEP ALIVE
+========================================================= */
+
+async function keepAlive() {
+
+  if (!portalSessionId) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const result =
+      await portalRequest({
+
+        action:
+          "keepAlive",
+
+        sessionId:
+          portalSessionId
+
+      });
+
+
+    if (
+      result.status !==
+      "success"
+    ) {
+
+      await forceLogout(
+        "Session หมดอายุ กรุณาเข้าสู่ระบบใหม่"
+      );
+
+    }
+
+  } catch (error) {
+
+    /*
+     * Network error ชั่วคราว
+     * ไม่ Logout ทันที
+     */
+
+    console.warn(
+      "KeepAlive failed:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+async function logoutApp() {
+
+  await forceLogout(
+    "ออกจากระบบเรียบร้อยแล้ว"
+  );
+
+}
+
+
+/* =========================================================
+   FORCE LOGOUT
+========================================================= */
+
+async function forceLogout(
+  message
+) {
+
+  if (isLoggingOut) {
+
+    return;
+
+  }
+
+
+  isLoggingOut =
+    true;
+
+
+  stopActivityTracker();
+
+
+  sessionStorage.removeItem(
+    "portalSessionId"
+  );
+
+
+  portalSessionId =
+    null;
+
+
+  console.log(
+    message
+  );
+
+
+  showScreen(
+    "loading-screen"
+  );
+
+
+  setLoadingText(
+    message ||
+    "กำลังออกจากระบบ..."
+  );
+
+
+  setTimeout(
+    function () {
+
+      isLoggingOut =
+        false;
+
+      initApp();
+
+    },
+    700
+  );
+
+}
+
+
+/* =========================================================
+   RETRY
+========================================================= */
+
+function retryLogin() {
+
+  sessionStorage.removeItem(
+    "portalSessionId"
+  );
+
+
+  portalSessionId =
+    null;
+
+
+  isLoggingOut =
+    false;
+
+
+  initApp();
+
+}
+
+
+/* =========================================================
+   SHOW SCREEN
+========================================================= */
+
+function showScreen(
+  screenId
+) {
+
+  const screens = [
+
+    "loading-screen",
+
+    "register-screen",
+
+    "waiting-screen",
+
+    "copy-screen",
+
+    "error-screen",
+
+    "dashboard-screen"
+
+  ];
+
+
+  screens.forEach(
+    function (id) {
+
+      const element =
+        document.getElementById(
+          id
+        );
+
+
+      if (element) {
+
+        element.classList.add(
+          "hidden"
+        );
+
+      }
+
+    }
+  );
+
+
+  const target =
+    document.getElementById(
+      screenId
+    );
+
+
+  if (target) {
+
+    target.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+  const headerActions =
+    document.getElementById(
+      "header-actions"
+    );
+
+
+  if (headerActions) {
+
+    if (
+      screenId ===
+      "dashboard-screen"
+    ) {
+
+      headerActions.classList.remove(
+        "hidden"
+      );
+
+    } else {
+
+      headerActions.classList.add(
+        "hidden"
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   LOADING TEXT
+========================================================= */
+
+function setLoadingText(
+  message
+) {
+
+  const element =
+    document.getElementById(
+      "loading-text"
+    );
+
+
+  if (element) {
+
+    element.textContent =
+      message;
+
+  }
+
+}
+
+
+/* =========================================================
+   COPY UID
+========================================================= */
+
+function copyUserId() {
+
+  const uid =
+    document.getElementById(
+      "display-userid"
+    )
+      .textContent
+      .trim();
+
+
+  if (!uid) {
+
+    alert(
+      "ไม่พบ LINE UID"
+    );
+
+    return;
+
+  }
+
+
+  if (
+    navigator.clipboard &&
+    navigator.clipboard.writeText
+  ) {
+
+    navigator.clipboard
+      .writeText(uid)
+      .then(
+        function () {
+
+          alert(
+            "คัดลอก LINE UID สำเร็จ"
+          );
+
+        }
+      )
+      .catch(
+        function () {
+
+          alert(
+            "กรุณาคัดลอก LINE UID จากหน้าจอ"
+          );
+
+        }
+      );
+
+    return;
+
+  }
+
+
+  alert(
+    "กรุณาคัดลอก LINE UID จากหน้าจอ"
+  );
+
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+function showError(
+  title,
+  message
+) {
+
+  const titleElement =
+    document.getElementById(
+      "error-title"
+    );
+
+
+  const messageElement =
+    document.getElementById(
+      "error-message"
+    );
+
+
+  if (titleElement) {
+
+    titleElement.textContent =
+      title ||
+      "ข้อผิดพลาด";
+
+  }
+
+
+  if (messageElement) {
+
+    messageElement.textContent =
+      message ||
+      "ไม่สามารถดำเนินการได้";
+
+  }
+
+
+  showScreen(
+    "error-screen"
+  );
+
+}
+
+
+/* =========================================================
+   URL
+========================================================= */
+
+function sanitizeUrl(
+  url
+) {
+
+  if (
+    !url ||
+    typeof url !==
+    "string"
+  ) {
+
+    return "";
+
+  }
+
+
+  try {
+
+    const parsed =
+      new URL(
+        url.trim(),
+        window.location.href
+      );
+
+
+    if (
+      parsed.protocol !== "http:" &&
+      parsed.protocol !== "https:"
+    ) {
+
+      return "";
+
+    }
+
+
+    return escapeAttribute(
+      parsed.href
+    );
+
+  } catch (error) {
+
+    return "";
+
+  }
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+
+/* =========================================================
+   ESCAPE ATTRIBUTE
+========================================================= */
+
+function escapeAttribute(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    );
+
+}
+
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+let timeRemaining =
+  INACTIVITY_LIMIT;
 
 </script>
 
 </body>
 </html>
+
