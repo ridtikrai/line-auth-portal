@@ -2566,9 +2566,184 @@ function renderDashboard(
 /* =====================================================
    SECURE MENU LAUNCH
    ===================================================== */
-
-javascript
 async function openMenu(menu) {
+
+  if (!menu) {
+    console.error("openMenu: menu is missing");
+    return;
+  }
+
+  if (!currentSessionId) {
+    await handleSessionExpired();
+    return;
+  }
+
+  // ==========================================
+  // 1. อ่าน menuId จาก object menu
+  // ==========================================
+  const menuId = String(menu.menuId || "").trim();
+
+  if (!menuId) {
+    console.error("openMenu: menuId is missing", menu);
+    showLoginError("ไม่พบรหัสเมนู (menuId)");
+    return;
+  }
+
+  // ==========================================
+  // 2. ตรวจสอบ URL
+  // ==========================================
+  const url = sanitizeUrl(menu.menuUrl);
+
+  if (!url) {
+    console.error("openMenu: invalid menuUrl", menu);
+    showLoginError("ไม่พบ URL ของระบบ");
+    return;
+  }
+
+  try {
+
+    console.log("openMenu:", {
+      menuId: menuId,
+      menuName: menu.menuName,
+      menuUrl: url
+    });
+
+    // ==========================================
+    // 3. ขอ Launch Token จาก Portal
+    // ==========================================
+    const result = await portalRequest({
+      action: "launch",
+      sessionId: currentSessionId,
+      menuId: menuId
+    });
+
+    console.log("launch:", result);
+
+    // ==========================================
+    // 4. ตรวจสอบผลลัพธ์
+    // ==========================================
+    if (!result || result.status !== "success") {
+
+      if (
+        result &&
+        (
+          result.code === "SESSION_EXPIRED" ||
+          result.code === "SESSION_INVALID"
+        )
+      ) {
+        await handleSessionExpired();
+        return;
+      }
+
+      throw new Error(
+        result?.message || "ไม่สามารถสร้าง Launch Token ได้"
+      );
+    }
+
+    // ==========================================
+    // 5. ตรวจสอบ Launch Token
+    // ==========================================
+    const launchToken = String(
+      result.launchToken || ""
+    ).trim();
+
+    if (!launchToken) {
+      throw new Error("Portal ไม่ได้ส่ง Launch Token");
+    }
+
+    // ==========================================
+    // 6. ตรวจสอบว่า Token ถูกสร้างให้ menuId นี้จริง
+    // ==========================================
+    if (
+      result.menuId &&
+      String(result.menuId).trim() !== menuId
+    ) {
+      throw new Error(
+        "Launch Token ไม่ตรงกับเมนูที่เลือก"
+      );
+    }
+
+    // ==========================================
+    // 7. เปิดหน้าต่างปลายทาง
+    // ==========================================
+    const targetName =
+      "portalTarget_" + Date.now();
+
+    const targetWindow =
+      window.open("about:blank", targetName);
+
+    if (!targetWindow) {
+      throw new Error(
+        "Browser บล็อก Popup กรุณาอนุญาต Popup สำหรับ Portal"
+      );
+    }
+
+    // ==========================================
+    // 8. ส่ง Launch Token แบบ POST
+    // ==========================================
+    const form =
+      document.createElement("form");
+
+    form.method = "POST";
+    form.action = url;
+    form.target = targetName;
+    form.style.display = "none";
+
+    // Launch Token
+    const tokenInput =
+      document.createElement("input");
+
+    tokenInput.type = "hidden";
+    tokenInput.name = "launchToken";
+    tokenInput.value = launchToken;
+
+    form.appendChild(tokenInput);
+
+    // menuId
+    const menuInput =
+      document.createElement("input");
+
+    menuInput.type = "hidden";
+    menuInput.name = "menuId";
+    menuInput.value = menuId;
+
+    form.appendChild(menuInput);
+
+    document.body.appendChild(form);
+
+    // ==========================================
+    // 9. Submit
+    // ==========================================
+    form.submit();
+
+    // ==========================================
+    // 10. ลบ form หลังส่ง
+    // ==========================================
+    setTimeout(function () {
+      try {
+        form.remove();
+      } catch (e) {
+        console.warn(
+          "Cannot remove launch form:",
+          e
+        );
+      }
+    }, 1000);
+
+  } catch (err) {
+
+    console.error(
+      "openMenu:",
+      err
+    );
+
+    showLoginError(
+      getFriendlyErrorMessage(err)
+    );
+  }
+}
+
+
 
   if (!menu) {
     return;
@@ -2864,7 +3039,6 @@ async function openMenu(menu) {
 
   }
 
-}
 
 
 /* =====================================================
