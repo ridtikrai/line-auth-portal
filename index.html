@@ -5,11 +5,11 @@
 <head>
   <meta charset="UTF-8">
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
+    <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
 
->
+    >
 
   <title>Patient Care Portal</title>
 
@@ -985,6 +985,9 @@ content="width=device-width, initial-scale=1.0"
         display: none;
       }
     }
+
+
+    
   </style>
 
 </head>
@@ -1000,7 +1003,7 @@ content="width=device-width, initial-scale=1.0"
     class="page"
   >
 
-```
+
 <div class="card">
 
   <div class="loading">
@@ -1014,7 +1017,7 @@ content="width=device-width, initial-scale=1.0"
   </div>
 
 </div>
-```
+
 
   </div>
 
@@ -1027,7 +1030,7 @@ content="width=device-width, initial-scale=1.0"
     class="page hidden"
   >
 
-```
+
 <div class="card">
 
   <div class="logo">
@@ -1056,7 +1059,7 @@ content="width=device-width, initial-scale=1.0"
   ></div>
 
 </div>
-```
+
 
   </div>
 
@@ -1069,7 +1072,7 @@ content="width=device-width, initial-scale=1.0"
     class="page hidden"
   >
 
-```
+
 <div class="card">
 
   <div class="logo">
@@ -1111,7 +1114,7 @@ content="width=device-width, initial-scale=1.0"
   ></div>
 
 </div>
-```
+
 
   </div>
 
@@ -1124,7 +1127,7 @@ content="width=device-width, initial-scale=1.0"
     class="page hidden"
   >
 
-```
+
 <div class="card">
 
   <div class="logo">
@@ -1152,7 +1155,7 @@ content="width=device-width, initial-scale=1.0"
   </button>
 
 </div>
-```
+
 
   </div>
 
@@ -1165,105 +1168,74 @@ content="width=device-width, initial-scale=1.0"
     class="dashboard hidden"
   >
 
-```
+
 <!-- =================================================
      HEADER
      ================================================= -->
 
-<div class="topbar">
+<header class="topbar">
 
-
-  <!-- BRAND -->
-
-  <div class="brand-area">
-
-    <div class="brand-logo">
-      P
-    </div>
+  <!-- Brand -->
+  <div class="brand-block">
+    <div class="brand-mark">PC</div>
 
     <div class="brand-text">
-
-      <div class="brand">
-        Patient Care Portal
-      </div>
-
+      <div class="brand-title">Patient Care Portal</div>
       <div class="brand-subtitle">
-        ระบบศูนย์ดูแลผู้ป่วย
+        ระบบศูนย์กลางระบบสารสนเทศ
       </div>
-
     </div>
-
   </div>
 
 
-  <!-- USER + LINE + SESSION -->
+  <!-- User / Session -->
+  <div class="header-right">
 
-  <div class="user-info">
+    <!-- LINE Profile -->
+    <div class="profile-box">
 
-
-    <!-- LINE PROFILE IMAGE -->
-
-    <img
-      id="lineAvatar"
-      class="line-avatar"
-      src=""
-      alt="LINE Profile"
-    >
-
-
-    <!-- USER -->
-
-    <div class="user-detail">
-
-      <div
-        id="userName"
-        class="user-name"
-      ></div>
-
-      <div
-        id="userRole"
-        class="user-role"
-      ></div>
-
-    </div>
-
-
-    <!-- SESSION -->
-
-    <div class="session-status">
-
-      <div class="session-label">
-
-        <span class="session-dot"></span>
-
-        <span>
-          Session
-        </span>
-
-      </div>
-
-      <div
-        id="sessionTime"
-        class="session-time"
+      <img
+        id="userAvatar"
+        class="user-avatar"
+        src=""
+        alt="LINE Profile"
       >
-        กำลังตรวจสอบ...
+
+      <div class="profile-info">
+        <div id="userName" class="user-name">-</div>
+        <div id="userRole" class="user-role">-</div>
       </div>
 
     </div>
 
 
-    <!-- LOGOUT -->
+    <!-- Session -->
+    <div id="sessionBar" class="session-pill hidden">
 
+      <span class="session-dot"></span>
+
+      <div class="session-info">
+        <div class="session-label">Session</div>
+        <div id="sessionText" class="session-time">
+          กำลังตรวจสอบ...
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- Logout -->
     <button
+      type="button"
       class="logout-btn"
-      onclick="logoutApp()"
+      onclick="logout()"
     >
       ออกจากระบบ
     </button>
 
   </div>
 
-</div>
+</header>
 
 
 <!-- =================================================
@@ -1277,7 +1249,7 @@ content="width=device-width, initial-scale=1.0"
   <div id="menuContainer"></div>
 
 </div>
-```
+
 
   </div>
 
