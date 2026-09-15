@@ -2115,170 +2115,317 @@
        LAUNCH MENU
        ===================================================== */
 
-    async function launchMenu(
-      event,
-      menuId,
-      menuUrl
-    ) {
+    // async function launchMenu(
+    //   event,
+    //   menuId,
+    //   menuUrl
+    // ) {
 
-      if (event) {
+    //   if (event) {
 
-        event.preventDefault();
+    //     event.preventDefault();
 
-        event.stopPropagation();
-      }
-
-
-      if (isLaunching) {
-        return;
-      }
+    //     event.stopPropagation();
+    //   }
 
 
-      /*
-       * ไม่มี Session
-       *
-       * อย่าเรียกว่า Session expired ทันที
-       * ให้ตรวจสอบใหม่ก่อน
-       */
-      if (!portalSessionId) {
-
-        const restored =
-          restoreSession();
+    //   if (isLaunching) {
+    //     return;
+    //   }
 
 
-        if (!restored) {
+    //   /*
+    //    * ไม่มี Session
+    //    *
+    //    * อย่าเรียกว่า Session expired ทันที
+    //    * ให้ตรวจสอบใหม่ก่อน
+    //    */
+    //   if (!portalSessionId) {
 
-          await forceSessionLogin(
-            "ไม่พบ Session กรุณาเข้าสู่ระบบใหม่"
-          );
-
-          return;
-        }
-      }
-
-
-      const safeUrl =
-        sanitizeUrl(
-          menuUrl
-        );
+    //     const restored =
+    //       restoreSession();
 
 
-      if (!safeUrl) {
+    //     if (!restored) {
 
-        alert(
-          "ไม่พบ URL ของเมนูนี้"
-        );
+    //       await forceSessionLogin(
+    //         "ไม่พบ Session กรุณาเข้าสู่ระบบใหม่"
+    //       );
 
-        return;
-      }
-
-
-      isLaunching =
-        true;
+    //       return;
+    //     }
+    //   }
 
 
-      try {
-
-        /*
-         * ตรวจ Session ก่อน
-         */
-        const sessionValid =
-          await verifyPortalSession();
+    //   const safeUrl =
+    //     sanitizeUrl(
+    //       menuUrl
+    //     );
 
 
-        if (!sessionValid) {
+    //   if (!safeUrl) {
 
-          clearPortalSession();
+    //     alert(
+    //       "ไม่พบ URL ของเมนูนี้"
+    //     );
 
-
-          await forceSessionLogin(
-            "Session หมดอายุ กรุณาเข้าสู่ระบบใหม่"
-          );
-
-
-          return;
-        }
+    //     return;
+    //   }
 
 
-        /*
-         * สร้าง One-Time Launch Token
-         */
-        const launchToken =
-          await createLaunchToken(
-            menuId
-          );
+    //   isLaunching =
+    //     true;
 
 
-        /*
-         * Destination URL
-         */
-        const destination =
-          new URL(
-            safeUrl,
-            window.location.href
-          );
+    //   try {
+
+    //     /*
+    //      * ตรวจ Session ก่อน
+    //      */
+    //     const sessionValid =
+    //       await verifyPortalSession();
 
 
-        /*
-         * ลบ Credential เก่าทั้งหมด
-         *
-         * ไม่ให้ UID
-         * ไม่ให้ userId
-         * ไม่ให้ sessionId
-         */
-        [
-          "uid",
-          "userId",
-          "sessionId",
-          "token",
-          "launchToken"
-        ].forEach(
-          function(key) {
+    //     if (!sessionValid) {
 
-            destination.searchParams.delete(
-              key
-            );
-
-          }
-        );
+    //       clearPortalSession();
 
 
-        /*
-         * ใส่เฉพาะ One-Time Launch Token
-         */
-        destination.searchParams.set(
-          "launchToken",
-          launchToken
-        );
+    //       await forceSessionLogin(
+    //         "Session หมดอายุ กรุณาเข้าสู่ระบบใหม่"
+    //       );
 
 
-        /*
-         * Redirect
-         */
-        window.location.href =
-          destination.toString();
+    //       return;
+    //     }
 
 
-      } catch (error) {
+    //     /*
+    //      * สร้าง One-Time Launch Token
+    //      */
+    //     const launchToken =
+    //       await createLaunchToken(
+    //         menuId
+    //       );
 
-        console.error(
-          "launchMenu ERROR:",
-          error
-        );
+
+    //     /*
+    //      * Destination URL
+    //      */
+    //     const destination =
+    //       new URL(
+    //         safeUrl,
+    //         window.location.href
+    //       );
 
 
-        alert(
-          error.message ||
-          "ไม่สามารถเปิดระบบปลายทางได้"
-        );
+    //     /*
+    //      * ลบ Credential เก่าทั้งหมด
+    //      *
+    //      * ไม่ให้ UID
+    //      * ไม่ให้ userId
+    //      * ไม่ให้ sessionId
+    //      */
+    //     [
+    //       "uid",
+    //       "userId",
+    //       "sessionId",
+    //       "token",
+    //       "launchToken"
+    //     ].forEach(
+    //       function(key) {
 
-      } finally {
+    //         destination.searchParams.delete(
+    //           key
+    //         );
 
-        isLaunching =
-          false;
-      }
+    //       }
+    //     );
+
+
+    //     /*
+    //      * ใส่เฉพาะ One-Time Launch Token
+    //      */
+    //     destination.searchParams.set(
+    //       "launchToken",
+    //       launchToken
+    //     );
+
+
+    //     /*
+    //      * Redirect
+    //      */
+    //     window.location.href =
+    //       destination.toString();
+
+
+    //   } catch (error) {
+
+    //     console.error(
+    //       "launchMenu ERROR:",
+    //       error
+    //     );
+
+
+    //     alert(
+    //       error.message ||
+    //       "ไม่สามารถเปิดระบบปลายทางได้"
+    //     );
+
+    //   } finally {
+
+    //     isLaunching =
+    //       false;
+    //   }
+    // }
+
+
+async function launchMenu(event, menuId, menuUrl) {
+
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  if (isLaunching) return;
+
+  if (!portalSessionId) {
+    alert("ไม่พบ Portal Session");
+    return;
+  }
+
+  if (!menuId) {
+    alert("ไม่พบ Menu ID");
+    return;
+  }
+
+  if (!menuUrl) {
+    alert("เมนูนี้ยังไม่ได้กำหนด URL");
+    return;
+  }
+
+  isLaunching = true;
+
+  try {
+
+    console.log("=================================");
+    console.log("LAUNCH MENU");
+    console.log("menuId =", menuId);
+    console.log("menuUrl =", menuUrl);
+    console.log("sessionId =", portalSessionId);
+    console.log("=================================");
+
+    /*
+     * 1. ตรวจ Portal Session
+     */
+    const sessionValid =
+      await verifyPortalSession();
+
+    if (!sessionValid) {
+
+      clearPortalSession();
+
+      alert(
+        "Session หมดอายุ กรุณาเข้าสู่ระบบใหม่"
+      );
+
+      window.location.reload();
+
+      return;
     }
 
+
+    /*
+     * 2. ขอ One-Time Launch Token
+     */
+    const launchToken =
+      await createLaunchToken(menuId);
+
+
+    if (!launchToken) {
+      throw new Error(
+        "ไม่ได้รับ Launch Token"
+      );
+    }
+
+
+    /*
+     * 3. สร้าง Destination URL
+     */
+    const destination =
+      new URL(
+        menuUrl,
+        window.location.href
+      );
+
+
+    /*
+     * 4. ลบ Credential เก่าทั้งหมด
+     */
+    [
+      "uid",
+      "userId",
+      "sessionId",
+      "token",
+      "launchToken"
+    ].forEach(
+      function(key) {
+        destination.searchParams.delete(key);
+      }
+    );
+
+
+    /*
+     * 5. ใส่เฉพาะ Launch Token
+     */
+    destination.searchParams.set(
+      "launchToken",
+      launchToken
+    );
+
+
+    const finalUrl =
+      destination.toString();
+
+
+    /*
+     * DEBUG
+     */
+    console.log(
+      "Launch Token =",
+      launchToken
+    );
+
+    console.log(
+      "Final Destination =",
+      finalUrl
+    );
+
+
+    /*
+     * 6. เปิดปลายทาง
+     */
+    window.location.href =
+      finalUrl;
+
+
+  } catch (error) {
+
+    console.error(
+      "launchMenu ERROR:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "ไม่สามารถเปิดระบบปลายทางได้"
+    );
+
+  } finally {
+
+    isLaunching = false;
+  }
+}
 
     /* =====================================================
        ACTIVITY TRACKER
