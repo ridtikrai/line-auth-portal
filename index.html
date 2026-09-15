@@ -2567,9 +2567,8 @@ function renderDashboard(
    SECURE MENU LAUNCH
    ===================================================== */
 
-async function openMenu(
-  menu
-) {
+javascript
+async function openMenu(menu) {
 
   if (!menu) {
     return;
@@ -2581,10 +2580,36 @@ async function openMenu(
     await handleSessionExpired();
 
     return;
-
   }
 
 
+  /*
+   * ตรวจ menuId
+   */
+  const menuId =
+    String(
+      menu.menuId || ''
+    ).trim();
+
+
+  if (!menuId) {
+
+    console.error(
+      'openMenu: menuId is missing',
+      menu
+    );
+
+    showLoginError(
+      'ไม่พบรหัสเมนู (menuId)'
+    );
+
+    return;
+  }
+
+
+  /*
+   * ตรวจ URL
+   */
   const url =
     sanitizeUrl(
       menu.menuUrl
@@ -2592,6 +2617,11 @@ async function openMenu(
 
 
   if (!url) {
+
+    showLoginError(
+      'ไม่พบ URL ของระบบปลายทาง'
+    );
+
     return;
   }
 
@@ -2601,22 +2631,23 @@ async function openMenu(
     /*
      * ขอ Launch Token จาก Portal
      */
-
     const result =
       await portalRequest({
 
         action:
-          "launch",
+          'launch',
 
         sessionId:
           currentSessionId,
-          menuId: menuId
+
+        menuId:
+          menuId
 
       });
 
 
     console.log(
-      "launch:",
+      'launch:',
       result
     );
 
@@ -2624,46 +2655,69 @@ async function openMenu(
     if (
       !result ||
       result.status !==
-      "success"
+        'success'
     ) {
 
       if (
         result &&
         (
           result.code ===
-            "SESSION_EXPIRED" ||
+            'SESSION_EXPIRED' ||
 
           result.code ===
-            "SESSION_INVALID"
+            'SESSION_INVALID'
         )
       ) {
 
         await handleSessionExpired();
 
         return;
-
       }
 
 
       throw new Error(
+
         result?.message ||
-        "ไม่สามารถสร้าง Launch Token ได้"
+
+        'ไม่สามารถสร้าง Launch Token ได้'
+
       );
 
     }
 
 
+    /*
+     * รับ Launch Token
+     */
     const launchToken =
       String(
         result.launchToken ||
-        ""
+        ''
       ).trim();
 
 
     if (!launchToken) {
 
       throw new Error(
-        "Portal ไม่ได้ส่ง Launch Token"
+        'Portal ไม่ได้ส่ง Launch Token'
+      );
+
+    }
+
+
+    /*
+     * ตรวจว่า menuId ที่ Portal
+     * ตอบกลับมาตรงกับเมนูที่กด
+     */
+    if (
+      result.menuId &&
+      String(
+        result.menuId
+      ).trim() !== menuId
+    ) {
+
+      throw new Error(
+        'Launch Token ไม่ตรงกับเมนูที่เลือก'
       );
 
     }
@@ -2672,15 +2726,14 @@ async function openMenu(
     /*
      * เปิดหน้าต่างปลายทาง
      */
-
     const targetName =
-      "portalTarget_" +
+      'portalTarget_' +
       Date.now();
 
 
     const targetWindow =
       window.open(
-        "about:blank",
+        'about:blank',
         targetName
       );
 
@@ -2688,7 +2741,7 @@ async function openMenu(
     if (!targetWindow) {
 
       throw new Error(
-        "Browser บล็อก Popup กรุณาอนุญาต Popup สำหรับ Portal"
+        'Browser บล็อก Popup กรุณาอนุญาต Popup สำหรับ Portal'
       );
 
     }
@@ -2697,15 +2750,14 @@ async function openMenu(
     /*
      * สร้าง Form POST
      */
-
     const form =
       document.createElement(
-        "form"
+        'form'
       );
 
 
     form.method =
-      "POST";
+      'POST';
 
 
     form.action =
@@ -2717,25 +2769,24 @@ async function openMenu(
 
 
     form.style.display =
-      "none";
+      'none';
 
 
     /*
      * launchToken
      */
-
     const tokenInput =
       document.createElement(
-        "input"
+        'input'
       );
 
 
     tokenInput.type =
-      "hidden";
+      'hidden';
 
 
     tokenInput.name =
-      "launchToken";
+      'launchToken';
 
 
     tokenInput.value =
@@ -2750,26 +2801,22 @@ async function openMenu(
     /*
      * menuId
      */
-
     const menuInput =
       document.createElement(
-        "input"
+        'input'
       );
 
 
     menuInput.type =
-      "hidden";
+      'hidden';
 
 
     menuInput.name =
-      "menuId";
+      'menuId';
 
 
     menuInput.value =
-      String(
-        menu.menuId ||
-        ""
-      );
+      menuId;
 
 
     form.appendChild(
@@ -2780,7 +2827,6 @@ async function openMenu(
     /*
      * Submit POST
      */
-
     document.body.appendChild(
       form
     );
@@ -2790,9 +2836,8 @@ async function openMenu(
 
 
     /*
-     * cleanup
+     * Cleanup
      */
-
     setTimeout(
       function() {
 
@@ -2806,13 +2851,15 @@ async function openMenu(
   } catch (err) {
 
     console.error(
-      "openMenu:",
+      'openMenu:',
       err
     );
 
 
     showLoginError(
-      getFriendlyErrorMessage(err)
+      getFriendlyErrorMessage(
+        err
+      )
     );
 
   }
