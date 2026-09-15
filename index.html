@@ -1,149 +1,106 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>Portal</title>
 
-  <!-- LINE LIFF -->
+  <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
-    /* =========================================================
-       BASE
-    ========================================================= */
-
-    :root {
-      --primary: #16a34a;
-      --primary-dark: #15803d;
-      --primary-soft: #f0fdf4;
-
-      --text: #17211b;
-      --text-soft: #66736b;
-
-      --bg: #f5f7f6;
-      --card: #ffffff;
-      --border: #e5e9e6;
-
-      --danger: #dc2626;
-
-      --radius-lg: 22px;
-      --radius-md: 16px;
-      --radius-sm: 12px;
-
-      --shadow:
-        0 10px 30px rgba(20, 40, 25, 0.06);
-
-      --shadow-hover:
-        0 18px 40px rgba(20, 40, 25, 0.11);
-    }
 
     * {
       box-sizing: border-box;
     }
 
-    html,
     body {
       margin: 0;
-      padding: 0;
-      min-height: 100%;
       font-family:
-        "Noto Sans Thai",
-        "Segoe UI",
-        Tahoma,
         Arial,
+        "Noto Sans Thai",
         sans-serif;
-
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    body {
-      min-height: 100vh;
-    }
-
-    button,
-    input {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
+      background: #f5f7f6;
+      color: #1f2937;
     }
 
     .hidden {
       display: none !important;
     }
 
-
-    /* =========================================================
-       LOADING
-    ========================================================= */
-
-    #loadingScreen {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-
+    .page {
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-
-      background:
-        radial-gradient(
-          circle at top right,
-          rgba(22, 163, 74, 0.10),
-          transparent 35%
-        ),
-        var(--bg);
+      padding: 24px;
     }
 
-    .loading-card {
-      width: min(90%, 380px);
-
-      padding: 32px 24px;
-
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-
-      box-shadow: var(--shadow);
-
-      text-align: center;
-    }
-
-    .loading-logo {
-      width: 64px;
-      height: 64px;
-
-      margin: 0 auto 18px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: #ffffff;
       border-radius: 18px;
+      padding: 32px;
+      box-shadow:
+        0 10px 30px rgba(0,0,0,.08);
+    }
 
-      background: var(--primary-soft);
-      color: var(--primary);
+    .logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: #16a34a;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      font-weight: 700;
+      margin: 0 auto 20px;
+    }
 
-      font-size: 28px;
-      font-weight: 800;
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 25px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    p {
+      line-height: 1.6;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 28px;
+    }
+
+    .loading {
+      text-align: center;
+      color: #6b7280;
     }
 
     .spinner {
-      width: 28px;
-      height: 28px;
-
-      margin: 18px auto 0;
-
-      border: 3px solid #dce8df;
-      border-top-color: var(--primary);
-
+      width: 38px;
+      height: 38px;
+      border: 4px solid #d1fae5;
+      border-top-color: #16a34a;
       border-radius: 50%;
-
-      animation: spin 0.8s linear infinite;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
     }
 
     @keyframes spin {
@@ -152,762 +109,443 @@
       }
     }
 
-
-    /* =========================================================
-       ERROR
-    ========================================================= */
-
-    #errorScreen {
-      min-height: 100vh;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      padding: 20px;
+    .input {
+      width: 100%;
+      height: 48px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 16px;
+      outline: none;
     }
 
-    .error-card {
-      width: min(100%, 460px);
-
-      padding: 30px;
-
-      background: var(--card);
-      border: 1px solid #fee2e2;
-      border-radius: var(--radius-lg);
-
-      box-shadow: var(--shadow);
-
-      text-align: center;
+    .input:focus {
+      border-color: #16a34a;
     }
-
-    .error-icon {
-      width: 58px;
-      height: 58px;
-
-      margin: 0 auto 16px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      border-radius: 50%;
-
-      background: #fef2f2;
-      color: var(--danger);
-
-      font-size: 26px;
-      font-weight: 800;
-    }
-
-    .error-message {
-      margin: 12px 0 22px;
-
-      color: var(--text-soft);
-      line-height: 1.6;
-
-      word-break: break-word;
-    }
-
-
-    /* =========================================================
-       BUTTON
-    ========================================================= */
 
     .btn {
-      min-height: 44px;
-
-      padding: 0 18px;
-
+      width: 100%;
+      height: 48px;
       border: 0;
-      border-radius: 12px;
-
-      font-weight: 700;
-
-      transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease,
-        background 0.15s ease;
-    }
-
-    .btn-primary {
-      background: var(--primary);
+      border-radius: 10px;
+      background: #16a34a;
       color: white;
-
-      box-shadow:
-        0 6px 16px rgba(22, 163, 74, 0.20);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 14px;
     }
 
-    .btn-primary:hover {
-      background: var(--primary-dark);
-      transform: translateY(-1px);
+    .btn:hover {
+      background: #15803d;
     }
 
-    .btn-secondary {
-      background: #f3f5f4;
-      color: var(--text);
+    .btn.secondary {
+      background: #e5e7eb;
+      color: #111827;
     }
 
-    .btn-danger {
+    .btn.danger {
+      background: #dc2626;
+    }
+
+    .message {
+      padding: 14px;
+      border-radius: 10px;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+
+    .message.error {
       background: #fef2f2;
-      color: var(--danger);
+      color: #991b1b;
     }
 
+    .message.success {
+      background: #f0fdf4;
+      color: #166534;
+    }
 
-    /* =========================================================
-       APP
-    ========================================================= */
+    .message.warning {
+      background: #fffbeb;
+      color: #92400e;
+    }
 
-    #app {
+    /* ===============================
+       Dashboard
+       =============================== */
+
+    .dashboard {
       min-height: 100vh;
+      background: #f5f7f6;
     }
-
-
-    /* =========================================================
-       TOPBAR
-    ========================================================= */
 
     .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-
-      background: rgba(255, 255, 255, 0.94);
-
-      border-bottom: 1px solid var(--border);
-
-      backdrop-filter: blur(14px);
-    }
-
-    .topbar-inner {
-      width: min(1280px, calc(100% - 32px));
-
-      min-height: 72px;
-
-      margin: 0 auto;
-
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 16px 24px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-
+      align-items: center;
       gap: 16px;
     }
 
     .brand {
-      display: flex;
-      align-items: center;
-
-      gap: 12px;
-
-      min-width: 0;
-    }
-
-    .brand-logo {
-      width: 42px;
-      height: 42px;
-
-      flex: 0 0 42px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      border-radius: 13px;
-
-      background: var(--primary-soft);
-      color: var(--primary);
-
-      font-size: 19px;
-      font-weight: 900;
-    }
-
-    .brand-text {
-      min-width: 0;
-    }
-
-    .brand-title {
-      margin: 0;
-
-      font-size: 17px;
-      font-weight: 800;
-
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .brand-subtitle {
-      margin: 2px 0 0;
-
-      color: var(--text-soft);
-
-      font-size: 11px;
-    }
-
-
-    /* =========================================================
-       USER AREA
-    ========================================================= */
-
-    .user-area {
-      display: flex;
-      align-items: center;
-
-      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #166534;
     }
 
     .user-info {
-      text-align: right;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .user-name {
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .user-role {
-      display: inline-flex;
-
-      margin-top: 3px;
-      padding: 2px 8px;
-
-      border-radius: 999px;
-
-      background: var(--primary-soft);
-      color: var(--primary-dark);
-
-      font-size: 10px;
-      font-weight: 800;
-    }
-
-    .avatar {
-      width: 40px;
-      height: 40px;
-
-      flex: 0 0 40px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      border-radius: 50%;
-
-      background: var(--primary);
-      color: white;
-
-      font-size: 14px;
-      font-weight: 800;
-    }
-
-    .logout-btn {
-      width: 40px;
-      height: 40px;
-
-      padding: 0;
-
-      border: 1px solid var(--border);
-      border-radius: 12px;
-
-      background: white;
-      color: var(--text-soft);
-
-      font-size: 17px;
-
-      transition: 0.15s ease;
-    }
-
-    .logout-btn:hover {
-      background: #fef2f2;
-      color: var(--danger);
-      border-color: #fecaca;
-    }
-
-
-    /* =========================================================
-       MAIN
-    ========================================================= */
-
-    .main {
-      width: min(1280px, calc(100% - 32px));
-
-      margin: 0 auto;
-
-      padding: 28px 0 60px;
-    }
-
-
-    /* =========================================================
-       WELCOME
-    ========================================================= */
-
-    .welcome {
-      position: relative;
-
-      overflow: hidden;
-
-      padding: 28px;
-
-      margin-bottom: 30px;
-
-      border: 1px solid #dff0e3;
-      border-radius: var(--radius-lg);
-
-      background:
-        radial-gradient(
-          circle at 100% 0%,
-          rgba(22, 163, 74, 0.14),
-          transparent 35%
-        ),
-        linear-gradient(
-          135deg,
-          #ffffff 0%,
-          #f4fbf6 100%
-        );
-
-      box-shadow: var(--shadow);
-    }
-
-    .welcome-label {
-      display: inline-flex;
-
-      padding: 5px 10px;
-
-      margin-bottom: 10px;
-
-      border-radius: 999px;
-
-      background: var(--primary-soft);
-      color: var(--primary-dark);
-
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    .welcome-title {
-      margin: 0;
-
-      font-size: clamp(23px, 4vw, 32px);
-      line-height: 1.25;
-      font-weight: 850;
-    }
-
-    .welcome-description {
-      margin: 9px 0 0;
-
-      max-width: 720px;
-
-      color: var(--text-soft);
-
-      font-size: 14px;
-      line-height: 1.7;
-    }
-
-
-    /* =========================================================
-       MENU SECTION
-    ========================================================= */
-
-    .menu-section {
-      margin-top: 30px;
-    }
-
-    .menu-section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      gap: 10px;
-
-      margin-bottom: 13px;
-    }
-
-    .menu-section-title {
-      display: flex;
-      align-items: center;
-
-      gap: 9px;
-
-      margin: 0;
-
-      font-size: 17px;
-      font-weight: 800;
-    }
-
-    .menu-section-title::before {
-      content: "";
-
-      width: 4px;
-      height: 22px;
-
-      border-radius: 99px;
-
-      background: var(--primary);
-    }
-
-    .menu-count {
-      color: var(--text-soft);
-
-      font-size: 11px;
       font-weight: 600;
     }
 
+    .user-role {
+      font-size: 12px;
+      color: #6b7280;
+    }
 
-    /* =========================================================
-       MENU GRID
-    ========================================================= */
+    .logout-btn {
+      border: 0;
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 9px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px;
+    }
+
+    .welcome {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .welcome h2 {
+      margin-bottom: 6px;
+    }
+
+    .menu-group {
+      margin-bottom: 28px;
+    }
+
+    .menu-group-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .menu-subgroup {
+      margin-bottom: 20px;
+    }
+
+    .menu-subgroup-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 10px;
+    }
 
     .menu-grid {
       display: grid;
-
       grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-
+        repeat(auto-fill, minmax(220px, 1fr));
       gap: 14px;
     }
 
     .menu-card {
-      position: relative;
-
-      min-height: 145px;
-
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-
-      padding: 17px;
-
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-
+      display: block;
       background: white;
-
-      box-shadow:
-        0 4px 15px rgba(20, 40, 25, 0.035);
-
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 18px;
       text-decoration: none;
-
-      color: var(--text);
-
-      transition:
-        transform 0.18s ease,
-        box-shadow 0.18s ease,
-        border-color 0.18s ease;
+      color: #111827;
+      transition: .15s;
     }
 
     .menu-card:hover {
-      transform: translateY(-3px);
-
-      border-color: #b9dfc3;
-
-      box-shadow: var(--shadow-hover);
-    }
-
-    .menu-card-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-
-      gap: 8px;
-    }
-
-    .menu-icon {
-      width: 42px;
-      height: 42px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      border-radius: 13px;
-
-      background: var(--primary-soft);
-      color: var(--primary);
-
-      font-size: 18px;
-      font-weight: 900;
-    }
-
-    .menu-arrow {
-      color: #a1aaa5;
-
-      font-size: 17px;
-
-      transition: 0.18s ease;
-    }
-
-    .menu-card:hover .menu-arrow {
-      color: var(--primary);
-      transform: translate(2px, -2px);
+      border-color: #16a34a;
+      transform: translateY(-2px);
+      box-shadow:
+        0 8px 20px rgba(0,0,0,.06);
     }
 
     .menu-name {
-      margin-top: 15px;
-
-      font-size: 14px;
-      font-weight: 750;
-
-      line-height: 1.45;
-
-      word-break: break-word;
+      font-weight: 600;
+      margin-bottom: 7px;
     }
 
+    .menu-id {
+      font-size: 12px;
+      color: #9ca3af;
+    }
 
-    /* =========================================================
-       EMPTY
-    ========================================================= */
-
-    .empty-card {
-      padding: 35px 20px;
-
-      border: 1px dashed #cbd5ce;
-      border-radius: var(--radius-md);
-
+    .empty-menu {
       background: white;
-
-      color: var(--text-soft);
-
+      border-radius: 14px;
+      padding: 30px;
       text-align: center;
+      color: #6b7280;
     }
-
-
-    /* =========================================================
-       SESSION BAR
-    ========================================================= */
 
     .session-bar {
       position: fixed;
-      left: 16px;
-      bottom: 16px;
-
-      z-index: 90;
-
-      display: flex;
-      align-items: center;
-
-      gap: 7px;
-
-      padding: 7px 11px;
-
-      border: 1px solid var(--border);
-      border-radius: 999px;
-
-      background: rgba(255, 255, 255, 0.92);
-
-      box-shadow: 0 8px 25px rgba(20, 40, 25, 0.08);
-
-      color: var(--text-soft);
-
-      font-size: 10px;
-
-      backdrop-filter: blur(12px);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 8px 16px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
     }
 
-    .session-dot {
-      width: 7px;
-      height: 7px;
+    @media (max-width: 640px) {
 
-      border-radius: 50%;
-
-      background: var(--primary);
-    }
-
-
-    /* =========================================================
-       RESPONSIVE
-    ========================================================= */
-
-    @media (max-width: 1050px) {
-      .menu-grid {
-        grid-template-columns:
-          repeat(3, minmax(0, 1fr));
-      }
-    }
-
-
-    @media (max-width: 700px) {
-
-      .topbar-inner {
-        width: min(100% - 20px, 1280px);
-        min-height: 64px;
+      .page {
+        padding: 14px;
       }
 
-      .brand-subtitle {
-        display: none;
+      .card {
+        padding: 24px 18px;
+      }
+
+      .topbar {
+        padding: 14px;
+        align-items: flex-start;
+        flex-direction: column;
       }
 
       .user-info {
-        display: none;
+        width: 100%;
+        justify-content: space-between;
       }
 
-      .main {
-        width: calc(100% - 20px);
-        padding-top: 18px;
+      .content {
+        padding: 18px 14px 60px;
       }
 
-      .welcome {
-        padding: 21px;
-        margin-bottom: 23px;
-      }
-
-      .welcome-description {
-        font-size: 13px;
-      }
-
-      .menu-grid {
-        /*
-         * IMPORTANT:
-         * Mobile = อย่างน้อย 3 เมนูต่อแถว
-         */
-        grid-template-columns:
-          repeat(3, minmax(0, 1fr));
-
-        gap: 8px;
-      }
-
-      .menu-card {
-        min-height: 118px;
-
-        padding: 10px;
-
-        border-radius: 13px;
-      }
-
-      .menu-icon {
-        width: 34px;
-        height: 34px;
-
-        border-radius: 10px;
-
-        font-size: 14px;
-      }
-
-      .menu-arrow {
-        font-size: 13px;
-      }
-
-      .menu-name {
-        margin-top: 8px;
-
-        font-size: 11.5px;
-        line-height: 1.35;
-      }
-
-      .menu-section-title {
-        font-size: 15px;
-      }
-
-      .menu-count {
-        font-size: 10px;
-      }
     }
 
-
-    @media (max-width: 360px) {
-
-      .topbar-inner {
-        width: calc(100% - 14px);
-      }
-
-      .main {
-        width: calc(100% - 14px);
-      }
-
-      .brand-title {
-        font-size: 15px;
-      }
-
-      .avatar {
-        width: 36px;
-        height: 36px;
-        flex-basis: 36px;
-      }
-
-      .logout-btn {
-        width: 36px;
-        height: 36px;
-      }
-
-      .menu-grid {
-        gap: 6px;
-      }
-
-      .menu-card {
-        min-height: 110px;
-        padding: 8px;
-      }
-
-      .menu-name {
-        font-size: 10.5px;
-      }
-    }
   </style>
+
 </head>
+
 
 <body>
 
-  <!-- =========================================================
-       LOADING
-  ========================================================== -->
 
-  <div id="loadingScreen">
+<!-- =================================================
+     LOADING
+     ================================================= -->
 
-    <div class="loading-card">
+<div
+  id="loadingScreen"
+  class="page"
+>
 
-      <div class="loading-logo">
-        P
-      </div>
+  <div class="card">
 
-      <div>
-        <strong>Portal</strong>
-      </div>
-
-      <div
-        id="loadingMessage"
-        style="
-          margin-top:7px;
-          color:#66736b;
-          font-size:13px;
-        "
-      >
-        กำลังตรวจสอบการเข้าสู่ระบบ...
-      </div>
+    <div class="loading">
 
       <div class="spinner"></div>
+
+      <div>
+        กำลังตรวจสอบการเข้าสู่ระบบ...
+      </div>
 
     </div>
 
   </div>
 
+</div>
 
-  <!-- =========================================================
-       ERROR
-  ========================================================== -->
 
-  <div id="errorScreen" class="hidden">
+<!-- =================================================
+     LOGIN / ERROR
+     ================================================= -->
 
-    <div class="error-card">
+<div
+  id="loginScreen"
+  class="page hidden"
+>
 
-      <div class="error-icon">
-        !
-      </div>
+  <div class="card">
 
-      <h2 style="margin:0;">
-        ไม่สามารถเข้าสู่ระบบได้
-      </h2>
+    <div class="logo">
+      P
+    </div>
 
-      <div
-        id="errorMessage"
-        class="error-message"
-      >
-        -
+    <h1>
+      Portal
+    </h1>
+
+    <div class="subtitle">
+      ระบบศูนย์กลางสำหรับเข้าใช้งานระบบ
+    </div>
+
+    <button
+      id="loginButton"
+      class="btn"
+      onclick="startLogin()"
+    >
+      เข้าสู่ระบบด้วย LINE
+    </button>
+
+    <div
+      id="loginMessage"
+      class="message hidden"
+    ></div>
+
+  </div>
+
+</div>
+
+
+<!-- =================================================
+     REGISTRATION
+     ================================================= -->
+
+<div
+  id="registrationScreen"
+  class="page hidden"
+>
+
+  <div class="card">
+
+    <div class="logo">
+      P
+    </div>
+
+    <h2>
+      ลงทะเบียนใช้งานระบบ
+    </h2>
+
+    <p>
+      ไม่พบข้อมูล LINE ID ของคุณในระบบ
+    </p>
+
+    <p>
+      กรุณากรอกหมายเลขโทรศัพท์
+      เพื่อส่งคำขอลงทะเบียนให้ผู้ดูแลระบบตรวจสอบ
+    </p>
+
+    <input
+      id="phoneInput"
+      class="input"
+      type="tel"
+      placeholder="กรอกหมายเลขโทรศัพท์"
+      autocomplete="tel"
+    >
+
+    <button
+      id="phoneButton"
+      class="btn"
+      onclick="handlePhoneSubmit()"
+    >
+      ส่งคำขอลงทะเบียน
+    </button>
+
+    <div
+      id="registrationMessage"
+      class="message hidden"
+    ></div>
+
+  </div>
+
+</div>
+
+
+<!-- =================================================
+     PENDING
+     ================================================= -->
+
+<div
+  id="pendingScreen"
+  class="page hidden"
+>
+
+  <div class="card">
+
+    <div class="logo">
+      ✓
+    </div>
+
+    <h2>
+      รอการอนุมัติ
+    </h2>
+
+    <p>
+      ระบบได้รับข้อมูลของคุณแล้ว
+    </p>
+
+    <p>
+      กรุณารอผู้ดูแลระบบตรวจสอบและอนุมัติ
+      ก่อนเข้าใช้งานระบบ
+    </p>
+
+    <button
+      class="btn secondary"
+      onclick="logoutApp()"
+    >
+      กลับหน้าเข้าสู่ระบบ
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- =================================================
+     DASHBOARD
+     ================================================= -->
+
+<div
+  id="dashboardScreen"
+  class="dashboard hidden"
+>
+
+  <div class="topbar">
+
+    <div class="brand">
+      Portal
+    </div>
+
+    <div class="user-info">
+
+      <div>
+
+        <div
+          id="userName"
+          class="user-name"
+        ></div>
+
+        <div
+          id="userRole"
+          class="user-role"
+        ></div>
+
       </div>
 
       <button
-        id="retryButton"
-        class="btn btn-primary"
-        type="button"
+        class="logout-btn"
+        onclick="logoutApp()"
       >
-        ลองใหม่
+        ออกจากระบบ
       </button>
 
     </div>
@@ -915,145 +553,47 @@
   </div>
 
 
-  <!-- =========================================================
-       APP
-  ========================================================== -->
+  <div class="content">
 
-  <div id="app" class="hidden">
+    <div class="welcome">
 
-    <!-- TOPBAR -->
+      <h2>
+        ยินดีต้อนรับ
+      </h2>
 
-    <header class="topbar">
-
-      <div class="topbar-inner">
-
-        <div class="brand">
-
-          <div class="brand-logo">
-            P
-          </div>
-
-          <div class="brand-text">
-
-            <div class="brand-title">
-              Portal
-            </div>
-
-            <div class="brand-subtitle">
-              Central System Portal
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="user-area">
-
-          <div class="user-info">
-
-            <div
-              id="userName"
-              class="user-name"
-            >
-              -
-            </div>
-
-            <div
-              id="userRole"
-              class="user-role"
-            >
-              -
-            </div>
-
-          </div>
-
-          <div
-            id="userAvatar"
-            class="avatar"
-          >
-            U
-          </div>
-
-          <button
-            id="logoutButton"
-            class="logout-btn"
-            type="button"
-            title="ออกจากระบบ"
-          >
-            ↪
-          </button>
-
-        </div>
-
-      </div>
-
-    </header>
-
-
-    <!-- MAIN -->
-
-    <main class="main">
-
-      <!-- WELCOME -->
-
-      <section class="welcome">
-
-        <div class="welcome-label">
-          CENTRAL PORTAL
-        </div>
-
-        <h1 class="welcome-title">
-          สวัสดีครับ
-          <span id="welcomeName">ผู้ใช้งาน</span>
-        </h1>
-
-        <p class="welcome-description">
-          เลือกระบบที่คุณมีสิทธิ์เข้าถึงจากรายการด้านล่าง
-        </p>
-
-      </section>
-
-
-      <!-- MENU -->
-
-      <section id="menuContainer">
-
-        <!-- Render by JavaScript -->
-
-      </section>
-
-    </main>
-
-
-    <!-- SESSION -->
-
-    <div class="session-bar">
-
-      <span class="session-dot"></span>
-
-      <span>
-        Session Active
-      </span>
+      <div id="welcomeText"></div>
 
     </div>
 
+
+    <div id="menuContainer"></div>
+
   </div>
+
+</div>
+
+
+<div
+  id="sessionBar"
+  class="session-bar hidden"
+></div>
 
 
 <script>
-/* ============================================================
-   CONFIG
-============================================================ */
+
+/*************************************************
+ * CONFIG
+ *************************************************/
 
 const LIFF_ID =
   "2011487100-dldPQItq";
 
+
 const CENTRAL_API_URL =
-  "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22C0e9ph1eYPscyrxdw29T44DaUT9/exec";
+  "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22cE9ph1eYPscyrxdw29T44DaUT9/exec";
 
 
-const SESSION_KEY =
+const SESSION_STORAGE_KEY =
   "portalSessionId";
 
 
@@ -1065,217 +605,265 @@ const KEEP_ALIVE_MINUTES =
   10;
 
 
-/* ============================================================
-   STATE
-============================================================ */
+/*************************************************
+ * STATE
+ *************************************************/
+
+let currentSessionId = null;
 
 let currentUser = null;
 
+let liffInitialized = false;
+
+let activityTimer = null;
+
 let keepAliveTimer = null;
 
-let inactivityTimer = null;
+let sessionExpireTimer = null;
+
+let lastActivity =
+  Date.now();
 
 
-/* ============================================================
-   ELEMENTS
-============================================================ */
+/*************************************************
+ * INIT
+ *************************************************/
 
-const loadingScreen =
-  document.getElementById("loadingScreen");
+document.addEventListener(
+  "DOMContentLoaded",
+  function () {
 
-const loadingMessage =
-  document.getElementById("loadingMessage");
+    initApp();
 
-const errorScreen =
-  document.getElementById("errorScreen");
-
-const errorMessage =
-  document.getElementById("errorMessage");
-
-const retryButton =
-  document.getElementById("retryButton");
-
-const app =
-  document.getElementById("app");
-
-const menuContainer =
-  document.getElementById("menuContainer");
-
-const userName =
-  document.getElementById("userName");
-
-const userRole =
-  document.getElementById("userRole");
-
-const userAvatar =
-  document.getElementById("userAvatar");
-
-const welcomeName =
-  document.getElementById("welcomeName");
-
-const logoutButton =
-  document.getElementById("logoutButton");
+  }
+);
 
 
-/* ============================================================
-   API REQUEST
-   ============================================================
-   IMPORTANT:
-   ใช้ text/plain เพื่อหลีกเลี่ยง CORS preflight
-============================================================ */
+/*************************************************
+ * INIT APP
+ *************************************************/
 
-async function portalRequest(action, payload = {}) {
-
-  const body = {
-    action: action,
-    ...payload
-  };
-
-  let response;
+async function initApp() {
 
   try {
 
-    response = await fetch(
-      CENTRAL_API_URL,
-      {
-        method: "POST",
-
-        /*
-         * ห้ามเปลี่ยนเป็น application/json
-         * เพราะจะทำให้ browser อาจส่ง OPTIONS preflight
-         * และเกิด Failed to fetch กับ Apps Script ได้
-         */
-        headers: {
-          "Content-Type":
-            "text/plain;charset=utf-8"
-        },
-
-        body: JSON.stringify(body),
-
-        redirect: "follow"
-      }
-    );
-
-  } catch (error) {
-
-    console.error(
-      "portalRequest fetch error:",
-      error
-    );
-
-    throw new Error(
-      "Failed to fetch Portal API"
-    );
-  }
+    showOnly("loadingScreen");
 
 
-  const text =
-    await response.text();
+    /***********************************************
+     * ตรวจ LIFF ID
+     ***********************************************/
 
+    if (
+      !LIFF_ID ||
+      !String(LIFF_ID).trim()
+    ) {
 
-  if (!response.ok) {
+      throw new Error(
+        "LIFF_ID is empty"
+      );
 
-    throw new Error(
-      "Portal API HTTP " +
-      response.status
-    );
-  }
-
-
-  let result;
-
-  try {
-
-    result =
-      JSON.parse(text);
-
-  } catch (error) {
-
-    console.error(
-      "Invalid API response:",
-      text
-    );
-
-    throw new Error(
-      "Portal API ส่งข้อมูลกลับมาไม่ถูกต้อง"
-    );
-  }
-
-
-  if (
-    result &&
-    result.status === "error"
-  ) {
-
-    throw new Error(
-      result.message ||
-      "Portal API error"
-    );
-  }
-
-
-  return result;
-}
-
-
-/* ============================================================
-   LIFF
-============================================================ */
-
-async function initLIFF() {
-
-  try {
-
-    loadingMessage.textContent =
-      "กำลังเชื่อมต่อ LINE...";
-
-
-    await liff.init({
-      liffId: LIFF_ID
-    });
+    }
 
 
     console.log(
-      "LIFF initialized"
+      "LIFF_ID =",
+      LIFF_ID
     );
+
+
+    /***********************************************
+     * LIFF INIT
+     *
+     * เรียกเพียงครั้งเดียว
+     ***********************************************/
+
+    if (!liffInitialized) {
+
+      await liff.init({
+
+        liffId: LIFF_ID
+
+      });
+
+      liffInitialized = true;
+
+      console.log(
+        "LIFF initialized"
+      );
+
+    }
+
+
+    /***********************************************
+     * ตรวจ Session เดิม
+     ***********************************************/
+
+    const savedSession =
+      sessionStorage.getItem(
+        SESSION_STORAGE_KEY
+      );
+
+
+    if (savedSession) {
+
+      console.log(
+        "Checking saved session..."
+      );
+
+
+      const result =
+        await verifyPortalSession(
+          savedSession
+        );
+
+
+      if (
+        result &&
+        result.status === "success"
+      ) {
+
+        currentSessionId =
+          savedSession;
+
+
+        currentUser =
+          result.session ||
+          result.user ||
+          null;
+
+
+        if (!currentUser) {
+
+          throw new Error(
+            "Session user not found"
+          );
+
+        }
+
+
+        await loadMenu();
+
+        startActivityTracker();
+
+        return;
+
+      }
+
+
+      sessionStorage.removeItem(
+        SESSION_STORAGE_KEY
+      );
+
+    }
+
+
+    /***********************************************
+     * ต้อง Login LINE
+     ***********************************************/
+
+    if (!liff.isLoggedIn()) {
+
+      showOnly("loginScreen");
+
+      return;
+
+    }
+
+
+    /***********************************************
+     * ดึง Profile
+     ***********************************************/
+
+    const profile =
+      await loadLineProfile();
+
+
+    /***********************************************
+     * ตรวจ Employee
+     ***********************************************/
+
+    await checkUser(profile);
+
+
+  } catch (err) {
+
+    console.error(
+      "initApp:",
+      err
+    );
+
+
+    showLoginError(
+      err.message ||
+      "ไม่สามารถเชื่อมต่อระบบได้"
+    );
+
+  }
+
+}
+
+
+/*************************************************
+ * START LOGIN
+ *************************************************/
+
+async function startLogin() {
+
+  try {
+
+    if (!liffInitialized) {
+
+      await liff.init({
+        liffId: LIFF_ID
+      });
+
+      liffInitialized = true;
+
+    }
 
 
     if (!liff.isLoggedIn()) {
 
-      loadingMessage.textContent =
-        "กำลังเข้าสู่ระบบ LINE...";
-
       liff.login();
 
-      return false;
+      return;
+
     }
 
 
-    return true;
+    await initApp();
 
-  } catch (error) {
+  } catch (err) {
 
     console.error(
-      "LIFF init error:",
-      error
+      "startLogin:",
+      err
     );
 
-    throw new Error(
-      "ไม่สามารถเชื่อมต่อ LINE ได้: " +
-      error.message
+    showLoginError(
+      err.message ||
+      "เข้าสู่ระบบไม่สำเร็จ"
     );
+
   }
+
 }
 
 
-/* ============================================================
-   LOGIN
-============================================================ */
+/*************************************************
+ * LOAD LINE PROFILE
+ *************************************************/
 
-async function loginWithLINE() {
+async function loadLineProfile() {
 
-  loadingMessage.textContent =
-    "กำลังตรวจสอบข้อมูลผู้ใช้งาน...";
+  if (!liff.isLoggedIn()) {
+
+    throw new Error(
+      "LINE login required"
+    );
+
+  }
 
 
   const profile =
@@ -1283,270 +871,631 @@ async function loginWithLINE() {
 
 
   console.log(
-    "LINE UID:",
-    profile.userId
+    "LINE profile:",
+    profile
   );
 
 
-  /*
-   * checkUser เดิม
-   */
-  const result =
-    await portalRequest(
-      "checkUser",
-      {
-        userId: profile.userId,
+  return profile;
 
-        profile: {
-          userId: profile.userId,
-          displayName: profile.displayName || "",
-          pictureUrl: profile.pictureUrl || ""
-        }
+}
+
+
+/*************************************************
+ * PORTAL REQUEST
+ *************************************************/
+
+async function portalRequest(
+  payload
+) {
+
+  const response =
+    await fetch(
+      CENTRAL_API_URL,
+      {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "text/plain;charset=utf-8"
+        },
+
+        body:
+          JSON.stringify(payload)
+
       }
     );
 
 
-  if (
-    !result ||
-    result.status !== "success"
-  ) {
+  if (!response.ok) {
 
     throw new Error(
-      result?.message ||
-      "เข้าสู่ระบบไม่สำเร็จ"
+      "HTTP " +
+      response.status
     );
+
   }
 
 
-  /*
-   * รองรับทั้ง result.user และ result.session
-   */
-  currentUser =
-    result.user ||
-    result.session ||
-    null;
+  const text =
+    await response.text();
 
 
-  /*
-   * ถ้า API ส่ง sessionId กลับมา
-   */
-  if (result.sessionId) {
-
-    sessionStorage.setItem(
-      SESSION_KEY,
-      result.sessionId
-    );
-  }
-
-
-  /*
-   * ถ้า user object มี sessionId
-   */
-  if (
-    currentUser &&
-    currentUser.sessionId
-  ) {
-
-    sessionStorage.setItem(
-      SESSION_KEY,
-      currentUser.sessionId
-    );
-  }
-
-
-  return result;
-}
-
-
-/* ============================================================
-   VERIFY SESSION
-============================================================ */
-
-async function verifyExistingSession() {
-
-  const sessionId =
-    sessionStorage.getItem(
-      SESSION_KEY
-    );
-
-
-  if (!sessionId) {
-
-    return false;
-  }
-
-
-  loadingMessage.textContent =
-    "กำลังตรวจสอบ Session...";
+  let result;
 
 
   try {
 
-    const result =
-      await portalRequest(
-        "verifySession",
-        {
-          sessionId: sessionId
-        }
+    result =
+      JSON.parse(text);
+
+  } catch (err) {
+
+    console.error(
+      "Invalid Portal response:",
+      text
+    );
+
+    throw new Error(
+      "Portal returned invalid JSON"
+    );
+
+  }
+
+
+  return result;
+
+}
+
+
+/*************************************************
+ * CHECK USER
+ *************************************************/
+
+async function checkUser(
+  profile
+) {
+
+  try {
+
+    const userId =
+      String(
+        profile.userId || ""
+      ).trim();
+
+
+    if (!userId) {
+
+      throw new Error(
+        "LINE User ID not found"
       );
 
+    }
+
+
+    const clientInfo =
+      await fetchClientInfo();
+
+
+    const result =
+      await portalRequest({
+
+        action:
+          "checkUser",
+
+        userId:
+          userId,
+
+        profile:
+          profile,
+
+        clientInfo:
+          clientInfo
+
+      });
+
+
+    console.log(
+      "checkUser:",
+      result
+    );
+
+
+    if (!result) {
+
+      throw new Error(
+        "Empty response from Portal"
+      );
+
+    }
+
+
+    /***********************************************
+     * Success
+     ***********************************************/
 
     if (
-      result &&
-      result.status === "success"
+      result.status ===
+      "success"
     ) {
 
+      currentSessionId =
+        result.sessionId;
+
+
       currentUser =
-        result.session ||
         result.user ||
         null;
 
 
-      return true;
+      if (!currentSessionId) {
+
+        throw new Error(
+          "Portal did not return sessionId"
+        );
+
+      }
+
+
+      sessionStorage.setItem(
+        SESSION_STORAGE_KEY,
+        currentSessionId
+      );
+
+
+      await loadMenu();
+
+      startActivityTracker();
+
+      return;
+
     }
 
 
-  } catch (error) {
+    /***********************************************
+     * Not registered
+     ***********************************************/
 
-    console.warn(
-      "Existing session invalid:",
-      error.message
+    if (
+      result.code ===
+      "NOT_REGISTERED" ||
+      result.status ===
+      "not_registered"
+    ) {
+
+      showOnly(
+        "registrationScreen"
+      );
+
+      return;
+
+    }
+
+
+    /***********************************************
+     * Pending
+     ***********************************************/
+
+    if (
+      result.code ===
+      "PENDING" ||
+      result.status ===
+      "pending"
+    ) {
+
+      showOnly(
+        "pendingScreen"
+      );
+
+      return;
+
+    }
+
+
+    /***********************************************
+     * Inactive
+     ***********************************************/
+
+    if (
+      result.code ===
+      "INACTIVE" ||
+      result.status ===
+      "inactive"
+    ) {
+
+      showLoginError(
+        "บัญชีของคุณถูกระงับการใช้งาน"
+      );
+
+      return;
+
+    }
+
+
+    throw new Error(
+      result.message ||
+      "ตรวจสอบสิทธิ์ไม่สำเร็จ"
     );
 
-    sessionStorage.removeItem(
-      SESSION_KEY
+
+  } catch (err) {
+
+    console.error(
+      "checkUser:",
+      err
     );
+
+
+    showLoginError(
+      err.message ||
+      "ตรวจสอบผู้ใช้งานไม่สำเร็จ"
+    );
+
   }
 
-
-  return false;
 }
 
 
-/* ============================================================
-   GET MENU
-============================================================ */
+/*************************************************
+ * VERIFY PHONE
+ *************************************************/
+
+async function handlePhoneSubmit() {
+
+  const input =
+    document.getElementById(
+      "phoneInput"
+    );
+
+
+  const button =
+    document.getElementById(
+      "phoneButton"
+    );
+
+
+  const message =
+    document.getElementById(
+      "registrationMessage"
+    );
+
+
+  const phone =
+    String(
+      input.value || ""
+    ).trim();
+
+
+  if (!phone) {
+
+    showMessage(
+      message,
+      "กรุณากรอกหมายเลขโทรศัพท์",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  button.disabled = true;
+
+  button.textContent =
+    "กำลังส่งข้อมูล...";
+
+
+  try {
+
+    const profile =
+      await loadLineProfile();
+
+
+    const clientInfo =
+      await fetchClientInfo();
+
+
+    const result =
+      await portalRequest({
+
+        action:
+          "verifyPhone",
+
+        userId:
+          profile.userId,
+
+        phone:
+          phone,
+
+        profile:
+          profile,
+
+        clientInfo:
+          clientInfo
+
+      });
+
+
+    console.log(
+      "verifyPhone:",
+      result
+    );
+
+
+    if (
+      result.status ===
+      "success"
+    ) {
+
+      showOnly(
+        "pendingScreen"
+      );
+
+      return;
+
+    }
+
+
+    throw new Error(
+      result.message ||
+      "ไม่สามารถส่งคำขอได้"
+    );
+
+
+  } catch (err) {
+
+    console.error(
+      "verifyPhone:",
+      err
+    );
+
+
+    showMessage(
+      message,
+      err.message ||
+      "เกิดข้อผิดพลาด",
+      "error"
+    );
+
+
+  } finally {
+
+    button.disabled = false;
+
+    button.textContent =
+      "ส่งคำขอลงทะเบียน";
+
+  }
+
+}
+
+
+/*************************************************
+ * VERIFY SESSION
+ *************************************************/
+
+async function verifyPortalSession(
+  sessionId
+) {
+
+  const result =
+    await portalRequest({
+
+      action:
+        "verifySession",
+
+      sessionId:
+        sessionId
+
+    });
+
+
+  console.log(
+    "verifySession:",
+    result
+  );
+
+
+  return result;
+
+}
+
+
+/*************************************************
+ * LOAD MENU
+ *************************************************/
 
 async function loadMenu() {
 
-  const sessionId =
-    sessionStorage.getItem(
-      SESSION_KEY
+  try {
+
+    if (!currentSessionId) {
+
+      throw new Error(
+        "Session not found"
+      );
+
+    }
+
+
+    const result =
+      await portalRequest({
+
+        action:
+          "getMenu",
+
+        sessionId:
+          currentSessionId
+
+      });
+
+
+    console.log(
+      "getMenu:",
+      result
     );
 
 
-  if (!sessionId) {
+    if (
+      !result ||
+      result.status !==
+      "success"
+    ) {
 
-    throw new Error(
-      "ไม่พบ Session"
-    );
-  }
+      if (
+        result &&
+        (
+          result.code ===
+          "SESSION_EXPIRED" ||
+          result.code ===
+          "SESSION_INVALID"
+        )
+      ) {
 
+        await handleSessionExpired();
 
-  loadingMessage.textContent =
-    "กำลังโหลดเมนู...";
+        return;
 
-
-  const result =
-    await portalRequest(
-      "getMenu",
-      {
-        sessionId: sessionId
       }
+
+
+      throw new Error(
+        result?.message ||
+        "ไม่สามารถโหลดเมนูได้"
+      );
+
+    }
+
+
+    renderDashboard(
+      result
     );
 
 
-  if (
-    !result ||
-    result.status !== "success"
-  ) {
+  } catch (err) {
 
-    throw new Error(
-      result?.message ||
+    console.error(
+      "loadMenu:",
+      err
+    );
+
+
+    showLoginError(
+      err.message ||
       "ไม่สามารถโหลดเมนูได้"
     );
+
   }
 
-
-  renderDashboard(
-    result.menuGroups || []
-  );
 }
 
 
-/* ============================================================
-   RENDER DASHBOARD
-   ============================================================
-   UI ONLY:
-   - group เรียงเลขน้อย -> มาก
-   - ไม่แสดงเลข group
-   - แสดง menuGroup
-   - แสดง menuName
-   - ไม่แสดง menuId
-============================================================ */
+/*************************************************
+ * RENDER DASHBOARD
+ *************************************************/
 
-function renderDashboard(menuGroups) {
+function renderDashboard(
+  result
+) {
 
-  menuContainer.innerHTML = "";
-
-
-  if (
-    !Array.isArray(menuGroups) ||
-    menuGroups.length === 0
-  ) {
-
-    menuContainer.innerHTML = `
-      <div class="empty-card">
-        ไม่พบเมนูที่คุณมีสิทธิ์เข้าถึง
-      </div>
-    `;
-
-    return;
-  }
-
-
-  /*
-   * เรียง group จากน้อยไปมาก
-   *
-   * สำคัญ:
-   * ไม่แก้ข้อมูลต้นฉบับจาก API
-   */
-  const sortedGroups =
-    [...menuGroups].sort(
-      (a, b) =>
-        Number(a.group || 0) -
-        Number(b.group || 0)
+  const menuContainer =
+    document.getElementById(
+      "menuContainer"
     );
 
 
-  let iconIndex = 0;
+  menuContainer.innerHTML =
+    "";
 
 
-  sortedGroups.forEach(
-    groupData => {
+  /***********************************************
+   * User
+   ***********************************************/
 
-      /*
-       * รองรับโครงสร้างเดิม:
-       *
-       * {
-       *   group,
-       *   menuGroups: [...]
-       * }
-       */
+  const user =
+    currentUser || {};
+
+
+  document.getElementById(
+    "userName"
+  ).textContent =
+    user.name ||
+    "ผู้ใช้งาน";
+
+
+  document.getElementById(
+    "userRole"
+  ).textContent =
+    user.role
+      ? "Role: " + user.role
+      : "";
+
+
+  document.getElementById(
+    "welcomeText"
+  ).textContent =
+    "คุณสามารถเข้าใช้งานระบบที่คุณได้รับอนุญาต";
+
+
+  /***********************************************
+   * Menu
+   ***********************************************/
+
+  const menuGroups =
+    Array.isArray(
+      result.menuGroups
+    )
+      ? result.menuGroups
+      : [];
+
+
+  let menuCount = 0;
+
+
+  menuGroups.forEach(
+    function(group) {
+
+      const groupElement =
+        document.createElement(
+          "div"
+        );
+
+
+      groupElement.className =
+        "menu-group";
+
+
+      const groupTitle =
+        document.createElement(
+          "div"
+        );
+
+
+      groupTitle.className =
+        "menu-group-title";
+
+
+      groupTitle.textContent =
+        group.group ||
+        "ระบบ";
+
+
+      groupElement.appendChild(
+        groupTitle
+      );
+
 
       const subGroups =
         Array.isArray(
-          groupData.menuGroups
+          group.menuGroups
         )
-          ? groupData.menuGroups
+          ? group.menuGroups
           : [];
 
 
-      /*
-       * เรียง menuGroup ตามลำดับที่ API ส่งมา
-       */
       subGroups.forEach(
-        subGroup => {
+        function(subGroup) {
 
           const menus =
             Array.isArray(
@@ -1556,81 +1505,66 @@ function renderDashboard(menuGroups) {
               : [];
 
 
-          /*
-           * UI เดิมจะไม่แสดงเมนูที่ไม่มี URL
-           * เพราะไม่มีปลายทางให้เปิด
-           */
-          const validMenus =
+          /*****************************************
+           * สำคัญ:
+           * แสดงเฉพาะ canRead
+           *****************************************/
+
+          const readableMenus =
             menus.filter(
-              menu =>
-                menu &&
-                menu.menuUrl &&
-                sanitizeUrl(
-                  menu.menuUrl
-                )
+              function(menu) {
+
+                return (
+                  menu &&
+                  menu.canRead === true
+                );
+
+              }
             );
 
 
           if (
-            validMenus.length === 0
+            readableMenus.length === 0
           ) {
 
             return;
+
           }
 
 
-          /*
-           * ใช้ menuGroup เป็นหัวข้อ
-           * ไม่แสดงเลข group
-           */
-          const section =
-            document.createElement(
-              "section"
-            );
-
-            section.className =
-              "menu-section";
-
-
-          const header =
+          const subGroupElement =
             document.createElement(
               "div"
             );
 
-          header.className =
-            "menu-section-header";
+
+          subGroupElement.className =
+            "menu-subgroup";
 
 
-          const title =
-            document.createElement(
-              "h2"
+          if (
+            subGroup.menuGroup
+          ) {
+
+            const subGroupTitle =
+              document.createElement(
+                "div"
+              );
+
+
+            subGroupTitle.className =
+              "menu-subgroup-title";
+
+
+            subGroupTitle.textContent =
+              subGroup.menuGroup;
+
+
+            subGroupElement.appendChild(
+              subGroupTitle
             );
 
-          title.className =
-            "menu-section-title";
-
-
-          title.textContent =
-            subGroup.menuGroup ||
-            "ระบบ";
-
-
-          const count =
-            document.createElement(
-              "span"
-            );
-
-          count.className =
-            "menu-count";
-
-
-          count.textContent =
-            validMenus.length +
-            " เมนู";
-
-
-          header.appendChild(title);
-          header.appendChild(count);
+          }
 
 
           const grid =
@@ -1638,12 +1572,13 @@ function renderDashboard(menuGroups) {
               "div"
             );
 
+
           grid.className =
             "menu-grid";
 
 
-          validMenus.forEach(
-            menu => {
+          readableMenus.forEach(
+            function(menu) {
 
               const url =
                 sanitizeUrl(
@@ -1652,364 +1587,247 @@ function renderDashboard(menuGroups) {
 
 
               if (!url) {
+
                 return;
+
               }
 
 
-              const card =
+              const link =
                 document.createElement(
                   "a"
                 );
 
 
-              card.className =
+              link.className =
                 "menu-card";
 
 
-              card.href =
+              link.href =
                 url;
 
 
-              card.target =
+              /*
+               * เปิดปลายทางใน tab ใหม่
+               */
+              link.target =
                 "_blank";
 
 
-              card.rel =
+              link.rel =
                 "noopener noreferrer";
 
 
-              /*
-               * ไม่แสดง menuId
-               * ใช้ menuName เท่านั้น
-               */
-              card.innerHTML = `
-                <div class="menu-card-top">
-
-                  <div class="menu-icon">
-                    ${getMenuIcon(iconIndex)}
-                  </div>
-
-                  <div class="menu-arrow">
-                    ↗
-                  </div>
-
-                </div>
-
-                <div class="menu-name">
-                  ${escapeHtml(
-                    menu.menuName ||
-                    "เมนู"
-                  )}
-                </div>
-              `;
+              const name =
+                document.createElement(
+                  "div"
+                );
 
 
-              grid.appendChild(card);
+              name.className =
+                "menu-name";
 
 
-              iconIndex++;
+              name.textContent =
+                menu.menuName ||
+                menu.menuId ||
+                "ระบบ";
+
+
+              const id =
+                document.createElement(
+                  "div"
+                );
+
+
+              id.className =
+                "menu-id";
+
+
+              id.textContent =
+                menu.menuId ||
+                "";
+
+
+              link.appendChild(
+                name
+              );
+
+
+              link.appendChild(
+                id
+              );
+
+
+              grid.appendChild(
+                link
+              );
+
+
+              menuCount++;
+
             }
           );
 
 
-          section.appendChild(header);
-          section.appendChild(grid);
+          if (
+            grid.children.length > 0
+          ) {
 
-          menuContainer.appendChild(section);
+            subGroupElement.appendChild(
+              grid
+            );
+
+
+            groupElement.appendChild(
+              subGroupElement
+            );
+
+          }
 
         }
       );
+
+
+      if (
+        groupElement.querySelector(
+          ".menu-card"
+        )
+      ) {
+
+        menuContainer.appendChild(
+          groupElement
+        );
+
+      }
 
     }
   );
 
 
-  if (
-    menuContainer.children.length === 0
-  ) {
+  /***********************************************
+   * ไม่มี Menu
+   ***********************************************/
+
+  if (menuCount === 0) {
 
     menuContainer.innerHTML = `
-      <div class="empty-card">
-        ไม่พบเมนูที่พร้อมใช้งาน
+
+      <div class="empty-menu">
+
+        <div style="
+          font-size:18px;
+          font-weight:600;
+          margin-bottom:8px;
+        ">
+          ไม่พบเมนูที่คุณมีสิทธิ์เข้าถึง
+        </div>
+
+        <div>
+          กรุณาติดต่อผู้ดูแลระบบ
+        </div>
+
       </div>
+
     `;
+
   }
+
+
+  showOnly(
+    "dashboardScreen"
+  );
+
+
+  document
+    .getElementById(
+      "sessionBar"
+    )
+    .classList.remove(
+      "hidden"
+    );
+
 }
 
 
-/* ============================================================
-   MENU ICON
-   ============================================================ */
+/*************************************************
+ * SANITIZE URL
+ *************************************************/
 
-function getMenuIcon(index) {
+function sanitizeUrl(
+  value
+) {
 
-  const icons = [
-    "⌂",
-    "▦",
-    "✓",
-    "▤",
-    "⚙",
-    "◉",
-    "◆",
-    "▣",
-    "＋",
-    "☰"
-  ];
+  const raw =
+    String(
+      value || ""
+    ).trim();
 
 
-  return icons[
-    index % icons.length
-  ];
-}
-
-
-/* ============================================================
-   SANITIZE URL
-============================================================ */
-
-function sanitizeUrl(url) {
-
-  if (!url) {
+  if (!raw) {
     return "";
   }
 
 
   try {
 
-    const value =
-      String(url).trim();
+    const url =
+      new URL(
+        raw
+      );
 
 
-    if (!value) {
-      return "";
-    }
-
-
-    const parsed =
-      new URL(value);
-
-
-    /*
-     * อนุญาตเฉพาะ HTTPS
-     */
     if (
-      parsed.protocol !== "https:"
+      url.protocol !==
+        "http:" &&
+      url.protocol !==
+        "https:"
     ) {
 
       return "";
+
     }
 
 
-    return parsed.href;
+    return url.href;
 
-  } catch (error) {
+  } catch (err) {
 
     return "";
-  }
-}
 
-
-/* ============================================================
-   ESCAPE HTML
-============================================================ */
-
-function escapeHtml(value) {
-
-  return String(value)
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-}
-
-
-/* ============================================================
-   USER UI
-============================================================ */
-
-function renderUser(user) {
-
-  if (!user) {
-    return;
   }
 
-
-  const name =
-    user.name ||
-    user.displayName ||
-    "ผู้ใช้งาน";
-
-
-  const role =
-    user.role ||
-    user.Job_Position ||
-    "USER";
-
-
-  userName.textContent =
-    name;
-
-
-  welcomeName.textContent =
-    name;
-
-
-  userRole.textContent =
-    role;
-
-
-  userAvatar.textContent =
-    getInitials(name);
 }
 
 
-/* ============================================================
-   INITIALS
-============================================================ */
+/*************************************************
+ * KEEP ALIVE
+ *************************************************/
 
-function getInitials(name) {
+function startActivityTracker() {
 
-  const text =
-    String(name || "")
-      .trim();
+  stopActivityTracker();
 
 
-  if (!text) {
-    return "U";
-  }
-
-
-  /*
-   * ภาษาไทยไม่เหมาะกับการ split แบบภาษาอังกฤษ
-   * จึงใช้ตัวแรกเป็นหลัก
-   */
-  return text.substring(
-    0,
-    1
-  ).toUpperCase();
-}
-
-
-/* ============================================================
-   KEEP ALIVE
-============================================================ */
-
-function startKeepAlive() {
-
-  stopKeepAlive();
-
-
-  keepAliveTimer =
-    setInterval(
-      async () => {
-
-        const sessionId =
-          sessionStorage.getItem(
-            SESSION_KEY
-          );
-
-
-        if (!sessionId) {
-          return;
-        }
-
-
-        try {
-
-          const result =
-            await portalRequest(
-              "keepAlive",
-              {
-                sessionId:
-                  sessionId
-              }
-            );
-
-
-          if (
-            result.status !==
-            "success"
-          ) {
-
-            console.warn(
-              "KeepAlive failed"
-            );
-
-            sessionExpired();
-          }
-
-
-        } catch (error) {
-
-          console.warn(
-            "KeepAlive error:",
-            error.message
-          );
-
-        }
-
-      },
-      KEEP_ALIVE_MINUTES *
-      60 *
-      1000
-    );
-}
-
-
-function stopKeepAlive() {
-
-  if (keepAliveTimer) {
-
-    clearInterval(
-      keepAliveTimer
-    );
-
-    keepAliveTimer =
-      null;
-  }
-}
-
-
-/* ============================================================
-   INACTIVITY
-============================================================ */
-
-function startInactivityTimer() {
-
-  resetInactivityTimer();
+  lastActivity =
+    Date.now();
 
 
   const events = [
     "click",
-    "mousemove",
     "keydown",
+    "mousemove",
     "touchstart",
     "scroll"
   ];
 
 
   events.forEach(
-    eventName => {
+    function(eventName) {
 
       document.addEventListener(
         eventName,
-        resetInactivityTimer,
+        updateActivity,
         {
           passive: true
         }
@@ -2017,315 +1835,572 @@ function startInactivityTimer() {
 
     }
   );
-}
 
 
-function resetInactivityTimer() {
+  /***********************************************
+   * ตรวจ Session ทุก 30 วินาที
+   ***********************************************/
 
-  if (inactivityTimer) {
+  activityTimer =
+    setInterval(
+      function() {
 
-    clearTimeout(
-      inactivityTimer
-    );
-  }
-
-
-  inactivityTimer =
-    setTimeout(
-      () => {
-
-        sessionExpired();
+        checkSessionTimeout();
 
       },
-      SESSION_MINUTES *
+      30 * 1000
+    );
+
+
+  /***********************************************
+   * KeepAlive ทุก 10 นาที
+   ***********************************************/
+
+  keepAliveTimer =
+    setInterval(
+      function() {
+
+        sendKeepAlive();
+
+      },
+      KEEP_ALIVE_MINUTES *
       60 *
       1000
     );
+
+
+  /***********************************************
+   * แสดงเวลาคงเหลือ
+   ***********************************************/
+
+  updateSessionBar();
+
+  sessionExpireTimer =
+    setInterval(
+      updateSessionBar,
+      1000
+    );
+
 }
 
 
-/* ============================================================
-   SESSION EXPIRED
-============================================================ */
+/*************************************************
+ * STOP ACTIVITY TRACKER
+ *************************************************/
 
-function sessionExpired() {
+function stopActivityTracker() {
 
-  stopKeepAlive();
+  if (activityTimer) {
 
-
-  sessionStorage.removeItem(
-    SESSION_KEY
-  );
-
-
-  showError(
-    "Session หมดอายุ กรุณาเข้าสู่ระบบใหม่"
-  );
-}
-
-
-/* ============================================================
-   LOGOUT
-============================================================ */
-
-async function logout() {
-
-  const sessionId =
-    sessionStorage.getItem(
-      SESSION_KEY
+    clearInterval(
+      activityTimer
     );
 
+    activityTimer = null;
 
-  stopKeepAlive();
-
-
-  try {
-
-    if (sessionId) {
-
-      await portalRequest(
-        "logout",
-        {
-          sessionId:
-            sessionId
-        }
-      );
-    }
-
-  } catch (error) {
-
-    console.warn(
-      "Logout API error:",
-      error.message
-    );
-
-  } finally {
-
-    sessionStorage.removeItem(
-      SESSION_KEY
-    );
-
-
-    /*
-     * ไม่เรียก liff.logout()
-     *
-     * เพื่อให้ refresh / กลับเข้า Portal
-     * ไม่เกิดปัญหา LINE Login โดยไม่จำเป็น
-     */
-
-    location.reload();
   }
+
+
+  if (keepAliveTimer) {
+
+    clearInterval(
+      keepAliveTimer
+    );
+
+    keepAliveTimer = null;
+
+  }
+
+
+  if (sessionExpireTimer) {
+
+    clearInterval(
+      sessionExpireTimer
+    );
+
+    sessionExpireTimer = null;
+
+  }
+
 }
 
 
-/* ============================================================
-   SHOW APP
-============================================================ */
+/*************************************************
+ * UPDATE ACTIVITY
+ *************************************************/
 
-function showApp() {
+function updateActivity() {
 
-  loadingScreen.classList.add(
-    "hidden"
-  );
+  lastActivity =
+    Date.now();
 
-  errorScreen.classList.add(
-    "hidden"
-  );
-
-  app.classList.remove(
-    "hidden"
-  );
 }
 
 
-/* ============================================================
-   SHOW ERROR
-============================================================ */
+/*************************************************
+ * CHECK TIMEOUT
+ *************************************************/
 
-function showError(message) {
+function checkSessionTimeout() {
 
-  loadingScreen.classList.add(
-    "hidden"
-  );
+  const inactiveMs =
+    Date.now() -
+    lastActivity;
 
-  app.classList.add(
-    "hidden"
-  );
 
-  errorMessage.textContent =
-    message ||
-    "เกิดข้อผิดพลาด";
+  const timeoutMs =
+    SESSION_MINUTES *
+    60 *
+    1000;
 
-  errorScreen.classList.remove(
-    "hidden"
-  );
+
+  if (
+    inactiveMs >=
+    timeoutMs
+  ) {
+
+    handleSessionExpired();
+
+  }
+
 }
 
 
-/* ============================================================
-   MAIN
-============================================================ */
+/*************************************************
+ * KEEP ALIVE REQUEST
+ *************************************************/
 
-async function startPortal() {
+async function sendKeepAlive() {
+
+  if (!currentSessionId) {
+    return;
+  }
+
 
   try {
 
-    /*
-     * 1. LIFF
-     */
-    const liffReady =
-      await initLIFF();
+    const result =
+      await portalRequest({
 
+        action:
+          "keepAlive",
 
-    if (!liffReady) {
-      return;
-    }
+        sessionId:
+          currentSessionId
 
-
-    /*
-     * 2. ตรวจ Session เดิมก่อน
-     *
-     * เพื่อรองรับ refresh
-     */
-    let sessionValid =
-      await verifyExistingSession();
-
-
-    /*
-     * 3. ถ้าไม่มี Session
-     *    ให้ login ผ่าน LINE
-     */
-    if (!sessionValid) {
-
-      await loginWithLINE();
-
-
-      /*
-       * หลัง login
-       * ต้องตรวจ Session อีกครั้ง
-       */
-      sessionValid =
-        await verifyExistingSession();
-
-
-      /*
-       * กรณี API login ส่ง sessionId
-       * แต่ verifySession ยังไม่ผ่าน
-       */
-      if (!sessionValid) {
-
-        const sessionId =
-          sessionStorage.getItem(
-            SESSION_KEY
-          );
-
-
-        if (!sessionId) {
-
-          throw new Error(
-            "เข้าสู่ระบบสำเร็จ แต่ไม่พบ Session"
-          );
-        }
-      }
-    }
-
-
-    /*
-     * 4. User UI
-     */
-    renderUser(
-      currentUser
-    );
-
-
-    /*
-     * 5. Menu
-     */
-    await loadMenu();
-
-
-    /*
-     * 6. Session timer
-     */
-    startKeepAlive();
-
-    startInactivityTimer();
-
-
-    /*
-     * 7. Show
-     */
-    showApp();
+      });
 
 
     console.log(
-      "Portal ready"
+      "keepAlive:",
+      result
     );
 
-  } catch (error) {
+
+    if (
+      !result ||
+      result.status !==
+      "success"
+    ) {
+
+      await handleSessionExpired();
+
+    }
+
+  } catch (err) {
 
     console.error(
-      "Portal startup error:",
-      error
+      "keepAlive:",
+      err
     );
 
-
-    showError(
-      error.message ||
-      "ไม่สามารถเข้าสู่ระบบได้"
-    );
   }
+
 }
 
 
-/* ============================================================
-   EVENTS
-============================================================ */
+/*************************************************
+ * SESSION BAR
+ *************************************************/
 
-logoutButton.addEventListener(
-  "click",
-  async () => {
+function updateSessionBar() {
 
-    const confirmed =
-      confirm(
-        "ต้องการออกจากระบบหรือไม่?"
+  const bar =
+    document.getElementById(
+      "sessionBar"
+    );
+
+
+  if (
+    !currentSessionId ||
+    !currentUser
+  ) {
+
+    bar.classList.add(
+      "hidden"
+    );
+
+    return;
+
+  }
+
+
+  const elapsed =
+    Date.now() -
+    lastActivity;
+
+
+  const remaining =
+    Math.max(
+      0,
+      (
+        SESSION_MINUTES *
+        60 *
+        1000
+      ) - elapsed
+    );
+
+
+  const minutes =
+    Math.floor(
+      remaining /
+      60000
+    );
+
+
+  const seconds =
+    Math.floor(
+      (
+        remaining %
+        60000
+      ) / 1000
+    );
+
+
+  bar.textContent =
+    "Session เหลือประมาณ " +
+    minutes +
+    " นาที " +
+    seconds +
+    " วินาที";
+
+}
+
+
+/*************************************************
+ * SESSION EXPIRED
+ *************************************************/
+
+async function handleSessionExpired() {
+
+  stopActivityTracker();
+
+
+  currentSessionId =
+    null;
+
+
+  currentUser =
+    null;
+
+
+  sessionStorage.removeItem(
+    SESSION_STORAGE_KEY
+  );
+
+
+  showLoginError(
+    "Session หมดอายุ กรุณาเข้าสู่ระบบใหม่"
+  );
+
+}
+
+
+/*************************************************
+ * LOGOUT
+ *************************************************/
+
+async function logoutApp() {
+
+  const sessionId =
+    currentSessionId;
+
+
+  stopActivityTracker();
+
+
+  currentSessionId =
+    null;
+
+
+  currentUser =
+    null;
+
+
+  sessionStorage.removeItem(
+    SESSION_STORAGE_KEY
+  );
+
+
+  if (sessionId) {
+
+    try {
+
+      await portalRequest({
+
+        action:
+          "logout",
+
+        sessionId:
+          sessionId
+
+      });
+
+    } catch (err) {
+
+      console.warn(
+        "logout:",
+        err
       );
 
-
-    if (!confirmed) {
-      return;
     }
 
-
-    await logout();
   }
-);
 
 
-retryButton.addEventListener(
-  "click",
-  () => {
-
-    location.reload();
-
-  }
-);
+  showOnly(
+    "loginScreen"
+  );
 
 
-/* ============================================================
-   START
-============================================================ */
+  if (
+    liffInitialized &&
+    liff.isLoggedIn()
+  ) {
 
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    startPortal();
+    /*
+     * ไม่บังคับ liff.logout()
+     *
+     * เพื่อให้การกลับมาเข้า Portal
+     * ไม่ต้อง Login LINE ใหม่โดยไม่จำเป็น
+     */
 
   }
-);
+
+}
+
+
+/*************************************************
+ * CLIENT INFO
+ *************************************************/
+
+async function fetchClientInfo() {
+
+  return {
+
+    userAgent:
+      navigator.userAgent || "",
+
+    language:
+      navigator.language || "",
+
+    platform:
+      navigator.platform || "",
+
+    screen:
+      window.screen
+        ? (
+          window.screen.width +
+          "x" +
+          window.screen.height
+        )
+        : "",
+
+    timezone:
+      Intl.DateTimeFormat()
+        .resolvedOptions()
+        .timeZone || "",
+
+    timestamp:
+      new Date().toISOString()
+
+  };
+
+}
+
+
+/*************************************************
+ * SHOW ONLY
+ *************************************************/
+
+function showOnly(
+  screenId
+) {
+
+  const ids = [
+    "loadingScreen",
+    "loginScreen",
+    "registrationScreen",
+    "pendingScreen",
+    "dashboardScreen"
+  ];
+
+
+  ids.forEach(
+    function(id) {
+
+      const element =
+        document.getElementById(
+          id
+        );
+
+
+      if (!element) {
+        return;
+      }
+
+
+      if (
+        id === screenId
+      ) {
+
+        element.classList.remove(
+          "hidden"
+        );
+
+      } else {
+
+        element.classList.add(
+          "hidden"
+        );
+
+      }
+
+    }
+  );
+
+
+  if (
+    screenId !==
+    "dashboardScreen"
+  ) {
+
+    document
+      .getElementById(
+        "sessionBar"
+      )
+      .classList.add(
+        "hidden"
+      );
+
+  }
+
+}
+
+
+/*************************************************
+ * SHOW LOGIN ERROR
+ *************************************************/
+
+function showLoginError(
+  message
+) {
+
+  showOnly(
+    "loginScreen"
+  );
+
+
+  const element =
+    document.getElementById(
+      "loginMessage"
+    );
+
+
+  showMessage(
+    element,
+    message,
+    "error"
+  );
+
+}
+
+
+/*************************************************
+ * SHOW MESSAGE
+ *************************************************/
+
+function showMessage(
+  element,
+  message,
+  type
+) {
+
+  if (!element) {
+    return;
+  }
+
+
+  element.textContent =
+    message || "";
+
+
+  element.className =
+    "message " +
+    (
+      type ||
+      "success"
+    );
+
+
+  element.classList.remove(
+    "hidden"
+  );
+
+}
+
+
+/*************************************************
+ * DEBUG
+ *************************************************/
+
+window.portalDebug = {
+
+  getSessionId:
+    function() {
+
+      return currentSessionId;
+
+    },
+
+  getUser:
+    function() {
+
+      return currentUser;
+
+    },
+
+  getLiffStatus:
+    function() {
+
+      return {
+
+        initialized:
+          liffInitialized,
+
+        loggedIn:
+          liffInitialized
+            ? liff.isLoggedIn()
+            : false
+
+      };
+
+    }
+
+};
 
 </script>
 
 </body>
 </html>
+
