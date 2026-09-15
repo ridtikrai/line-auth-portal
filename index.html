@@ -666,8 +666,7 @@ const LIFF_ID =
   "2011487100-dldPQItq";
 
 
-const CENTRAL_API_URL =
-  "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22C0e9ph1eYPscyrxdw29T44DaUT9/exec";
+const CENTRAL_API_URL = "/api/portal";
 
 
 const SESSION_STORAGE_KEY =
@@ -992,294 +991,41 @@ async function loadLineProfile() {
    PORTAL REQUEST
    ===================================================== */
 
-async function portalRequest(
-  payload
-) {
+async function portalRequest(payload) {
 
-  console.log(
-    "Portal Request:",
-    payload
-  );
-
-
-  let response;
-
+  console.log("Portal Request:", payload);
 
   try {
 
-    response =
-      await fetch(
-        CENTRAL_API_URL,
-        {
-          method: "POST",
+    const response = await fetch(CENTRAL_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
 
-          headers: {
-            "Content-Type":
-              "text/plain;charset=utf-8"
-          },
+    const result = await response.json();
 
-          body:
-            JSON.stringify(
-              payload
-            )
-        }
+    console.log("Portal Response:", result);
+
+    if (!response.ok) {
+      throw new Error(
+        result.message || "Portal API request failed"
       );
+    }
 
+    return result;
 
   } catch (err) {
 
-    /*
-     * Failed to fetch มักเกิดก่อน
-     * ได้ HTTP Response
-     */
-
-    console.error(
-      "Portal fetch failed:",
-      err
-    );
-
+    console.error("Portal fetch failed:", err);
 
     throw new Error(
       "ไม่สามารถเชื่อมต่อ Portal API ได้\n" +
-      "กรุณาตรวจสอบ CENTRAL_API_URL หรือการ Deploy Web App ของ Portal"
+      (err.message || "")
     );
-
   }
-
-
-  if (!response.ok) {
-
-    throw new Error(
-      "Portal API HTTP " +
-      response.status
-    );
-
-  }
-
-
-  const text =
-    await response.text();
-
-
-  console.log(
-    "Portal Response:",
-    text
-  );
-
-
-  let result;
-
-
-  try {
-
-    result =
-      JSON.parse(text);
-
-
-  } catch (err) {
-
-    console.error(
-      "Invalid Portal response:",
-      text
-    );
-
-
-    throw new Error(
-      "Portal returned invalid JSON"
-    );
-
-  }
-
-
-  return result;
-
-}
-
-
-/* =====================================================
-   CHECK USER
-   ===================================================== */
-
-async function checkUser(
-  profile
-) {
-
-  try {
-
-    const userId =
-      String(
-        profile.userId || ""
-      ).trim();
-
-
-    if (!userId) {
-
-      throw new Error(
-        "LINE User ID not found"
-      );
-
-    }
-
-
-    const clientInfo =
-      await fetchClientInfo();
-
-
-    const result =
-      await portalRequest({
-
-        action:
-          "checkUser",
-
-        userId:
-          userId,
-
-        profile:
-          profile,
-
-        clientInfo:
-          clientInfo
-
-      });
-
-
-    console.log(
-      "checkUser:",
-      result
-    );
-
-
-    if (!result) {
-
-      throw new Error(
-        "Empty response from Portal"
-      );
-
-    }
-
-
-    /* ==============================================
-       SUCCESS
-       ============================================== */
-
-    if (
-      result.status ===
-      "success"
-    ) {
-
-      currentSessionId =
-        result.sessionId;
-
-
-      currentUser =
-        result.user ||
-        null;
-
-
-      if (!currentSessionId) {
-
-        throw new Error(
-          "Portal did not return sessionId"
-        );
-
-      }
-
-
-      sessionStorage.setItem(
-        SESSION_STORAGE_KEY,
-        currentSessionId
-      );
-
-
-      await loadMenu();
-
-      startActivityTracker();
-
-      return;
-
-    }
-
-
-    /* ==============================================
-       NOT REGISTERED
-       ============================================== */
-
-    if (
-      result.code ===
-        "NOT_REGISTERED" ||
-      result.status ===
-        "not_registered"
-    ) {
-
-      showOnly(
-        "registrationScreen"
-      );
-
-      return;
-
-    }
-
-
-    /* ==============================================
-       PENDING
-       ============================================== */
-
-    if (
-      result.code ===
-        "PENDING" ||
-      result.status ===
-        "pending"
-    ) {
-
-      showOnly(
-        "pendingScreen"
-      );
-
-      return;
-
-    }
-
-
-    /* ==============================================
-       INACTIVE
-       ============================================== */
-
-    if (
-      result.code ===
-        "INACTIVE" ||
-      result.status ===
-        "inactive"
-    ) {
-
-      showLoginError(
-        "บัญชีของคุณถูกระงับการใช้งาน"
-      );
-
-      return;
-
-    }
-
-
-    throw new Error(
-      result.message ||
-      "ตรวจสอบสิทธิ์ไม่สำเร็จ"
-    );
-
-
-  } catch (err) {
-
-    console.error(
-      "checkUser:",
-      err
-    );
-
-
-    showLoginError(
-      getFriendlyErrorMessage(err)
-    );
-
-  }
-
 }
 
 
