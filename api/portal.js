@@ -4,7 +4,7 @@
  *************************************************/
 
 const PORTAL_GAS_URL =
-  "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22C0e9ph1eYPscyrxdw29T44DaUT9/exec";
+  "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22cE9ph1eYPscyrxdw29T44DaUT9/exec";
 
 
 export default async function handler(req, res) {
