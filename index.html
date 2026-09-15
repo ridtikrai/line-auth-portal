@@ -1446,408 +1446,239 @@ async function loadMenu() {
  *
  */
 
-function renderDashboard(
-  menuGroups
-) {
+
+function renderDashboard(data) {
+  showScreen('dashboard-screen');
+
+  document.getElementById('user-info').textContent =
+    `${escapeHtml(lineProfile.displayName)} | ตำแหน่ง: ${escapeHtml(data.jobPosition || '-')}`;
 
   const container =
-    document.getElementById(
-      "menuContainer"
-    );
+    document.getElementById('menu-container');
 
+  container.innerHTML = '';
 
-  container.innerHTML =
-    "";
-
-
-  if (
-    !Array.isArray(menuGroups) ||
-    menuGroups.length === 0
-  ) {
-
+  if (!data.menuGroups || data.menuGroups.length === 0) {
     container.innerHTML = `
-
-      <div class="no-menu">
-        คุณไม่มีสิทธิ์เข้าถึงเมนูใดๆ
+      <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+        <div class="mb-3 text-4xl">🔒</div>
+        <div class="text-sm font-semibold text-gray-700">
+          คุณไม่มีสิทธิ์เข้าถึงเมนูใดๆ
+        </div>
+        <div class="mt-1 text-xs text-gray-400">
+          กรุณาติดต่อผู้ดูแลระบบ
+        </div>
       </div>
-
     `;
-
-    container.style.display =
-      "block";
-
     return;
-
   }
 
+  /*
+   * group ใช้สำหรับเรียงลำดับเท่านั้น
+   * ไม่แสดงค่า group บนหน้าจอ
+   *
+   * เรียงจากเลขน้อย -> มาก
+   */
+  const sortedGroups = [...data.menuGroups].sort((a, b) => {
+    return Number(a.group || 0) - Number(b.group || 0);
+  });
 
-  /* ---------------------------------------------
-     Backend เรียง group มาแล้ว
-     มาก → น้อย
+  sortedGroups.forEach(group => {
 
-     แต่ Frontend sort ซ้ำอีกครั้ง
-     เพื่อป้องกันกรณี Backend เปลี่ยน
-     --------------------------------------------- */
+    /*
+     * รองรับข้อมูลเดิม:
+     *
+     * group
+     * groupName
+     * menuGroup
+     * menus
+     */
 
-  menuGroups.sort(
-    function(a, b) {
+    const groupName =
+      group.menuGroup ||
+      group.groupName ||
+      'ทั่วไป';
 
-      const aGroup =
-        Number(a.group);
+    const menus =
+      Array.isArray(group.menus)
+        ? group.menus
+        : [];
 
-      const bGroup =
-        Number(b.group);
-
-
-      if (
-        !isNaN(aGroup) &&
-        !isNaN(bGroup)
-      ) {
-
-        return bGroup - aGroup;
-
-      }
-
-
-      return String(a.group || '')
-        .localeCompare(
-          String(b.group || ''),
-          'th'
-        );
-
+    if (menus.length === 0) {
+      return;
     }
-  );
 
-
-  /* ---------------------------------------------
-     Render Group
-     --------------------------------------------- */
-
-  menuGroups.forEach(
-    function(group) {
-
-      const groupSection =
-        document.createElement(
-          "section"
-        );
-
-
-      groupSection.className =
-        "menu-group";
-
-
-      /* -------------------------------------------
-         Group Title
-         ------------------------------------------- */
-
-      const groupTitle =
-        document.createElement(
-          "div"
-        );
-
-
-      groupTitle.className =
-        "group-title";
-
-
-      const groupLine =
-        document.createElement(
-          "div"
-        );
-
-
-      groupLine.className =
-        "group-line";
-
-
-      const groupText =
-        document.createElement(
-          "h2"
-        );
-
-
-      /*
-       * group ใช้จัดลำดับ
-       *
-       * ไม่แสดงเลข group
-       *
-       * ถ้าคุณต้องการให้ group
-       * เป็นชื่อข้อความจาก Sheet
-       * สามารถปรับตรงนี้ได้
-       */
-
-      groupText.textContent =
-        getGroupDisplayName(
-          group
-        );
-
-
-      groupTitle.appendChild(
-        groupLine
-      );
-
-
-      groupTitle.appendChild(
-        groupText
-      );
-
-
-      groupSection.appendChild(
-        groupTitle
-      );
-
-
-      /* -------------------------------------------
-         Menu Groups
-         ------------------------------------------- */
-
-      const subGroups =
-        Array.isArray(
-          group.menuGroups
-        )
-          ? group.menuGroups
-          : [];
-
-
-      subGroups.forEach(
-        function(subGroup) {
-
-          const menus =
-            Array.isArray(
-              subGroup.menus
-            )
-              ? subGroup.menus
-              : [];
-
-
-          if (
-            menus.length === 0
-          ) {
-
-            return;
-
-          }
-
-
-          const subSection =
-            document.createElement(
-              "div"
-            );
-
-
-          subSection.className =
-            "menu-subgroup";
-
-
-          /* -----------------------------------------
-             menuGroup
-             ----------------------------------------- */
-
-          if (
-            subGroup.menuGroup &&
-            subGroup.menuGroup !==
-            "ทั่วไป"
-          ) {
-
-            const subTitle =
-              document.createElement(
-                "div"
-              );
-
-
-            subTitle.className =
-              "menu-subgroup-title";
-
-
-            subTitle.textContent =
-              subGroup.menuGroup;
-
-
-            subSection.appendChild(
-              subTitle
-            );
-
-          }
-
-
-          /* -----------------------------------------
-             Menu Grid
-             ----------------------------------------- */
-
-          const grid =
-            document.createElement(
-              "div"
-            );
-
-
-          grid.className =
-            "menu-grid";
-
-
-          menus.forEach(
-            function(menu) {
-
-              /*
-               * แสดงเฉพาะ canRead
-               */
-
-              if (
-                menu.canRead !== true
-              ) {
-
-                return;
-
-              }
-
-
-              const card =
-                document.createElement(
-                  "a"
-                );
-
-
-              card.className =
-                "menu-card";
-
-
-              const icon =
-                document.createElement(
-                  "div"
-                );
-
-
-              icon.className =
-                "menu-icon";
-
-
-              icon.textContent =
-                getMenuIcon(
-                  menu.menuName
-                );
-
-
-              const name =
-                document.createElement(
-                  "div"
-                );
-
-
-              /*
-               * สำคัญ:
-               *
-               * แสดง menuName
-               * ไม่แสดง menuId
-               */
-
-              name.className =
-                "menu-name";
-
-
-              name.textContent =
-                menu.menuName ||
-                "เมนู";
-
-
-              card.appendChild(
-                icon
-              );
-
-
-              card.appendChild(
-                name
-              );
-
-
-              /* -------------------------------------
-                 Menu URL
-                 ------------------------------------- */
-
-              if (
-                menu.menuUrl
-              ) {
-
-                card.href =
-                  menu.menuUrl;
-
-                card.target =
-                  "_blank";
-
-                card.rel =
-                  "noopener noreferrer";
-
-              } else {
-
-                /*
-                 * ไม่มี URL
-                 *
-                 * ยังแสดงเมนู
-                 * แต่กดไม่ได้
-                 */
-
-                card.href =
-                  "javascript:void(0)";
-
-                card.style.cursor =
-                  "default";
-
-                card.title =
-                  "ยังไม่ได้กำหนด URL";
-
-
-                card.addEventListener(
-                  "click",
-                  function(event) {
-
-                    event.preventDefault();
-
-                    alert(
-                      "เมนูนี้ยังไม่ได้กำหนด URL"
-                    );
-
-                  }
-                );
-
-              }
-
-
-              grid.appendChild(
-                card
-              );
-
-            }
-          );
-
-
-          if (
-            grid.children.length > 0
-          ) {
-
-            subSection.appendChild(
-              grid
-            );
-
-            groupSection.appendChild(
-              subSection
-            );
-
-          }
-
-        }
-      );
-
-
-      container.appendChild(
-        groupSection
-      );
-
-    }
-  );
-
-
-  container.style.display =
-    "block";
-
+    const groupSection =
+      document.createElement('section');
+
+    groupSection.className =
+      'portal-menu-section';
+
+    /*
+     * ชื่อกลุ่ม
+     * ไม่แสดง group
+     */
+    const heading =
+      document.createElement('div');
+
+    heading.className =
+      'mb-3 flex items-center gap-3';
+
+    heading.innerHTML = `
+      <div class="h-7 w-1 rounded-full bg-green-600"></div>
+
+      <div class="min-w-0 flex-1">
+        <h2 class="text-sm font-bold text-gray-800 sm:text-base">
+          ${escapeHtml(groupName)}
+        </h2>
+      </div>
+
+      <span class="rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-semibold text-green-700">
+        ${menus.length}
+      </span>
+    `;
+
+    groupSection.appendChild(heading);
+
+    /*
+     * Menu Grid
+     *
+     * Mobile  = 3 เมนู / แถว
+     * Tablet  = 4
+     * Desktop = 5
+     * Large   = 6
+     */
+    const grid =
+      document.createElement('div');
+
+    grid.className =
+      [
+        'grid',
+        'grid-cols-3',
+        'gap-2.5',
+        'sm:grid-cols-4',
+        'sm:gap-3',
+        'md:grid-cols-5',
+        'lg:grid-cols-6'
+      ].join(' ');
+
+    menus.forEach(menu => {
+
+      const safeUrl =
+        sanitizeUrl(menu.menuUrl);
+
+      const menuCard =
+        document.createElement('a');
+
+      menuCard.href =
+        safeUrl;
+
+      menuCard.className =
+        [
+          'group',
+          'relative',
+          'flex',
+          'min-h-[112px]',
+          'flex-col',
+          'items-center',
+          'justify-center',
+          'rounded-2xl',
+          'border',
+          'border-gray-200',
+          'bg-white',
+          'px-2',
+          'py-3',
+          'text-center',
+          'shadow-sm',
+          'transition-all',
+          'duration-200',
+          'hover:-translate-y-0.5',
+          'hover:border-green-300',
+          'hover:shadow-md',
+          'active:scale-95',
+          'sm:min-h-[125px]',
+          'sm:px-3',
+          'sm:py-4'
+        ].join(' ');
+
+      menuCard.innerHTML = `
+        <!-- Icon -->
+        <div
+          class="
+            mb-2
+            flex
+            h-10
+            w-10
+            items-center
+            justify-center
+            rounded-xl
+            bg-green-50
+            text-green-600
+            transition
+            group-hover:bg-green-100
+            sm:h-11
+            sm:w-11
+          "
+        >
+          <svg
+            class="h-5 w-5 sm:h-6 sm:w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.8"
+              d="M4 6.5A2.5 2.5 0 016.5 4h3A2.5 2.5 0 0112 6.5v3A2.5 2.5 0 019.5 12h-3A2.5 2.5 0 014 9.5v-3zM12 6.5A2.5 2.5 0 0114.5 4h3A2.5 2.5 0 0120 6.5v3a2.5 2.5 0 01-2.5 2.5h-3A2.5 2.5 0 0112 9.5v-3zM4 14.5A2.5 2.5 0 016.5 12h3a2.5 2.5 0 012.5 2.5v3A2.5 2.5 0 019.5 20h-3A2.5 2.5 0 014 17.5v-3zM12 14.5a2.5 2.5 0 012.5-2.5h3a2.5 2.5 0 012.5 2.5v3a2.5 2.5 0 01-2.5 2.5h-3a2.5 2.5 0 01-2.5-2.5v-3z"
+            />
+          </svg>
+        </div>
+
+        <!-- Menu Name -->
+        <h3
+          class="
+            line-clamp-2
+            w-full
+            text-[10px]
+            font-semibold
+            leading-tight
+            text-gray-700
+            transition
+            group-hover:text-green-700
+            sm:text-xs
+          "
+        >
+          ${escapeHtml(menu.menuName || '')}
+        </h3>
+
+        <!-- Arrow -->
+        <div
+          class="
+            mt-1.5
+            text-[9px]
+            font-medium
+            text-green-500
+            opacity-0
+            transition
+            group-hover:opacity-100
+            sm:text-[10px]
+          "
+        >
+          เปิด →
+        </div>
+      `;
+
+      grid.appendChild(menuCard);
+    });
+
+    groupSection.appendChild(grid);
+
+    container.appendChild(groupSection);
+  });
 }
+
+
 
 
 
