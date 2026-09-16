@@ -2566,6 +2566,307 @@ function renderDashboard(
 /* =====================================================
    SECURE MENU LAUNCH
    ===================================================== */
+// async function openMenu(menu) {
+
+//   if (!menu) {
+
+//     console.error(
+//       "openMenu: menu is missing"
+//     );
+
+//     return;
+
+//   }
+
+
+//   if (!currentSessionId) {
+
+//     await handleSessionExpired();
+
+//     return;
+
+//   }
+
+
+//   /* =================================================
+//      MENU ID
+//      ================================================= */
+
+//   const menuId =
+//     String(
+//       menu.menuId || ""
+//     ).trim();
+
+
+//   console.log(
+//     "OPEN MENU:",
+//     {
+//       menu: menu,
+//       menuId: menuId
+//     }
+//   );
+
+
+//   if (!menuId) {
+
+//     console.error(
+//       "openMenu: menuId is missing",
+//       menu
+//     );
+
+//     showLoginError(
+//       "ไม่พบรหัสเมนู (menuId)"
+//     );
+
+//     return;
+
+//   }
+
+
+//   /* =================================================
+//      MENU URL
+//      ================================================= */
+
+//   const url =
+//     sanitizeUrl(
+//       menu.menuUrl
+//     );
+
+
+//   if (!url) {
+
+//     console.error(
+//       "openMenu: menuUrl is missing",
+//       menu
+//     );
+
+//     showLoginError(
+//       "ไม่พบ URL ของระบบ"
+//     );
+
+//     return;
+
+//   }
+
+
+//   try {
+
+//     /* =================================================
+//        ขอ Launch Token จาก Portal
+//        ================================================= */
+
+//     const result =
+//       await portalRequest({
+
+//         action:
+//           "launch",
+
+//         sessionId:
+//           currentSessionId,
+
+//         menuId:
+//           menuId
+
+//       });
+
+
+//     console.log(
+//       "launch result:",
+//       result
+//     );
+
+
+//     /* =================================================
+//        ตรวจผล
+//        ================================================= */
+
+//     if (
+//       !result ||
+//       result.status !==
+//       "success"
+//     ) {
+
+//       if (
+//         result &&
+//         (
+//           result.code ===
+//             "SESSION_EXPIRED" ||
+
+//           result.code ===
+//             "SESSION_INVALID"
+//         )
+//       ) {
+
+//         await handleSessionExpired();
+
+//         return;
+
+//       }
+
+
+//       throw new Error(
+//         result?.message ||
+//         "ไม่สามารถสร้าง Launch Token ได้"
+//       );
+
+//     }
+
+
+//     /* =================================================
+//        Launch Token
+//        ================================================= */
+
+//     const launchToken =
+//       String(
+//         result.launchToken || ""
+//       ).trim();
+
+
+//     if (!launchToken) {
+
+//       throw new Error(
+//         "Portal ไม่ได้ส่ง Launch Token"
+//       );
+
+//     }
+
+
+//     /* =================================================
+//        ป้องกัน Token ถูกสร้างให้คนละ Menu
+//        ================================================= */
+
+//     if (
+//       result.menuId &&
+//       String(
+//         result.menuId
+//       ).trim() !== menuId
+//     ) {
+
+//       throw new Error(
+//         "Launch Token ไม่ตรงกับเมนูที่เลือก"
+//       );
+
+//     }
+
+
+//     /* =================================================
+//        สร้าง POST Form
+//        ================================================= */
+
+//     const form =
+//       document.createElement(
+//         "form"
+//       );
+
+
+//     form.method =
+//       "POST";
+
+
+//     form.action =
+//       url;
+
+
+//     /*
+//      * สำคัญ:
+//      * ใช้ Tab เดิม
+//      *
+//      * ไม่ใช้ window.open()
+//      * ไม่ใช้ _blank
+//      */
+
+//     form.target =
+//       "_self";
+
+
+//     form.style.display =
+//       "none";
+
+
+//     /* =================================================
+//        Launch Token
+//        ================================================= */
+
+//     const tokenInput =
+//       document.createElement(
+//         "input"
+//       );
+
+
+//     tokenInput.type =
+//       "hidden";
+
+
+//     tokenInput.name =
+//       "launchToken";
+
+
+//     tokenInput.value =
+//       launchToken;
+
+
+//     form.appendChild(
+//       tokenInput
+//     );
+
+
+//     /* =================================================
+//        Menu ID
+//        ================================================= */
+
+//     const menuInput =
+//       document.createElement(
+//         "input"
+//       );
+
+
+//     menuInput.type =
+//       "hidden";
+
+
+//     menuInput.name =
+//       "menuId";
+
+
+//     menuInput.value =
+//       menuId;
+
+
+//     form.appendChild(
+//       menuInput
+//     );
+
+
+//     /* =================================================
+//        Submit
+//        ================================================= */
+
+//     document.body.appendChild(
+//       form
+//     );
+
+
+//     form.submit();
+
+
+//   } catch (err) {
+
+//     console.error(
+//       "openMenu:",
+//       err
+//     );
+
+
+//     showLoginError(
+//       getFriendlyErrorMessage(
+//         err
+//       )
+//     );
+
+//   }
+
+// }
+
 /* =====================================================
    SECURE MENU LAUNCH (หน้าเดิม / ไม่เปิด Tab ใหม่)
    ===================================================== */
