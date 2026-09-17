@@ -2828,31 +2828,12 @@ async function openMenu(menu) {
       throw new Error("Launch Token ไม่ตรงกับเมนูที่เลือก");
     }
 
-    // สร้าง POST Form เพื่อส่ง Token ไปยังระบบปลายทาง
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = url;
-    form.target = "_self"; // เปิดทับในหน้าเดิม
-    form.style.display = "none";
+    const sep = url.includes('?') ? '&' : '?';
+    window.location.href = url + sep + 'launchToken=' + encodeURIComponent(launchToken) + '&menuId=' + encodeURIComponent(menuId);
 
-    const tokenInput = document.createElement("input");
-    tokenInput.type = "hidden";
-    tokenInput.name = "launchToken";
-    tokenInput.value = launchToken;
-    form.appendChild(tokenInput);
-
-    const menuInput = document.createElement("input");
-    menuInput.type = "hidden";
-    menuInput.name = "menuId";
-    menuInput.value = menuId;
-    form.appendChild(menuInput);
-
-    document.body.appendChild(form);
-    form.submit();
-
-  } catch (err) {
-    console.error("openMenu:", err);
-    showLoginError(getFriendlyErrorMessage(err));
+  } catch (error) {
+    console.error("Launch Error:", error);
+    showLoginError(error.message || "ไม่สามารถเปิดระบบปลายทางได้");
   }
 }
 /* =====================================================
