@@ -2829,7 +2829,8 @@ async function openMenu(menu) {
     }
 
     const sep = url.includes('?') ? '&' : '?';
-    window.location.href = url + sep + 'launchToken=' + encodeURIComponent(launchToken) + '&menuId=' + encodeURIComponent(menuId);
+    const currentUrl = window.location.origin + window.location.pathname;
+    window.location.href = url + sep + 'launchToken=' + encodeURIComponent(launchToken) + '&menuId=' + encodeURIComponent(menuId) + '&portalUrl=' + encodeURIComponent(currentUrl);
 
   } catch (error) {
     console.error("Launch Error:", error);
