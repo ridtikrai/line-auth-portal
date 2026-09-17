@@ -1158,6 +1158,19 @@ content="width=device-width, initial-scale=1.0"
   </div>
 
   <!-- =====================================================
+       UID SCREEN
+       ===================================================== -->
+  <div id="uidScreen" class="page hidden">
+    <div class="card">
+      <div class="logo">!</div>
+      <h2>ข้อมูลผู้ใช้งาน</h2>
+      <p>กรุณาส่ง LINE UID ด้านล่างให้ Admin เพื่อผูกบัญชี</p>
+      <div style="background: #f3f6f4; padding: 12px; border-radius: 8px; margin: 16px 0; font-family: monospace; font-size: 14px; word-break: break-all; border: 1px solid #d1d5db;" id="uidDisplayText"></div>
+      <button class="btn" onclick="copyUidToClipboard()">คัดลอก UID</button>
+      <button class="btn secondary" onclick="logoutApp()">กลับหน้าหลัก</button>
+    </div>
+  </div>
+  <!-- =====================================================
        DASHBOARD
        ===================================================== -->
 
@@ -1894,17 +1907,16 @@ async function handlePhoneSubmit() {
     );
 
 
-    if (
-      result.status ===
-      "success"
-    ) {
-
-      showOnly(
-        "pendingScreen"
-      );
-
+    if (result.code === "SHOW_UID") {
+      const uidEl = document.getElementById("uidDisplayText");
+      if (uidEl) uidEl.innerText = result.userId;
+      showOnly("uidScreen");
       return;
+    }
 
+    if (result.status === "success") {
+      showOnly("pendingScreen");
+      return;
     }
 
 
@@ -3327,6 +3339,21 @@ async function handleSessionExpired() {
 
 }
 
+
+/* =====================================================
+   COPY UID
+   ===================================================== */
+async function copyUidToClipboard() {
+  const uidEl = document.getElementById("uidDisplayText");
+  if (uidEl && uidEl.innerText) {
+    try {
+      await navigator.clipboard.writeText(uidEl.innerText);
+      alert("คัดลอก UID เรียบร้อยแล้ว");
+    } catch (e) {
+      alert("ไม่สามารถคัดลอกได้อัตโนมัติ กรุณาเลือกข้อความและคัดลอกเอง");
+    }
+  }
+}
 
 /* =====================================================
    LOGOUT
