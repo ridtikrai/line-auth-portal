@@ -58,6 +58,14 @@ export default async function handler(req, res) {
         ? JSON.parse(req.body || "{}")
         : (req.body || {});
 
+    payload.clientInfo = payload.clientInfo || {};
+    if (!payload.clientInfo.ip || payload.clientInfo.ip === "-") {
+      payload.clientInfo.ip = req.headers["x-forwarded-for"] || req.connection?.remoteAddress || "";
+    }
+    if (!payload.clientInfo.location || payload.clientInfo.location === "Unknown") {
+      payload.clientInfo.location = req.headers["x-vercel-ip-city"] ? `${req.headers["x-vercel-ip-city"]}, ${req.headers["x-vercel-ip-country"]}` : (req.headers["x-vercel-ip-country"] || "Unknown");
+    }
+
 
     console.log(
       "Portal Request:",
