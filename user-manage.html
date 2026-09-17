@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
@@ -225,7 +225,7 @@
         });
         const result = await res.json();
         
-        if (result.success && result.authorized) {
+        if (result.success) {
           handleAuthSuccess(result);
           window.history.replaceState({}, document.title, window.location.pathname);
         } else {
@@ -244,7 +244,7 @@
         });
         const result = await res.json();
         
-        if (result.success && result.authorized) {
+        if (result.success) {
           handleAuthSuccess(result);
         } else {
           sessionStorage.removeItem(SESSION_KEY);
