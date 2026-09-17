@@ -1332,85 +1332,32 @@ async function initApp() {
        ตรวจ Session เดิม
        ================================================= */
 
-    const savedSession =
-      sessionStorage.getItem(
-        SESSION_STORAGE_KEY
-      );
+    const savedSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    const savedUserJson = sessionStorage.getItem('CURRENT_USER');
+    const savedProfileJson = sessionStorage.getItem('CURRENT_PROFILE');
 
-
-    if (savedSession) {
-
-      console.log(
-        "Checking saved session..."
-      );
-
-
-      const result =
-        await verifyPortalSession(
-          savedSession
-        );
-
-
-      if (
-        result &&
-        result.status === "success"
-      ) {
-
-        currentSessionId =
-          savedSession;
-
-
-        currentUser =
-          result.session ||
-          result.user ||
-          null;
-
-
-        if (!currentUser) {
-
-          throw new Error(
-            "Session user not found"
-          );
-
+    if (savedSession && savedUserJson) {
+      console.log("Using cached session and optimistically loading UI...");
+      currentSessionId = savedSession;
+      try {
+        currentUser = JSON.parse(savedUserJson);
+        if (savedProfileJson) {
+          currentLineProfile = JSON.parse(savedProfileJson);
         }
-
-
-        /* ดึง LINE Profile เพื่อใช้รูป */
-
-        if (
-          liff.isLoggedIn()
-        ) {
-
-          try {
-
-            currentLineProfile =
-              await loadLineProfile();
-
-          } catch (profileErr) {
-
-            console.warn(
-              "Cannot load LINE profile:",
-              profileErr
-            );
-
-          }
-
-        }
-
-
-        await loadMenu();
-
+        
+        await loadMenu(true); // pass true for cached load
         startActivityTracker();
-
+        
+        // Verify in background
+        verifyPortalSession(savedSession).then(result => {
+          if (!result || result.status !== "success") {
+            handleSessionExpired();
+          }
+        });
         return;
-
+      } catch (e) {
+        console.warn("Error parsing cached session:", e);
       }
-
-
-      sessionStorage.removeItem(
-        SESSION_STORAGE_KEY
-      );
-
     }
 
 
@@ -1688,15 +1635,10 @@ async function checkUser(
       result.sessionId;
 
 
-    currentUser =
-      result.user ||
-      null;
-
-
-    sessionStorage.setItem(
-      SESSION_STORAGE_KEY,
-      currentSessionId
-    );
+    currentUser = result.user || null;
+    sessionStorage.setItem(SESSION_STORAGE_KEY, currentSessionId);
+    if (currentUser) sessionStorage.setItem('CURRENT_USER', JSON.stringify(currentUser));
+    if (currentLineProfile) sessionStorage.setItem('CURRENT_PROFILE', JSON.stringify(currentLineProfile));
 
 
     await loadMenu();
@@ -1899,88 +1841,43 @@ async function verifyPortalSession(
    LOAD MENU
    ===================================================== */
 
-async function loadMenu() {
-
+async function loadMenu(useCache = false) {
   try {
-
-    if (!currentSessionId) {
-
-      throw new Error(
-        "Session not found"
-      );
-
-    }
-
-
-    const result =
-      await portalRequest({
-
-        action:
-          "getMenu",
-
-        sessionId:
-          currentSessionId
-
-      });
-
-
-    console.log(
-      "getMenu:",
-      result
-    );
-
-
-    if (
-      !result ||
-      result.status !==
-      "success"
-    ) {
-
-      if (
-        result &&
-        (
-          result.code ===
-            "SESSION_EXPIRED" ||
-
-          result.code ===
-            "SESSION_INVALID"
-        )
-      ) {
-
-        await handleSessionExpired();
-
+    if (!currentSessionId) throw new Error("Session not found");
+    
+    if (useCache) {
+      const cachedMenu = sessionStorage.getItem('CURRENT_MENU');
+      if (cachedMenu) {
+        renderDashboard({ data: JSON.parse(cachedMenu) });
+        // Fetch in background to update
+        portalRequest({ action: "getMenu", sessionId: currentSessionId }).then(res => {
+          if (res && res.status === "success") {
+            sessionStorage.setItem('CURRENT_MENU', JSON.stringify(res.data));
+            renderDashboard(res);
+          }
+        });
         return;
-
       }
-
-
-      throw new Error(
-        result?.message ||
-        "ไม่สามารถโหลดเมนูได้"
-      );
-
     }
 
+    const result = await portalRequest({ action: "getMenu", sessionId: currentSessionId });
+    console.log("getMenu:", result);
 
-    renderDashboard(
-      result
-    );
+    if (!result || result.status !== "success") {
+      if (result && (result.code === "SESSION_EXPIRED" || result.code === "SESSION_INVALID")) {
+        await handleSessionExpired();
+        return;
+      }
+      throw new Error(result?.message || "ไม่สามารถโหลดเมนูได้");
+    }
 
+    sessionStorage.setItem('CURRENT_MENU', JSON.stringify(result.data));
+    renderDashboard(result);
 
   } catch (err) {
-
-    console.error(
-      "loadMenu:",
-      err
-    );
-
-
-    showLoginError(
-      getFriendlyErrorMessage(err)
-    );
-
+    console.error("loadMenu:", err);
+    showLoginError(getFriendlyErrorMessage(err));
   }
-
 }
 
 
@@ -2829,8 +2726,7 @@ async function openMenu(menu) {
     }
 
     const sep = url.includes('?') ? '&' : '?';
-    const currentUrl = window.location.origin + window.location.pathname;
-    window.location.href = url + sep + 'launchToken=' + encodeURIComponent(launchToken) + '&menuId=' + encodeURIComponent(menuId) + '&portalUrl=' + encodeURIComponent(currentUrl);
+    window.location.href = url + sep + 'launchToken=' + encodeURIComponent(launchToken) + '&menuId=' + encodeURIComponent(menuId);
 
   } catch (error) {
     console.error("Launch Error:", error);
@@ -3680,3 +3576,6 @@ window.portalDebug = {
 
 </body>
 </html>
+
+
+
