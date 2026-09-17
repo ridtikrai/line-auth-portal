@@ -2828,13 +2828,27 @@ async function openMenu(menu) {
       throw new Error("Launch Token ไม่ตรงกับเมนูที่เลือก");
     }
 
-    // สร้าง Target URL พร้อมส่ง Token ต่อในหน้าเดิม
-    const targetUrl = new URL(url);
-    targetUrl.searchParams.set("launchToken", launchToken);
-    targetUrl.searchParams.set("menuId", menuId);
+    // สร้าง POST Form เพื่อส่ง Token ไปยังระบบปลายทาง
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = url;
+    form.target = "_self"; // เปิดทับในหน้าเดิม
+    form.style.display = "none";
 
-    // เปิดทับในหน้าเดิมทันที (ไม่เกิด Tab ใหม่)
-    window.location.href = targetUrl.toString();
+    const tokenInput = document.createElement("input");
+    tokenInput.type = "hidden";
+    tokenInput.name = "launchToken";
+    tokenInput.value = launchToken;
+    form.appendChild(tokenInput);
+
+    const menuInput = document.createElement("input");
+    menuInput.type = "hidden";
+    menuInput.name = "menuId";
+    menuInput.value = menuId;
+    form.appendChild(menuInput);
+
+    document.body.appendChild(form);
+    form.submit();
 
   } catch (err) {
     console.error("openMenu:", err);
