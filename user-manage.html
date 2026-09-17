@@ -36,7 +36,7 @@
 <body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
 
   <!-- Topbar -->
-  <div class="topbar sticky top-0 z-50 bg-white/96 backdrop-blur-[10px] border-b border-gray-200 min-h-[76px] px-6 py-2.5 flex justify-between items-center max-sm:min-h-[72px] max-sm:px-3 max-sm:gap-2 max-[390px]:justify-end">
+  <div class="topbar sticky top-0 z-50 bg-white border-b border-gray-200 min-h-[76px] px-6 py-2.5 flex justify-between items-center max-sm:min-h-[72px] max-sm:px-3 max-sm:gap-2 max-[390px]:justify-end">
     <!-- BRAND -->
     <div class="brand-area flex items-center gap-3 max-sm:gap-2 max-[390px]:hidden">
       <div class="brand-logo w-11 h-11 flex-none rounded-[13px] bg-gradient-to-br from-green-800 to-green-600 text-white flex items-center justify-center max-sm:w-[38px] max-sm:h-[38px] max-sm:basis-[38px] max-sm:rounded-[11px]">
@@ -63,11 +63,6 @@
            <span id="timer-display">60:00</span>
         </div>
       </div>
-
-      <!-- BACK TO PORTAL -->
-      <button onclick="goToHome()" class="bg-transparent border-none p-1 cursor-pointer hover:bg-gray-100 rounded-full transition-colors ml-1" title="กลับหน้า Portal">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M15 19l-7-7 7-7"></path></svg>
-      </button>
     </div>
   </div>
 
@@ -250,18 +245,28 @@
     }
 
     function handleAuthSuccess(result) {
-      portalSessionId = result.sessionId;
+      portalSessionId = result.sessionId || portalSessionId;
       sessionStorage.setItem(SESSION_KEY, portalSessionId);
       
-      currentUser = result.user;
-      const perm = result.permission || {};
+      currentUser = result.user || result.session || currentUser;
+      
+      let perm = result.permission;
+      if (perm) {
+        sessionStorage.setItem('PORTAL_PERMISSIONS', JSON.stringify(perm));
+      } else {
+        const stored = sessionStorage.getItem('PORTAL_PERMISSIONS');
+        if (stored) perm = JSON.parse(stored);
+        else perm = {};
+      }
+
       currentPermissions = {
         read: perm.canRead || perm.read || false,
         create: perm.canWrite || perm.create || perm.canRead || false,
         edit: perm.canWrite || perm.edit || perm.canRead || false,
         delete: perm.canDelete || perm.delete || perm.canRead || false
       };
-      currentActionEmpId = currentUser.empId || currentUser.userId;
+      
+      currentActionEmpId = currentUser?.empId || currentUser?.userId || '';
 
       if (!currentPermissions.read) {
         showError('Access Denied: คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
