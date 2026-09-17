@@ -2748,14 +2748,9 @@ async function openMenu(menu) {
     }
 
     const sep = url.includes('?') ? '&' : '?';
-    // เข้ารหัส sessionId แบบ hex เพื่อหลีกเลี่ยงปัญหา btoa ใน LINE browser
-    const encodedSid = Array.from(currentSessionId)
-      .map(c => c.charCodeAt(0).toString(16).padStart(2, '0'))
-      .join('');
     window.location.href = url + sep
       + 'launchToken=' + encodeURIComponent(launchToken)
-      + '&menuId=' + encodeURIComponent(menuId)
-      + '&sid=' + encodedSid;
+      + '&menuId=' + encodeURIComponent(menuId);
 
   } catch (error) {
     console.error("Launch Error:", error);
