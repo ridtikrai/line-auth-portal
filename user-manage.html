@@ -211,11 +211,11 @@
       try {
         const res = await fetch(AUTH_API_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'exchangeLaunchToken', launchToken: launchToken })
+          body: JSON.stringify({ action: 'validateLaunch', launchToken: launchToken, menuId: '901' })
         });
         const result = await res.json();
         
-        if (result.success) {
+        if (result.status === 'success') {
           handleAuthSuccess(result);
           window.history.replaceState({}, document.title, window.location.pathname);
         } else {
@@ -234,7 +234,7 @@
         });
         const result = await res.json();
         
-        if (result.success) {
+        if (result.status === 'success') {
           handleAuthSuccess(result);
         } else {
           sessionStorage.removeItem(SESSION_KEY);
@@ -553,4 +553,5 @@
   </script>
 </body>
 </html>
+
 
