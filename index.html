@@ -3405,7 +3405,26 @@ async function logoutApp() {
 
 async function fetchClientInfo() {
 
+  let ip = "-";
+  let location = "Unknown";
+
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    if (res.ok) {
+      const data = await res.json();
+      ip = data.ip || "-";
+      location = (data.city && data.country_name) 
+        ? data.city + ", " + data.country_name 
+        : (data.country_name || "Unknown");
+    }
+  } catch (err) {
+    console.warn("Could not fetch IP data:", err);
+  }
+
   return {
+
+    ip: ip,
+    location: location,
 
     userAgent:
       navigator.userAgent ||
