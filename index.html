@@ -2748,7 +2748,9 @@ async function openMenu(menu) {
     }
 
     const sep = url.includes('?') ? '&' : '?';
-    window.location.href = url + sep + 'launchToken=' + encodeURIComponent(launchToken) + '&menuId=' + encodeURIComponent(menuId);
+    // ส่ง sessionId (เข้ารหัส base64) ไปด้วยเพื่อให้ destination ข้ามขั้นตอน exchange ได้เลย
+    const encodedSid = btoa(currentSessionId);
+    window.location.href = url + sep + 'launchToken=' + encodeURIComponent(launchToken) + '&menuId=' + encodeURIComponent(menuId) + '&sid=' + encodeURIComponent(encodedSid);
 
   } catch (error) {
     console.error("Launch Error:", error);
