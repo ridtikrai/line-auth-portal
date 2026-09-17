@@ -659,7 +659,7 @@ content="width=device-width, initial-scale=1.0"
       display: grid;
 
       grid-template-columns:
-        repeat(4, minmax(0, 1fr));
+        repeat(3, minmax(0, 1fr));
 
       gap: 14px;
     }
@@ -670,20 +670,18 @@ content="width=device-width, initial-scale=1.0"
        ===================================================== */
 
     .menu-card {
-      min-height: 94px;
-
+      min-height: 120px;
       display: flex;
-
+      flex-direction: column;
       align-items: center;
-
+      justify-content: center;
       background: white;
-
-      border:
-        1px solid var(--gray-200);
-
+      border: 1px solid var(--gray-200);
       border-radius: var(--radius-md);
+      padding: 24px 10px 16px 10px;
+      gap: 12px;
 
-      padding: 17px;
+      text-align: center;
 
       text-decoration: none;
 
@@ -736,6 +734,40 @@ content="width=device-width, initial-scale=1.0"
 
       box-shadow:
         0 2px 8px rgba(20, 83, 45, .035);
+    }
+
+    .menu-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #e6f6f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--sage-700);
+      position: relative;
+    }
+
+    .menu-icon-box svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 1.5;
+    }
+
+    .menu-badge {
+      position: absolute;
+      top: -10px;
+      right: -28px;
+      background: white;
+      color: var(--sage-700);
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 10px;
+      border: 1px solid #a7dfc9;
+      white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(20, 83, 45, .05);
+      z-index: 2;
     }
 
     .menu-name {
@@ -928,16 +960,26 @@ content="width=device-width, initial-scale=1.0"
       }
 
       .menu-card {
-        min-height: 78px;
-
-        padding:
-          9px 6px;
-
+        min-height: 100px;
+        padding: 16px 6px 12px 6px;
         border-radius: 10px;
-
         justify-content: center;
-
         text-align: center;
+        gap: 8px;
+      }
+      .menu-icon-box {
+        width: 40px;
+        height: 40px;
+      }
+      .menu-icon-box svg {
+        width: 20px;
+        height: 20px;
+      }
+      .menu-badge {
+        font-size: 8px;
+        padding: 1px 4px;
+        top: -8px;
+        right: -20px;
       }
 
       .menu-name {
@@ -1187,93 +1229,38 @@ content="width=device-width, initial-scale=1.0"
 
 
   <!-- BRAND -->
-
   <div class="brand-area">
-
     <div class="brand-logo">
-      P
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
     </div>
-
     <div class="brand-text">
-
-      <div class="brand">
+      <div class="brand" style="display:flex; align-items:center; gap:8px;">
         Patient Care Portal
+        <span style="background:#e6f6f0; color:var(--sage-700); padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; letter-spacing:0.2px;">ศูนย์รวมระบบบริบาล</span>
       </div>
-
-      <div class="brand-subtitle">
-        ระบบศูนย์ดูแลผู้ป่วย
+      <div class="brand-subtitle" style="color:var(--gray-500); font-size:12px; margin-top:2px;">
+        ระบบศูนย์กลางสำหรับเข้าใช้งานระบบดูแลผู้ป่วย
       </div>
-
     </div>
-
   </div>
 
-
   <!-- USER + LINE + SESSION -->
-
   <div class="user-info">
+    <img id="lineAvatar" class="line-avatar" src="" alt="LINE Profile">
 
-
-    <!-- LINE PROFILE IMAGE -->
-
-    <img
-      id="lineAvatar"
-      class="line-avatar"
-      src=""
-      alt="LINE Profile"
-    >
-
-
-    <!-- USER -->
-
-    <div class="user-detail">
-
-      <div
-        id="userName"
-        class="user-name"
-      ></div>
-
-      <div
-        id="userRole"
-        class="user-role"
-      ></div>
-
-    </div>
-
-
-    <!-- SESSION -->
-
-    <div class="session-status">
-
-      <div class="session-label">
-
-        <span class="session-dot"></span>
-
-        <span>
-          Session
-        </span>
-
+    <div class="user-detail" style="display:flex; flex-direction:column; align-items:flex-end;">
+      <div id="userName" class="user-name" style="font-size:13px; font-weight:700; color:#1f2937;"></div>
+      <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
+        <div id="userRole" class="user-role" style="font-size:10px; font-weight:600; color:var(--blue-600); background:#eff6ff; padding:2px 8px; border-radius:10px;"></div>
+        <span class="session-dot" style="width:6px; height:6px; border-radius:50%; background:var(--green-500); box-shadow:0 0 0 2px rgba(34, 197, 94, .13);"></span>
       </div>
-
-      <div
-        id="sessionTime"
-        class="session-time"
-      >
-        กำลังตรวจสอบ...
-      </div>
-
+      <div id="sessionTime" class="session-time" style="font-size:10px; color:var(--gray-400); margin-top:2px;">กำลังตรวจสอบ...</div>
     </div>
-
 
     <!-- LOGOUT -->
-
-    <button
-      class="logout-btn"
-      onclick="logoutApp()"
-    >
-      ออกจากระบบ
+    <button class="logout-btn" onclick="logoutApp()" style="background:transparent; border:none; padding:4px 0 4px 12px; margin-left:4px; cursor:pointer;" title="ออกจากระบบ">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gray-500);"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
     </button>
-
   </div>
 
 </div>
@@ -2394,28 +2381,26 @@ function renderDashboard(
                 "menu-card";
 
 
-              const name =
-                document.createElement(
-                  "div"
-                );
+              const menuNameText = menu.menuName || "ระบบ";
+              const visuals = getMenuCardVisuals(menuNameText);
 
+              const iconBox = document.createElement("div");
+              iconBox.className = "menu-icon-box";
+              iconBox.innerHTML = visuals.icon;
 
-              name.className =
-                "menu-name";
+              if (visuals.badge) {
+                const badgeEl = document.createElement("div");
+                badgeEl.className = "menu-badge";
+                badgeEl.textContent = visuals.badge;
+                iconBox.appendChild(badgeEl);
+              }
 
+              const name = document.createElement("div");
+              name.className = "menu-name";
+              name.textContent = menuNameText;
 
-              /*
-               * แสดงเฉพาะ menuName
-               */
-
-              name.textContent =
-                menu.menuName ||
-                "ระบบ";
-
-
-              link.appendChild(
-                name
-              );
+              link.appendChild(iconBox);
+              link.appendChild(name);
 
 
               /* =================================================
@@ -3617,6 +3602,75 @@ function showMessage(
 
 }
 
+
+/* =====================================================
+   MENU VISUALS
+   ===================================================== */
+function getMenuCardVisuals(name) {
+  let icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>';
+  let badge = '';
+
+  const t = name.toLowerCase();
+
+  // 1. ระบบเวชระเบียนผู้ป่วย (E-Chart Portal)
+  if (t.includes('เวชระเบียน') || t.includes('e-chart')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>';
+    badge = 'Apps Script';
+  }
+  // 2. ระบบบันทึกสัญญาณชีพและ ADL
+  else if (t.includes('สัญญาณชีพ') || t.includes('adl')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>';
+    badge = 'แบบฟอร์มประจำวัน';
+  }
+  // 3. ระบบวางแผนการบริบาล (Care Plan Manager)
+  else if (t.includes('วางแผนการบริบาล') || t.includes('care plan')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M9 14h6"></path><path d="M9 18h6"></path><path d="M9 10h.01"></path></svg>';
+    badge = 'สหวิชาชีพ';
+  }
+  // 4. ระบบบริหารยา (e-MAR System)
+  else if (t.includes('บริหารยา') || t.includes('mar')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 7 17l-4.5 4.5a2.12 2.12 0 0 0 3 3l4.5-4.5Z"></path><path d="m20.5 10.5-3.5-3.5"></path><path d="m15.5 15.5 5-5a2.12 2.12 0 0 0-3-3l-5 5"></path><path d="M3 3l18 18"></path></svg>';
+    badge = 'สำคัญ';
+  }
+  // 5. ระบบบันทึกทางการพยาบาล (Nursing Notes)
+  else if (t.includes('ทางการพยาบาล') || t.includes('nursing note')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>';
+  }
+  // 6. ระบบติดตามการทำแผลและแผลกดทับ
+  else if (t.includes('ทำแผล') || t.includes('แผลกดทับ')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
+  }
+  // 7. ระบบบันทึกการดูแลประจำวัน (Caregiver Log)
+  else if (t.includes('การดูแลประจำวัน') || t.includes('caregiver')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="m9 16 2 2 4-4"></path></svg>';
+    badge = 'Mobile Friendly';
+  }
+  // 8. ระบบกายภาพบำบัดและการฟื้นฟู
+  else if (t.includes('กายภาพบำบัด') || t.includes('ฟื้นฟู')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>';
+  }
+  // 9. ระบบโภชนาการและบันทึกมื้ออาหาร
+  else if (t.includes('โภชนาการ') || t.includes('มื้ออาหาร')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
+    badge = 'โภชนาการ';
+  }
+  // 10. ระบบส่งต่อผู้ป่วยโรงพยาบาลแม่ข่าย (Referral)
+  else if (t.includes('ส่งต่อ') || t.includes('referral')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>';
+    badge = 'ส่งต่อด่วน';
+  }
+  // 11. ระบบแจ้งเหตุฉุกเฉินและอุบัติการณ์ (Risk/SOS)
+  else if (t.includes('ฉุกเฉิน') || t.includes('risk') || t.includes('sos')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+  }
+  // 12. ระบบประสานรถพยาบาลและศูนย์กู้ชีพ (EMS)
+  else if (t.includes('รถพยาบาล') || t.includes('ems')) {
+    icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>';
+    badge = 'EMS 1669';
+  }
+
+  return { icon, badge };
+}
 
 /* =====================================================
    FRIENDLY ERROR
