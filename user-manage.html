@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
@@ -172,7 +172,8 @@
   </div>
 
   <script>
-    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec";
+    const AUTH_API_URL = "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22cE9ph1eYPscyrxdw29T44DaUT9/exec";
+    const RESOURCE_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec";
     const SESSION_KEY = 'portalSessionId';
     
     let portalSessionId = sessionStorage.getItem(SESSION_KEY);
@@ -208,7 +209,7 @@
 
     async function exchangeLaunchToken(launchToken) {
       try {
-        const res = await fetch(CENTRAL_API_URL, {
+        const res = await fetch(AUTH_API_URL, {
           method: 'POST',
           body: JSON.stringify({ action: 'exchangeLaunchToken', launchToken: launchToken })
         });
@@ -227,7 +228,7 @@
 
     async function verifySession() {
       try {
-        const res = await fetch(CENTRAL_API_URL, {
+        const res = await fetch(AUTH_API_URL, {
           method: 'POST',
           body: JSON.stringify({ action: 'verifySession', sessionId: portalSessionId })
         });
@@ -343,7 +344,7 @@
       if (desktopList) desktopList.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-gray-400">กำลังโหลด...</td></tr>';
       
       try {
-        const res = await fetch(CENTRAL_API_URL, {
+        const res = await fetch(RESOURCE_API_URL, {
             method: 'POST', body: JSON.stringify({ action: 'getUsers', sessionId: portalSessionId })
         });
         const result = await res.json();
@@ -504,7 +505,7 @@
       
       document.getElementById('modalTitle').textContent = 'กำลังบันทึกข้อมูล...';
       try {
-        const res = await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const res = await fetch(RESOURCE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
         const result = await res.json();
         
         if (result.status === 'success') {
@@ -522,7 +523,7 @@
     async function deleteUser(empId) {
       if(!confirm("คุณต้องการลบผู้ใช้งานรหัส " + empId + " นี้ออกจากระบบอย่างถาวรหรือไม่?")) return;
       try {
-        const res = await fetch(CENTRAL_API_URL, {
+        const res = await fetch(RESOURCE_API_URL, {
             method: 'POST', body: JSON.stringify({ action: 'manageUser', sessionId: portalSessionId, mode: 'delete', user: { Emp_ID: empId } })
         });
         const result = await res.json();
@@ -543,7 +544,7 @@
     async function logoutApp() {
       if(portalSessionId) {
         try {
-          await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', sessionId: portalSessionId }) });
+          await fetch(AUTH_API_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', sessionId: portalSessionId }) });
         } catch(e) {}
       }
       sessionStorage.removeItem(SESSION_KEY);
@@ -552,3 +553,4 @@
   </script>
 </body>
 </html>
+
