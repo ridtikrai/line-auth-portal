@@ -1332,54 +1332,69 @@ async function initApp() {
        ตรวจ Session เดิม
        ================================================= */
 
+    // ---- Tier 1: fast path – ทั้ง session + user cache ใช้ได้ ----
     const savedSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
     const savedUserJson = sessionStorage.getItem('CURRENT_USER');
     const savedProfileJson = sessionStorage.getItem('CURRENT_PROFILE');
 
     if (savedSession && savedUserJson) {
-      console.log("Using cached session and optimistically loading UI...");
-      currentSessionId = savedSession;
+      let parsedUser = null;
       try {
-        const parsedUser = JSON.parse(savedUserJson);
-        // ตรวจว่าเป็น object จริง ไม่ใช่ null หรือ primitive
-        if (parsedUser && typeof parsedUser === 'object') {
-          currentUser = parsedUser;
-        } else {
-          throw new Error("Invalid cached user");
-        }
+        const tmp = JSON.parse(savedUserJson);
+        if (tmp && typeof tmp === 'object') parsedUser = tmp;
+      } catch (_) {}
 
+      if (parsedUser) {
+        console.log("Fast path: using cached session");
+        currentSessionId = savedSession;
+        currentUser = parsedUser;
+
+        // โหลด profile cache ถ้ามี
         if (savedProfileJson && savedProfileJson !== 'undefined' && savedProfileJson !== 'null') {
           try {
-            const parsedProfile = JSON.parse(savedProfileJson);
-            if (parsedProfile && typeof parsedProfile === 'object') {
-              currentLineProfile = parsedProfile;
-            }
-          } catch (profileErr) {
-            sessionStorage.removeItem('CURRENT_PROFILE');
-          }
+            const tmp = JSON.parse(savedProfileJson);
+            if (tmp && typeof tmp === 'object') currentLineProfile = tmp;
+          } catch (_) { sessionStorage.removeItem('CURRENT_PROFILE'); }
         }
 
         await loadMenu(true);
         startActivityTracker();
-
         // Verify ในเบื้องหลัง ไม่ block UI
         verifyPortalSession(savedSession).then(result => {
-          if (!result || result.status !== "success") {
-            handleSessionExpired();
-          }
+          if (!result || result.status !== 'success') handleSessionExpired();
         });
         return;
-      } catch (e) {
-        console.warn("Error parsing cached session, clearing cache:", e);
-        // ล้าง cache ที่เสียออก แล้วไปเส้นทาง login ปกติ
-        sessionStorage.removeItem('CURRENT_USER');
-        sessionStorage.removeItem('CURRENT_PROFILE');
-        sessionStorage.removeItem('CURRENT_MENU');
-        sessionStorage.removeItem(SESSION_STORAGE_KEY);
-        currentSessionId = null;
-        currentUser = null;
       }
     }
+
+    // ---- Tier 2: มี session token แต่ cache user เสีย – verify กับ server โดยตรง ----
+    if (savedSession) {
+      console.log("Tier 2: session exists but user cache bad, verifying with server...");
+      // ล้าง cache เสียออก
+      sessionStorage.removeItem('CURRENT_USER');
+      sessionStorage.removeItem('CURRENT_PROFILE');
+      sessionStorage.removeItem('CURRENT_MENU');
+
+      const verifyResult = await verifyPortalSession(savedSession);
+      if (verifyResult && verifyResult.status === 'success') {
+        currentSessionId = savedSession;
+        currentUser = verifyResult.session || verifyResult.user || null;
+        if (!currentUser) {
+          sessionStorage.removeItem(SESSION_STORAGE_KEY);
+        } else {
+          // เก็บ user ใหม่ลง cache
+          sessionStorage.setItem('CURRENT_USER', JSON.stringify(currentUser));
+          await loadMenu();
+          startActivityTracker();
+          return;
+        }
+      } else {
+        // Session หมดอายุจริง ล้างออก
+        sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      }
+    }
+
+    // ---- Tier 3: ไม่มี session ต้อง login ผ่าน LINE ----
 
 
     /* =================================================
