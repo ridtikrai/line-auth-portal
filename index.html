@@ -1081,8 +1081,7 @@ content="width=device-width, initial-scale=1.0"
   </h2>
 
   <p>
-    ไม่พบข้อมูล LINE ID ของคุณในระบบ<br>
-    <span style="font-size: 13px; color: var(--gray-600);">LINE UID: <span id="displayLineUid" style="user-select: all; font-weight: bold;"></span></span>
+    ไม่พบข้อมูล LINE ID ของคุณในระบบ
   </p>
 
   <p>
@@ -1797,11 +1796,6 @@ async function checkUser(
     result.code ===
     "NOT_REGISTERED"
   ) {
-
-    const displayLineUidEl = document.getElementById("displayLineUid");
-    if (displayLineUidEl && profile && profile.userId) {
-      displayLineUidEl.innerText = profile.userId;
-    }
 
     showOnly(
       "registrationScreen"
