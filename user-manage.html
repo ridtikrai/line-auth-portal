@@ -6,7 +6,6 @@
   <title>User Management Portal</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
   <!-- Google Fonts: Kanit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,10 +56,10 @@
         P
       </div>
       <div class="brand-text">
-        <div id="menu-title" class="brand text-base sm:text-lg font-extrabold text-green-900 leading-tight">ประวัติผู้ใช้งาน</div>
+        <div id="menu-title" class="brand text-base sm:text-lg font-extrabold text-green-900 leading-tight">เธเธฃเธฐเธงเธฑเธ•เธดเธเธนเนเนเธเนเธเธฒเธ</div>
         <div onclick="goToHome()" class="brand-subtitle mt-0.5 text-[11px] sm:text-xs font-semibold text-green-600 hover:text-green-800 cursor-pointer flex items-center gap-1">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-          กลับหน้าหลัก
+          เธเธฅเธฑเธเธซเธเนเธฒเธซเธฅเธฑเธ
         </div>
       </div>
     </div>
@@ -68,7 +67,7 @@
     <div class="flex items-center gap-3 sm:gap-4">
       <div class="user-info hidden sm:flex items-center gap-3">
         <div class="user-detail text-right">
-          <div id="user-name-display" class="user-name text-sm font-bold text-gray-900">กำลังตรวจสอบ...</div>
+          <div id="user-name-display" class="user-name text-sm font-bold text-gray-900">เธเธณเธฅเธฑเธเธ•เธฃเธงเธเธชเธญเธ...</div>
           <div id="user-role-display" class="user-role text-xs text-gray-500">-</div>
         </div>
         <img id="profile-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Profile" class="line-avatar hidden w-11 h-11 rounded-full object-cover border-2 border-green-200 bg-green-50 shadow-sm">
@@ -90,7 +89,7 @@
       </div>
       
       <button onclick="logoutApp()" class="logout-btn bg-red-50 hover:bg-red-100 text-red-700 font-bold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition-colors border border-red-100">
-        ออกจากระบบ
+        เธญเธญเธเธเธฒเธเธฃเธฐเธเธ
       </button>
     </div>
   </div>
@@ -100,18 +99,18 @@
     <!-- Loading Screen -->
     <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
       <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-linePrimary mb-4"></div>
-      <p class="text-lineDarkGray text-sm font-medium">กำลังตรวจสอบสิทธิ์และโหลดข้อมูลผู้ใช้งาน...</p>
+      <p class="text-lineDarkGray text-sm font-medium">เธเธณเธฅเธฑเธเธ•เธฃเธงเธเธชเธญเธเธชเธดเธ—เธเธดเนเนเธฅเธฐเนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธนเนเนเธเนเธเธฒเธ...</p>
     </div>
 
     <!-- Main System: User Management Dashboard -->
     <div id="user-management-screen" class="hidden">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
         <div class="flex-1">
-          <h2 class="text-base sm:text-lg font-bold text-gray-800">📋 รายชื่อผู้ใช้งาน</h2>
-          <p class="text-xs text-gray-500">จัดการ เพิ่ม ลบ แก้ไข ข้อมูลผู้ใช้งาน</p>
+          <h2 class="text-base sm:text-lg font-bold text-gray-800">๐“ เธฃเธฒเธขเธเธทเนเธญเธเธนเนเนเธเนเธเธฒเธ</h2>
+          <p class="text-xs text-gray-500">เธเธฑเธ”เธเธฒเธฃ เน€เธเธดเนเธก เธฅเธ เนเธเนเนเธ เธเนเธญเธกเธนเธฅเธเธนเนเนเธเนเธเธฒเธ</p>
         </div>
         <button onclick="openForm('add')" id="btn-add-emp" class="perm-hide bg-linePrimary text-white font-bold py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg shadow-sm hover:bg-blue-600 transition text-xs sm:text-sm flex items-center gap-1 whitespace-nowrap">
-          <span>➕</span> <span class="hidden sm:inline">เพิ่มผู้ใช้งาน</span><span class="sm:hidden">เพิ่ม</span>
+          <span>โ•</span> <span class="hidden sm:inline">เน€เธเธดเนเธกเธเธนเนเนเธเนเธเธฒเธ</span><span class="sm:hidden">เน€เธเธดเนเธก</span>
         </button>
       </div>
 
@@ -121,11 +120,11 @@
             <thead class="bg-gray-50 text-gray-700 border-b sticky top-0">
                 <tr>
                     <th class="p-3.5 font-bold">Emp ID</th>
-                    <th class="p-3.5 font-bold">ชื่อ-นามสกุล</th>
-                    <th class="p-3.5 font-bold">ตำแหน่ง</th>
-                    <th class="p-3.5 font-bold">สถานะ</th>
-                    <th class="p-3.5 font-bold">แก้ไขล่าสุดโดย</th>
-                    <th class="p-3.5 font-bold text-center">จัดการ</th>
+                    <th class="p-3.5 font-bold">เธเธทเนเธญ-เธเธฒเธกเธชเธเธธเธฅ</th>
+                    <th class="p-3.5 font-bold">เธ•เธณเนเธซเธเนเธ</th>
+                    <th class="p-3.5 font-bold">เธชเธ–เธฒเธเธฐ</th>
+                    <th class="p-3.5 font-bold">เนเธเนเนเธเธฅเนเธฒเธชเธธเธ”เนเธ”เธข</th>
+                    <th class="p-3.5 font-bold text-center">เธเธฑเธ”เธเธฒเธฃ</th>
                 </tr>
             </thead>
             <tbody id="adminUserListDesktop" class="divide-y divide-gray-100"></tbody>
@@ -143,13 +142,13 @@
   <div id="formModal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 overflow-y-auto">
       <div class="bg-white w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col my-auto">
           <div class="bg-linePrimary p-4 text-white font-bold text-base flex justify-between items-center sticky top-0">
-              <span id="modalTitle">ฟอร์มผู้ใช้งาน</span>
-              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="text-white text-lg font-bold">✕</button>
+              <span id="modalTitle">เธเธญเธฃเนเธกเธเธนเนเนเธเนเธเธฒเธ</span>
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="text-white text-lg font-bold">โ•</button>
           </div>
           <div class="p-4 sm:p-6 space-y-4 text-sm overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
               <input type="hidden" id="formMode">
               <div class="md:col-span-2 text-xs bg-gray-50 p-3 rounded-lg border border-gray-200 text-gray-700 space-y-1">
-                <div class="font-bold text-linePrimary">📌 ข้อมูลผู้บันทึก/แก้ไข (Audit Trail):</div>
+                <div class="font-bold text-linePrimary">๐“ เธเนเธญเธกเธนเธฅเธเธนเนเธเธฑเธเธ—เธถเธ/เนเธเนเนเธ (Audit Trail):</div>
                 <div id="auditInfo" class="font-mono text-xs text-gray-600">--</div>
               </div>
               
@@ -203,39 +202,135 @@
               </div>
           </div>
           <div class="p-3 sm:p-4 border-t flex justify-end gap-2 sm:gap-3 bg-gray-50 sticky bottom-0">
-              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300 text-sm">ยกเลิก</button>
-              <button onclick="saveUser()" class="px-4 sm:px-5 py-2 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600 text-sm">บันทึก</button>
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300 text-sm">เธขเธเน€เธฅเธดเธ</button>
+              <button onclick="saveUser()" class="px-4 sm:px-5 py-2 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600 text-sm">เธเธฑเธเธ—เธถเธ</button>
           </div>
       </div>
   </div>
 
   <script>
-    let lineProfile = null;
+    // ==========================================
+    // SSO & API Configuration
+    // ==========================================
+    const CENTRAL_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec";
+    const SESSION_KEY = 'portalSessionId';
+    
+    let portalSessionId = sessionStorage.getItem(SESSION_KEY);
+    let currentUser = null;
+    let currentPermissions = { read: false, create: false, edit: false, delete: false, approve: false };
+    
     let allUsersData = [];
     let currentActionEmpId = ""; 
-    let currentPermissions = { create: false, edit: false, delete: false };
     
-    // Timer System 60 นาที
+    // Timer System
     let timeoutLimit = 3600; 
     let timeRemaining = timeoutLimit;
     let timerInterval;
 
-    async function initApp() {
+    window.onload = startApplication;
+
+    async function startApplication() {
+      showLoading(true);
+      const params = new URLSearchParams(window.location.search);
+      const launchToken = params.get('launchToken');
+      
+      if (launchToken) {
+        // Exchange Token First
+        await exchangeLaunchToken(launchToken);
+        return;
+      }
+      
+      if (portalSessionId) {
+        await verifySession();
+        return;
+      }
+      
+      showError('ไม่พบสิทธิ์การใช้งาน กรุณาเข้าสู่ระบบผ่าน Portal');
+    }
+
+    async function exchangeLaunchToken(launchToken) {
       try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login();
+        const res = await fetch(CENTRAL_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'exchangeLaunchToken', launchToken: launchToken })
+        });
+        const result = await res.json();
+        
+        if (result.success && result.authorized) {
+          handleAuthSuccess(result);
+          // Remove token from URL for security
+          window.history.replaceState({}, document.title, window.location.pathname);
         } else {
-          lineProfile = await liff.getProfile();
-          document.getElementById('profile-img').src = lineProfile.pictureUrl;
-          document.getElementById('profile-img').classList.remove('hidden');
-          
-          startActivityTracker();
-          await verifyAccess(lineProfile.userId);
+          showError(result.message || 'Token ไม่ถูกต้องหรือหมดอายุ');
         }
       } catch (err) {
-        alert("ไม่สามารถเชื่อมต่อ LINE LIFF ได้");
+        showError('เชื่อมต่อ API ล้มเหลว');
       }
+    }
+
+    async function verifySession() {
+      try {
+        const res = await fetch(CENTRAL_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'verifySession', sessionId: portalSessionId })
+        });
+        const result = await res.json();
+        
+        if (result.success && result.authorized) {
+          handleAuthSuccess(result);
+        } else {
+          sessionStorage.removeItem(SESSION_KEY);
+          showError('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+        }
+      } catch (err) {
+        showError('เชื่อมต่อ API ล้มเหลว');
+      }
+    }
+
+    function handleAuthSuccess(result) {
+      portalSessionId = result.sessionId;
+      sessionStorage.setItem(SESSION_KEY, portalSessionId);
+      
+      currentUser = result.user;
+      currentPermissions = result.permission || { read: false };
+      currentActionEmpId = currentUser.empId || currentUser.userId;
+
+      if (!currentPermissions.read) {
+        showError('Access Denied: คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+        return;
+      }
+
+      showLoading(false);
+      
+      // Update UI
+      document.getElementById('user-name-display').textContent = currentUser.displayName || currentUser.name || '-';
+      document.getElementById('user-role-display').textContent = currentUser.role || '-';
+      if (currentUser.pictureUrl) {
+        const img = document.getElementById('profile-img');
+        img.src = currentUser.pictureUrl;
+        img.classList.remove('hidden');
+      }
+
+      applyPermissions();
+      startActivityTracker();
+      loadUsers();
+    }
+
+    function showLoading(isLoading) {
+      const screen = document.getElementById('loading-screen');
+      const main = document.getElementById('user-management-screen');
+      if (isLoading) {
+        screen.classList.remove('hidden');
+        main.classList.add('hidden');
+      } else {
+        screen.classList.add('hidden');
+        main.classList.remove('hidden');
+      }
+    }
+
+    function showError(msg) {
+      alert(msg);
+      window.location.href = "index.html";
     }
 
     function startActivityTracker() {
@@ -247,7 +342,7 @@
         let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
         let s = (timeRemaining % 60).toString().padStart(2, '0');
         
-        let timeStr = `${m}:${s}`;
+        let timeStr = ${m}:;
         const timerDesktop = document.getElementById('timer-display');
         const timerMobile = document.getElementById('timer-display-mobile');
         
@@ -256,47 +351,15 @@
         
         if (timeRemaining <= 0) {
           clearInterval(timerInterval);
-          alert("หมดเวลาการเชื่อมต่อ กรุณาเข้าสู่ระบบใหม่");
+          alert("หมดเวลาการเชื่อมต่อ");
           logoutApp();
         }
       }, 1000);
     }
 
-    async function verifyAccess(userId) {
-      try {
-        const res = await fetch(CENTRAL_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'verifyAccess', userId: userId, menuId: CURRENT_MENU_ID })
-        });
-        const data = await res.json();
-        
-        document.getElementById('loading-screen').classList.add('hidden');
-
-        if (!data.allowed) {
-          alert('Access Denied: คุณไม่มีสิทธิ์เข้าใช้งานระบบจัดการผู้ใช้งาน');
-          liff.closeWindow();
-          return;
-        }
-
-        document.getElementById('user-management-screen').classList.remove('hidden');
-        document.getElementById('menu-title').textContent = data.menuName;
-        document.getElementById('user-name-display').textContent = lineProfile.displayName;
-        document.getElementById('user-role-display').textContent = data.jobPosition;
-        
-        currentActionEmpId = data.empId; 
-        currentPermissions = data.permissions;
-
-        applyPermissions(currentPermissions);
-        await loadUsers();
-
-      } catch (error) { 
-        alert("เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์"); 
-      }
-    }
-
-    function applyPermissions(perms) {
+    function applyPermissions() {
       const btnAdd = document.getElementById('btn-add-emp');
-      if (perms.create) {
+      if (currentPermissions.create) {
         if (btnAdd) btnAdd.classList.remove('perm-hide');
       } else {
         if (btnAdd) btnAdd.classList.add('perm-hide');
@@ -304,18 +367,24 @@
     }
 
     async function loadUsers() {
-      const loadingMsg = '<tr><td colspan="6" class="text-center p-6 text-gray-400">กำลังโหลด...</td></tr>';
       const desktopList = document.getElementById('adminUserListDesktop');
-      if (desktopList) desktopList.innerHTML = loadingMsg;
+      if (desktopList) desktopList.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-gray-400">กำลังโหลด...</td></tr>';
       
-      const res = await fetch(CENTRAL_API_URL, {
-          method: 'POST', body: JSON.stringify({ action: 'getUsers' })
-      });
-      const result = await res.json();
-      allUsersData = result.data;
-      
-      renderDesktopTable();
-      renderMobileCards();
+      try {
+        const res = await fetch(CENTRAL_API_URL, {
+            method: 'POST', body: JSON.stringify({ action: 'getUsers', sessionId: portalSessionId })
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+          allUsersData = result.data;
+          renderDesktopTable();
+          renderMobileCards();
+        } else {
+          alert('ไม่สามารถโหลดข้อมูลได้');
+        }
+      } catch(err) {
+        alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+      }
     }
 
     function renderDesktopTable() {
@@ -329,20 +398,20 @@
           let editClass = currentPermissions.edit ? '' : 'perm-hide';
           let deleteClass = currentPermissions.delete ? '' : 'perm-hide';
 
-          html += `
+          html += 
           <tr class="hover:bg-gray-50 transition">
-              <td class="p-3.5 font-bold text-linePrimary">${u.Emp_ID || '-'}</td>
-              <td class="p-3.5">${u.Emp_Name || '-'}</td>
-              <td class="p-3.5"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">${u.Job_Position || '-'}</span></td>
-              <td class="p-3.5">${statusBadge}</td>
-              <td class="p-3.5 text-xs text-gray-500"><div>${lastUpdate}</div><div>By: ${u.updateEmpId || '-'}</div></td>
+              <td class="p-3.5 font-bold text-linePrimary"></td>
+              <td class="p-3.5"></td>
+              <td class="p-3.5"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold"></span></td>
+              <td class="p-3.5"></td>
+              <td class="p-3.5 text-xs text-gray-500"><div></div><div>By: </div></td>
               <td class="p-3.5 text-center">
                 <div class="inline-flex space-x-2">
-                  <button onclick="openForm('edit', '${u.Emp_ID}')" class="${editClass} bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">แก้ไข</button>
-                  <button onclick="deleteUser('${u.Emp_ID}')" class="${deleteClass} bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">ลบ</button>
+                  <button onclick="openForm('edit', '')" class=" bg-lineWarning text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">แก้ไข</button>
+                  <button onclick="deleteUser('')" class=" bg-lineDanger text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">ลบ</button>
                 </div>
               </td>
-          </tr>`;
+          </tr>;
       });
       const desktopList = document.getElementById('adminUserListDesktop');
       if (desktopList) desktopList.innerHTML = html || '<tr><td colspan="6" class="text-center p-6 text-gray-400">ไม่มีข้อมูลผู้ใช้งาน</td></tr>';
@@ -359,44 +428,44 @@
           let editClass = currentPermissions.edit ? '' : 'perm-hide';
           let deleteClass = currentPermissions.delete ? '' : 'perm-hide';
 
-          html += `
+          html += 
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition">
               <div class="flex justify-between items-start mb-2">
                   <div>
                       <p class="text-xs text-gray-500">Emp ID</p>
-                      <p class="font-bold text-linePrimary text-base">${u.Emp_ID || '-'}</p>
+                      <p class="font-bold text-linePrimary text-base"></p>
                   </div>
                   <div class="text-right">
                       <p class="text-xs text-gray-500">สถานะ</p>
-                      ${statusBadge}
+                      
                   </div>
               </div>
               
               <div class="mb-2">
                   <p class="text-xs text-gray-500">ชื่อ-นามสกุล</p>
-                  <p class="font-bold text-gray-800">${u.Emp_Name || '-'}</p>
+                  <p class="font-bold text-gray-800"></p>
               </div>
               
               <div class="mb-2">
                   <p class="text-xs text-gray-500">ตำแหน่ง</p>
-                  <p class="text-sm bg-blue-50 text-blue-700 px-2 py-0.5 rounded inline-block font-bold">${u.Job_Position || '-'}</p>
+                  <p class="text-sm bg-blue-50 text-blue-700 px-2 py-0.5 rounded inline-block font-bold"></p>
               </div>
               
               <div class="mb-3 pb-3 border-b border-gray-200">
                   <p class="text-xs text-gray-500">แก้ไขล่าสุดโดย</p>
-                  <p class="text-xs text-gray-600">${updateDate}</p>
-                  <p class="text-xs text-gray-600">By: ${u.updateEmpId || '-'}</p>
+                  <p class="text-xs text-gray-600"></p>
+                  <p class="text-xs text-gray-600">By: </p>
               </div>
               
               <div class="flex gap-2 w-full">
-                  <button onclick="openForm('edit', '${u.Emp_ID}')" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
+                  <button onclick="openForm('edit', '')" class=" flex-1 bg-lineWarning text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
                     ✏️ แก้ไข
                   </button>
-                  <button onclick="deleteUser('${u.Emp_ID}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
+                  <button onclick="deleteUser('')" class=" flex-1 bg-lineDanger text-white px-2 py-2 rounded-lg text-xs font-bold hover:opacity-80 shadow-sm transition">
                     🗑️ ลบ
                   </button>
               </div>
-          </div>`;
+          </div>;
       });
       
       const mobileList = document.getElementById('adminUserListMobile');
@@ -416,7 +485,7 @@
             if (el) el.value = '';
           });
           document.getElementById('v_Emp_ID').readOnly = false;
-          document.getElementById('auditInfo').innerHTML = `สร้างรายการใหม่โดย Admin ID: <b>${currentActionEmpId}</b>`;
+          document.getElementById('auditInfo').innerHTML = สร้างรายการใหม่โดย Admin: <b></b>;
       } else {
           const user = allUsersData.find(u => String(u.Emp_ID) === String(empId));
           fields.forEach(f => {
@@ -430,10 +499,10 @@
           
           let createDate = user.createDate ? new Date(user.createDate).toLocaleString('th-TH') : '-';
           let updateDate = user.updateDate ? new Date(user.updateDate).toLocaleString('th-TH') : '-';
-          document.getElementById('auditInfo').innerHTML = `
-            <div>• <b>สร้างโดย:</b> ${user.createEmpId || '-'} (${createDate})</div>
-            <div>• <b>แก้ไขล่าสุดโดย:</b> ${user.updateEmpId || '-'} (${updateDate})</div>
-          `;
+          document.getElementById('auditInfo').innerHTML = 
+            <div>• <b>สร้างโดย:</b>  ()</div>
+            <div>• <b>แก้ไขล่าสุดโดย:</b>  ()</div>
+          ;
       }
     }
 
@@ -447,6 +516,7 @@
 
       const payload = {
           action: 'manageUser',
+          sessionId: portalSessionId,
           mode: document.getElementById('formMode').value,
           actionByEmpId: currentActionEmpId,
           user: {
@@ -465,28 +535,36 @@
       };
       
       document.getElementById('modalTitle').textContent = 'กำลังบันทึกข้อมูล...';
-      const res = await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify(payload) });
-      const result = await res.json();
-      
-      if (result.status === 'success') {
-        document.getElementById('formModal').classList.add('hidden');
-        loadUsers();
-      } else {
-        alert(result.message || "เกิดข้อผิดพลาดในการบันทึก");
-        document.getElementById('modalTitle').textContent = 'ฟอร์มผู้ใช้งาน';
+      try {
+        const res = await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const result = await res.json();
+        
+        if (result.status === 'success') {
+          document.getElementById('formModal').classList.add('hidden');
+          loadUsers();
+        } else {
+          alert(result.message || "เกิดข้อผิดพลาดในการบันทึก");
+          document.getElementById('modalTitle').textContent = document.getElementById('formMode').value === 'add' ? '➕ เพิ่มผู้ใช้งานใหม่' : '✏️ แก้ไขข้อมูลผู้ใช้งาน';
+        }
+      } catch(e) {
+        alert('เชื่อมต่อ API ล้มเหลว');
       }
     }
 
     async function deleteUser(empId) {
       if(!confirm("คุณต้องการลบผู้ใช้งานรหัส " + empId + " นี้ออกจากระบบอย่างถาวรหรือไม่?")) return;
-      const res = await fetch(CENTRAL_API_URL, {
-          method: 'POST', body: JSON.stringify({ action: 'manageUser', mode: 'delete', user: { Emp_ID: empId } })
-      });
-      const result = await res.json();
-      if(result.status === 'success') {
-        loadUsers();
-      } else {
-        alert(result.message);
+      try {
+        const res = await fetch(CENTRAL_API_URL, {
+            method: 'POST', body: JSON.stringify({ action: 'manageUser', sessionId: portalSessionId, mode: 'delete', user: { Emp_ID: empId } })
+        });
+        const result = await res.json();
+        if(result.status === 'success') {
+          loadUsers();
+        } else {
+          alert(result.message);
+        }
+      } catch(e) {
+        alert('เชื่อมต่อ API ล้มเหลว');
       }
     }
 
@@ -494,14 +572,13 @@
       window.location.href = "index.html";
     }
 
-    function logoutApp() {
-      if (liff.isLoggedIn()) { 
-        liff.logout(); 
-        window.location.reload(); 
+    async function logoutApp() {
+      if(portalSessionId) {
+        await fetch(CENTRAL_API_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', sessionId: portalSessionId }) });
       }
+      sessionStorage.removeItem(SESSION_KEY);
+      window.location.href = "index.html";
     }
-
-    window.onload = initApp;
-  </script>
+</script>
 </body>
 </html>
