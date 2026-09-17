@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
@@ -188,13 +188,14 @@
           </div>
           <div class="p-3 sm:p-4 border-t flex justify-end gap-2 sm:gap-3 bg-gray-50 sticky bottom-0">
               <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300 text-sm">เธขเธเน€เธฅเธดเธ</button>
-              <button onclick="saveData()" class="px-4 sm:px-5 py-2 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600 text-sm">เธเธฑเธเธ—เธถเธ</button>
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300 text-sm">ยกเลิก</button>
+              <button onclick="saveData()" class="px-4 sm:px-5 py-2 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600 text-sm">บันทึก</button>
           </div>
       </div>
   </div>
 
   <script>
-        let portalSessionId = sessionStorage.getItem(SESSION_KEY);
+    let portalSessionId = sessionStorage.getItem(SESSION_KEY);
     let currentUser = null;
     let currentPermissions = { read: false, create: false, edit: false, delete: false, approve: false };
     
