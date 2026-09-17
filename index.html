@@ -1340,15 +1340,29 @@ async function initApp() {
       console.log("Using cached session and optimistically loading UI...");
       currentSessionId = savedSession;
       try {
-        currentUser = JSON.parse(savedUserJson);
-        if (savedProfileJson) {
-          currentLineProfile = JSON.parse(savedProfileJson);
+        const parsedUser = JSON.parse(savedUserJson);
+        // ตรวจว่าเป็น object จริง ไม่ใช่ null หรือ primitive
+        if (parsedUser && typeof parsedUser === 'object') {
+          currentUser = parsedUser;
+        } else {
+          throw new Error("Invalid cached user");
         }
-        
-        await loadMenu(true); // pass true for cached load
+
+        if (savedProfileJson && savedProfileJson !== 'undefined' && savedProfileJson !== 'null') {
+          try {
+            const parsedProfile = JSON.parse(savedProfileJson);
+            if (parsedProfile && typeof parsedProfile === 'object') {
+              currentLineProfile = parsedProfile;
+            }
+          } catch (profileErr) {
+            sessionStorage.removeItem('CURRENT_PROFILE');
+          }
+        }
+
+        await loadMenu(true);
         startActivityTracker();
-        
-        // Verify in background
+
+        // Verify ในเบื้องหลัง ไม่ block UI
         verifyPortalSession(savedSession).then(result => {
           if (!result || result.status !== "success") {
             handleSessionExpired();
@@ -1356,7 +1370,14 @@ async function initApp() {
         });
         return;
       } catch (e) {
-        console.warn("Error parsing cached session:", e);
+        console.warn("Error parsing cached session, clearing cache:", e);
+        // ล้าง cache ที่เสียออก แล้วไปเส้นทาง login ปกติ
+        sessionStorage.removeItem('CURRENT_USER');
+        sessionStorage.removeItem('CURRENT_PROFILE');
+        sessionStorage.removeItem('CURRENT_MENU');
+        sessionStorage.removeItem(SESSION_STORAGE_KEY);
+        currentSessionId = null;
+        currentUser = null;
       }
     }
 
@@ -1637,8 +1658,12 @@ async function checkUser(
 
     currentUser = result.user || null;
     sessionStorage.setItem(SESSION_STORAGE_KEY, currentSessionId);
-    if (currentUser) sessionStorage.setItem('CURRENT_USER', JSON.stringify(currentUser));
-    if (currentLineProfile) sessionStorage.setItem('CURRENT_PROFILE', JSON.stringify(currentLineProfile));
+    if (currentUser && typeof currentUser === 'object') {
+      sessionStorage.setItem('CURRENT_USER', JSON.stringify(currentUser));
+    }
+    if (currentLineProfile && typeof currentLineProfile === 'object') {
+      sessionStorage.setItem('CURRENT_PROFILE', JSON.stringify(currentLineProfile));
+    }
 
 
     await loadMenu();
