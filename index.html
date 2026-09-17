@@ -13,6 +13,11 @@ content="width=device-width, initial-scale=1.0"
 
   <title>Patient Care Portal</title>
 
+  <!-- Google Fonts: Kanit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <!-- LINE LIFF SDK -->
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -73,13 +78,7 @@ content="width=device-width, initial-scale=1.0"
 
     body {
       margin: 0;
-
-      font-family:
-        "Noto Sans Thai",
-        "Noto Sans",
-        Arial,
-        sans-serif;
-
+      font-family: 'Kanit', Arial, sans-serif;
       background: #f4f8f5;
       color: var(--gray-900);
 
@@ -670,7 +669,7 @@ content="width=device-width, initial-scale=1.0"
        ===================================================== */
 
     .menu-card {
-      min-height: 120px;
+      min-height: 80px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -678,10 +677,9 @@ content="width=device-width, initial-scale=1.0"
       background: white;
       border: 1px solid var(--gray-200);
       border-radius: var(--radius-md);
-      padding: 24px 10px 16px 10px;
-      gap: 12px;
-
+      padding: 16px;
       text-align: center;
+      position: relative;
 
       text-decoration: none;
 
@@ -736,28 +734,10 @@ content="width=device-width, initial-scale=1.0"
         0 2px 8px rgba(20, 83, 45, .035);
     }
 
-    .menu-icon-box {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: #e6f6f0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--sage-700);
-      position: relative;
-    }
-
-    .menu-icon-box svg {
-      width: 24px;
-      height: 24px;
-      stroke-width: 1.5;
-    }
-
     .menu-badge {
       position: absolute;
-      top: -10px;
-      right: -28px;
+      top: -8px;
+      right: 8px;
       background: white;
       color: var(--sage-700);
       font-size: 9px;
@@ -804,38 +784,6 @@ content="width=device-width, initial-scale=1.0"
 
 
     /* =====================================================
-       SESSION BAR
-       ===================================================== */
-
-    .session-bar {
-      position: fixed;
-
-      bottom: 0;
-
-      left: 0;
-      right: 0;
-
-      background:
-        rgba(255, 255, 255, .96);
-
-      backdrop-filter: blur(8px);
-
-      border-top:
-        1px solid var(--gray-200);
-
-      padding:
-        7px 16px;
-
-      font-size: 12px;
-
-      color: var(--gray-500);
-
-      text-align: center;
-
-      z-index: 200;
-    }
-
-
     /* =====================================================
        TABLET
        ===================================================== */
@@ -967,19 +915,11 @@ content="width=device-width, initial-scale=1.0"
         text-align: center;
         gap: 8px;
       }
-      .menu-icon-box {
-        width: 40px;
-        height: 40px;
-      }
-      .menu-icon-box svg {
-        width: 20px;
-        height: 20px;
-      }
       .menu-badge {
         font-size: 8px;
         padding: 1px 4px;
-        top: -8px;
-        right: -20px;
+        top: -6px;
+        right: 6px;
       }
 
       .menu-name {
@@ -1234,12 +1174,8 @@ content="width=device-width, initial-scale=1.0"
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
     </div>
     <div class="brand-text">
-      <div class="brand" style="display:flex; align-items:center; gap:8px;">
+      <div class="brand" style="display:flex; align-items:center;">
         Patient Care Portal
-        <span style="background:#e6f6f0; color:var(--sage-700); padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; letter-spacing:0.2px;">ศูนย์รวมระบบบริบาล</span>
-      </div>
-      <div class="brand-subtitle" style="color:var(--gray-500); font-size:12px; margin-top:2px;">
-        ระบบศูนย์กลางสำหรับเข้าใช้งานระบบดูแลผู้ป่วย
       </div>
     </div>
   </div>
@@ -1281,14 +1217,7 @@ content="width=device-width, initial-scale=1.0"
 
   </div>
 
-  <!-- =====================================================
-       SESSION BAR
-       ===================================================== -->
 
-  <div
-    id="sessionBar"
-    class="session-bar hidden"
-  ></div>
 
 <script>
 
@@ -2384,22 +2313,17 @@ function renderDashboard(
               const menuNameText = menu.menuName || "ระบบ";
               const visuals = getMenuCardVisuals(menuNameText);
 
-              const iconBox = document.createElement("div");
-              iconBox.className = "menu-icon-box";
-              iconBox.innerHTML = visuals.icon;
-
               if (visuals.badge) {
                 const badgeEl = document.createElement("div");
                 badgeEl.className = "menu-badge";
                 badgeEl.textContent = visuals.badge;
-                iconBox.appendChild(badgeEl);
+                link.appendChild(badgeEl);
               }
 
               const name = document.createElement("div");
               name.className = "menu-name";
               name.textContent = menuNameText;
 
-              link.appendChild(iconBox);
               link.appendChild(name);
 
 
@@ -3265,23 +3189,7 @@ function updateSessionBar() {
   }
 
 
-  /*
-   * Bottom Session Bar
-   */
 
-  const bar =
-    document.getElementById(
-      "sessionBar"
-    );
-
-
-  if (bar) {
-
-    bar.textContent =
-      "Session เหลือประมาณ " +
-      text;
-
-  }
 
 }
 
