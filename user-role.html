@@ -6,7 +6,6 @@
   <title>Permission & Menu Management</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
   <!-- LINE Template Colors -->
   <script>
@@ -42,11 +41,12 @@
   <script>
     const AUTH_API_URL = "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22cE9ph1eYPscyrxdw29T44DaUT9/exec";
     const RESOURCE_API_URL = "https://script.google.com/macros/s/AKfycbwT92lC6xrr0MuDUNdjJKjL_jvkMZb7AjbOmA81uWKONXOf9dG2U-_6Y8qqW8bGsvoY/exec";
-    const SESSION_KEY = "portalSessionId";
+    const SESSION_KEY = 'portalSessionId';
     const CURRENT_MENU_ID = "902";
   </script>
 
-    <div class="topbar sticky top-0 z-50 bg-white border-b border-gray-200 min-h-[76px] px-6 py-2.5 flex justify-between items-center max-sm:min-h-[72px] max-sm:px-3 max-sm:gap-2 max-[390px]:justify-end">
+  <!-- Topbar -->
+  <div class="topbar sticky top-0 z-50 bg-white border-b border-gray-200 min-h-[76px] px-6 py-2.5 flex justify-between items-center max-sm:min-h-[72px] max-sm:px-3 max-sm:gap-2 max-[390px]:justify-end">
     <!-- BRAND -->
     <div class="brand-area flex items-center gap-3 max-sm:gap-2 max-[390px]:hidden">
       <div class="brand-logo w-11 h-11 flex-none rounded-[13px] bg-gradient-to-br from-green-800 to-green-600 text-white flex items-center justify-center max-sm:w-[38px] max-sm:h-[38px] max-sm:basis-[38px] max-sm:rounded-[11px]">
@@ -64,7 +64,7 @@
       <img id="profile-img" class="line-avatar hidden w-12 h-12 rounded-full object-cover border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-sm:w-[42px] max-sm:h-[42px]" src="" alt="Profile">
 
       <div class="user-detail flex flex-col items-end justify-center leading-tight max-sm:min-w-0">
-        <div id="user-name-display" class="user-name text-[14px] font-bold text-gray-900 max-sm:text-[13px] max-[390px]:max-w-[85px] max-[390px]:truncate">เธเธณเธฅเธฑเธเธ•เธฃเธงเธเธชเธญเธ...</div>
+        <div id="user-name-display" class="user-name text-[14px] font-bold text-gray-900 max-sm:text-[13px] max-[390px]:max-w-[85px] max-[390px]:truncate">กำลังตรวจสอบ...</div>
         <div class="flex items-center gap-[6px] mt-1">
           <div id="user-role-display" class="user-role text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-[10px]">-</div>
           <span class="session-dot w-[6px] h-[6px] rounded-full bg-green-500 shadow-[0_0_0_2px_rgba(34,197,94,0.13)]"></span>
@@ -75,14 +75,23 @@
       </div>
 
       <!-- BACK TO PORTAL -->
+      <button onclick="goToHome()" class="bg-transparent border-none p-1 cursor-pointer hover:bg-gray-100 rounded-full transition-colors ml-1" title="กลับหน้า Portal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M15 19l-7-7 7-7"></path></svg>
+      </button>
 
+      <!-- LOGOUT -->
+      <button onclick="logoutApp()" class="bg-transparent border-none p-1 cursor-pointer hover:bg-gray-100 rounded-full transition-colors ml-1" title="ออกจากระบบ">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      </button>
+    </div>
+  </div>
 
   <main class="max-w-7xl mx-auto p-3 sm:p-4 flex-grow w-full">
     
     <!-- Loading Screen -->
     <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
       <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-linePrimary mb-4"></div>
-      <p class="text-lineDarkGray text-sm font-medium">เธเธณเธฅเธฑเธเธ•เธฃเธงเธเธชเธญเธเธชเธดเธ—เธเธดเนเนเธฅเธฐเนเธซเธฅเธ”เธเนเธญเธกเธนเธฅ...</p>
+      <p class="text-lineDarkGray text-sm font-medium">กำลังตรวจสอบสิทธิ์และโหลดข้อมูล...</p>
     </div>
 
     <!-- Main System Area -->
@@ -90,17 +99,17 @@
       
       <!-- Tabs (Mobile-friendly) -->
       <div class="flex border-b border-gray-200 mb-4 overflow-x-auto">
-        <button onclick="switchTab('menu')" id="tab-menu" class="tab-active px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base">๐“ เน€เธกเธเธน</button>
-        <button onclick="switchTab('role')" id="tab-role" class="tab-inactive px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base">๐” เธชเธดเธ—เธเธดเน</button>
+        <button onclick="switchTab('menu')" id="tab-menu" class="tab-active px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base">📋 เมนู</button>
+        <button onclick="switchTab('role')" id="tab-role" class="tab-inactive px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base">🔐 สิทธิ์</button>
       </div>
 
       <!-- Action Bar -->
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
         <div class="flex-1">
-          <h2 id="section-title" class="text-base sm:text-lg font-bold text-gray-800">๐“ เธฃเธฒเธขเธเธฒเธฃเน€เธกเธเธนเธฃเธฐเธเธ</h2>
+          <h2 id="section-title" class="text-base sm:text-lg font-bold text-gray-800">📋 รายการเมนูระบบ</h2>
         </div>
-        <button onclick="openForm('add', currentTab)" id="btn-add" class="perm-hide bg-linePrimary text-white font-bold py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg shadow-sm hover:bg-blue-600 transition text-xs sm:text-sm flex items-center gap-1 whitespace-nowrap">
-          <span>โ•</span> <span class="hidden sm:inline">เน€เธเธดเนเธกเธเนเธญเธกเธนเธฅ</span><span class="sm:hidden">เน€เธเธดเนเธก</span>
+        <button onclick="openForm('add')" id="btn-add" class="perm-hide bg-linePrimary text-white font-bold py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg shadow-sm hover:bg-blue-600 transition text-xs sm:text-sm flex items-center gap-1 whitespace-nowrap">
+          <span>➕</span> <span class="hidden sm:inline">เพิ่มข้อมูล</span><span class="sm:hidden">เพิ่ม</span>
         </button>
       </div>
 
@@ -111,12 +120,12 @@
         <table id="table-menu" class="w-full text-left text-sm text-gray-600 hidden">
             <thead class="bg-gray-50 text-gray-700 border-b sticky top-0">
                 <tr>
-                    <th class="p-3.5 font-bold w-12">โ•</th>
+                    <th class="p-3.5 font-bold w-12">➕</th>
                     <th class="p-3.5 font-bold">Group / MenuGroup</th>
                     <th class="p-3.5 font-bold">Menu ID</th>
                     <th class="p-3.5 font-bold">Menu Name</th>
                     <th class="p-3.5 font-bold">Audit Trail</th>
-                    <th class="p-3.5 font-bold text-center">เธเธฑเธ”เธเธฒเธฃ</th>
+                    <th class="p-3.5 font-bold text-center">จัดการ</th>
                 </tr>
             </thead>
             <tbody id="tbody-menu" class="divide-y divide-gray-100"></tbody>
@@ -126,13 +135,13 @@
         <table id="table-role" class="w-full text-left text-sm text-gray-600 hidden">
           <thead class="bg-gray-50 text-gray-700 border-b sticky top-0">
               <tr>
-                  <th class="p-3.5 font-bold w-12">โ•</th>
+                  <th class="p-3.5 font-bold w-12">➕</th>
                   <th class="p-3.5 font-bold">Job Position</th>
                   <th class="p-3.5 font-bold">Menu ID</th>
                   <th class="p-3.5 font-bold">Menu Name</th>
-                  <th class="p-3.5 font-bold">เธชเธดเธ—เธเธดเน (R/C/E/D/A)</th>
+                  <th class="p-3.5 font-bold">สิทธิ์ (R/C/E/D/A)</th>
                   <th class="p-3.5 font-bold">Audit Trail</th>
-                  <th class="p-3.5 font-bold text-center">เธเธฑเธ”เธเธฒเธฃ</th>
+                  <th class="p-3.5 font-bold text-center">จัดการ</th>
               </tr>
           </thead>
           <tbody id="tbody-role" class="divide-y divide-gray-100"></tbody>
@@ -150,15 +159,15 @@
   <div id="formModal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 overflow-y-auto">
       <div class="bg-white w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col my-auto">
           <div class="bg-linePrimary p-4 text-white font-bold text-base flex justify-between items-center sticky top-0">
-              <span id="modalTitle">เธเธญเธฃเนเธกเธเธฑเธ”เธเธฒเธฃเธเนเธญเธกเธนเธฅ</span>
-              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="text-white text-lg font-bold">โ•</button>
+              <span id="modalTitle">ฟอร์มจัดการข้อมูล</span>
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="text-white text-lg font-bold">✕</button>
           </div>
           <div class="p-4 sm:p-6 space-y-4 text-sm overflow-y-auto flex-1">
               <input type="hidden" id="formMode">
               
               <!-- Audit Trail Info -->
               <div class="text-xs bg-gray-50 p-3 rounded-lg border border-gray-200 text-gray-700 space-y-1 mb-4">
-                <div class="font-bold text-linePrimary">๐“ เธเนเธญเธกเธนเธฅเธเธนเนเธเธฑเธเธ—เธถเธ/เนเธเนเนเธ (Audit Trail):</div>
+                <div class="font-bold text-linePrimary">📌 ข้อมูลผู้บันทึก/แก้ไข (Audit Trail):</div>
                 <div id="auditInfo" class="font-mono text-xs text-gray-600">--</div>
               </div>
               
@@ -187,7 +196,6 @@
 
           </div>
           <div class="p-3 sm:p-4 border-t flex justify-end gap-2 sm:gap-3 bg-gray-50 sticky bottom-0">
-              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300 text-sm">เธขเธเน€เธฅเธดเธ</button>
               <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300 text-sm">ยกเลิก</button>
               <button onclick="saveData()" class="px-4 sm:px-5 py-2 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600 text-sm">บันทึก</button>
           </div>
@@ -202,7 +210,7 @@
     let allMenus = [];
     let allRoles = [];
     let currentTab = 'menu';
-    let currentActionEmpId = '';
+    let currentActionEmpId = ""; 
     
     let timeoutLimit = 3600; 
     let timeRemaining = timeoutLimit;
@@ -303,25 +311,25 @@
       document.getElementById('loading-screen').classList.add('hidden');
       document.getElementById('management-screen').classList.remove('hidden');
       
-      if(document.getElementById('user-name-display')) document.getElementById('user-name-display').textContent = currentUser.displayName || currentUser.name || currentUser.userId;
+      if(document.getElementById('user-name-display')) document.getElementById('user-name-display').textContent = currentUser.displayName || currentUser.name || currentUser.userId || currentUser.Emp_ID;
       if(document.getElementById('user-role-display')) document.getElementById('user-role-display').textContent = currentUser.Job_Position || currentUser.role || 'User';
 
       startActivityTracker();
       applyPermissions();
       loadAllData();
     }
-    
-    function goToHome() {
-       window.location.href = 'index.html';
-    }
-    
-    function logoutApp() {
-      try {
-        fetch(AUTH_API_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', sessionId: portalSessionId }) });
-      } catch(e) {}
-      sessionStorage.removeItem(SESSION_KEY);
-      sessionStorage.removeItem('PORTAL_PERMISSIONS_ROLE');
-      goToHome();
+
+    function startActivityTracker() {
+      const resetTimer = () => { timeRemaining = timeoutLimit; };
+      ['mousemove', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => window.addEventListener(evt, resetTimer, { passive: true }));
+
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+        let s = (timeRemaining % 60).toString().padStart(2, '0');
+        document.getElementById('timer-display').textContent = `${m}:${s}`;
+        if (timeRemaining <= 0) { clearInterval(timerInterval); alert("หมดเวลาการเชื่อมต่อ กรุณาเข้าสู่ระบบใหม่"); logoutApp(); }
+      }, 1000);
     }
 
     function applyPermissions() {
@@ -338,10 +346,7 @@
       if(result.status === 'success'){
         allMenus = result.menus;
         allRoles = result.roles;
-
-        // เน€เธเธดเนเธกเธเธฒเธฃเน€เธฃเธตเธขเธเธฅเธณเธ”เธฑเธ (Sort) allRoles เธ•เธฒเธก menuId เธเธฒเธเธเนเธญเธขเนเธเธซเธฒเธกเธฒเธ
         allRoles.sort((a, b) => String(a.menuId).localeCompare(String(b.menuId), undefined, { numeric: true }));
-
         renderData();
       }
     }
@@ -351,7 +356,7 @@
       document.getElementById('tab-menu').className = tabName === 'menu' ? 'tab-active px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base' : 'tab-inactive px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base';
       document.getElementById('tab-role').className = tabName === 'role' ? 'tab-active px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base' : 'tab-inactive px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base';
       
-      document.getElementById('section-title').innerHTML = tabName === 'menu' ? '๐“ เธฃเธฒเธขเธเธฒเธฃเน€เธกเธเธนเธฃเธฐเธเธ' : '๐” เธชเธดเธ—เธเธดเนเธเธฒเธฃเนเธเนเธเธฒเธเธ•เธฒเธกเธ•เธณเนเธซเธเนเธ';
+      document.getElementById('section-title').innerHTML = tabName === 'menu' ? '📋 รายการเมนูระบบ' : '🔐 สิทธิ์การใช้งานตามตำแหน่ง';
       
       renderData();
     }
@@ -366,7 +371,7 @@
       if (groupEl) {
         groupEl.classList.toggle('hidden');
         document.getElementById(`toggle-menu-${groupKey}`).textContent = 
-          groupEl.classList.contains('hidden') ? 'โ–ถ' : 'โ–ผ';
+          groupEl.classList.contains('hidden') ? '▶' : '▼';
       }
     }
 
@@ -375,7 +380,7 @@
       if (groupEl) {
         groupEl.classList.toggle('hidden');
         document.getElementById(`toggle-role-${jobPos}`).textContent = 
-          groupEl.classList.contains('hidden') ? 'โ–ถ' : 'โ–ผ';
+          groupEl.classList.contains('hidden') ? '▶' : '▼';
       }
     }
 
@@ -397,7 +402,7 @@
     }
 
     function renderMenuDesktop(editClass, deleteClass) {
-      // เธเธฑเธ”เธเธฅเธธเนเธกเธ•เธฒเธกเธซเธเนเธงเธขเธกเธฑเธ’เธเธฒ (Group)
+      // จัดกลุ่มตามหน่วยมัฒนา (Group)
       const groupedMenus = {};
       allMenus.forEach(m => {
         if (!groupedMenus[m.group]) groupedMenus[m.group] = [];
@@ -405,18 +410,13 @@
       });
 
       let html = '';
-        Object.keys(groupedMenus).forEach(group => {
+      Object.keys(groupedMenus).forEach(group => {
         const items = groupedMenus[group];
-        
-        // เธ”เธถเธเธเธทเนเธญ MenuGroup เธเธฒเธเธฃเธฒเธขเธเธฒเธฃเนเธฃเธเธเธญเธเธเธฅเธธเนเธก (เธ–เนเธฒเธกเธต)
-        const menuGroupName = items[0].menuGroup ? items[0].menuGroup : '';
-        const displayGroupTitle = menuGroupName ? `${group} : ${menuGroupName}` : group;
-
         html += `
         <tr class="group-row group-row-expand" onclick="toggleGroupMenu('${group}')">
-            <td class="p-3.5"><span id="toggle-menu-${group}" class="font-bold">โ–ผ</span></td>
+            <td class="p-3.5"><span id="toggle-menu-${group}" class="font-bold">▼</span></td>
             <td class="p-3.5 font-bold text-linePrimary" colspan="5">
-              ๐“ ${displayGroupTitle}
+              📁 ${group}
               <span class="text-xs text-gray-500 ml-2">(${items.length} items)</span>
             </td>
         </tr>`;
@@ -430,15 +430,15 @@
               <td class="p-3.5 font-bold text-sm">${m.menuId}</td>
               <td class="p-3.5">${m.menuName}</td>
               <td class="p-3.5 text-xs text-gray-500">
-                <div>เธชเธฃเนเธฒเธ: ${m.createEmpId || '-'}</div>
+                <div>สร้าง: ${m.createEmpId || '-'}</div>
                 <div class="text-[10px]">${formatDateTime(m.createDate)}</div>
-                <div class="mt-1">เนเธเนเนเธ: ${m.updateEmpId || '-'}</div>
+                <div class="mt-1">แก้ไข: ${m.updateEmpId || '-'}</div>
                 <div class="text-[10px]">${formatDateTime(m.updateDate)}</div>
               </td>
               <td class="p-3.5 text-center">
                 <div class="inline-flex space-x-1.5">
-                  <button onclick="openForm('edit', 'menu', '${m.group}', '${m.menuId}')" class="${editClass} bg-lineWarning text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">เนเธเนเนเธ</button>
-                  <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} bg-lineDanger text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">เธฅเธ</button>
+                  <button onclick="openForm('edit', 'menu', '${m.group}', '${m.menuId}')" class="${editClass} bg-lineWarning text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
+                  <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} bg-lineDanger text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">ลบ</button>
                 </div>
               </td>
           </tr>`;
@@ -446,7 +446,7 @@
         html += `</tbody></tr>`;
       });
 
-      document.getElementById('tbody-menu').innerHTML = html || '<tr><td colspan="6" class="text-center p-6 text-gray-400">เนเธกเนเธกเธตเธเนเธญเธกเธนเธฅ</td></tr>';
+      document.getElementById('tbody-menu').innerHTML = html || '<tr><td colspan="6" class="text-center p-6 text-gray-400">ไม่มีข้อมูล</td></tr>';
     }
 
     function renderMenuMobile(editClass, deleteClass) {
@@ -457,29 +457,23 @@
       });
 
       let html = '';
-     Object.keys(groupedMenus).forEach(group => {
+      Object.keys(groupedMenus).forEach(group => {
         const items = groupedMenus[group];
-        
-        // เธ”เธถเธเธเธทเนเธญ MenuGroup เธเธฒเธเธฃเธฒเธขเธเธฒเธฃเนเธฃเธเธเธญเธเธเธฅเธธเนเธก (เธ–เนเธฒเธกเธต)
-        const menuGroupName = items[0].menuGroup ? items[0].menuGroup : '';
-        const displayGroupTitle = menuGroupName ? `${group} : ${menuGroupName}` : group;
-
         html += `
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <!-- Group Header -->
           <div class="bg-blue-50 p-3 border-b border-blue-200 cursor-pointer hover:bg-blue-100 transition" onclick="this.parentElement.querySelector('[id^=mobile-group-items]').classList.toggle('hidden')">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-lg">โ–ผ</span>
+              <span class="font-bold text-lg">▼</span>
               <div>
-                <p class="font-bold text-linePrimary text-base">๐“ ${displayGroupTitle}</p>
-                <p class="text-xs text-gray-600">${items.length} เธฃเธฒเธขเธเธฒเธฃ</p>
+                <p class="font-bold text-linePrimary text-base">📁 ${group}</p>
+                <p class="text-xs text-gray-600">${items.length} รายการ</p>
               </div>
             </div>
           </div>
           
           <!-- Group Items -->
           <div id="mobile-group-items-${group}" class="divide-y divide-gray-200">
-        
             ${items.map((m, idx) => `
               <div class="p-3 space-y-2">
                 <div class="flex justify-between items-start">
@@ -500,13 +494,13 @@
                 
                 <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded">
                   <p class="font-bold">Audit Trail:</p>
-                  <p>เธชเธฃเนเธฒเธ: ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</p>
-                  <p>เนเธเนเนเธ: ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</p>
+                  <p>สร้าง: ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</p>
+                  <p>แก้ไข: ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</p>
                 </div>
                 
                 <div class="flex gap-2 pt-2">
-                  <button onclick="openForm('edit', 'menu', '${m.group}', '${m.menuId}')" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">โ๏ธ เนเธเนเนเธ</button>
-                  <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">๐—‘๏ธ เธฅเธ</button>
+                  <button onclick="openForm('edit', 'menu', '${m.group}', '${m.menuId}')" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">✏️ แก้ไข</button>
+                  <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">🗑️ ลบ</button>
                 </div>
               </div>
             `).join('')}
@@ -515,11 +509,11 @@
       });
 
       const mobileList = document.getElementById('adminListMobile');
-      if (mobileList) mobileList.innerHTML = html || '<div class="col-span-full text-center py-8 text-gray-400">เนเธกเนเธกเธตเธเนเธญเธกเธนเธฅ</div>';
+      if (mobileList) mobileList.innerHTML = html || '<div class="col-span-full text-center py-8 text-gray-400">ไม่มีข้อมูล</div>';
     }
 
     function renderRoleDesktop(editClass, deleteClass) {
-      // เธเธฑเธ”เธเธฅเธธเนเธกเธ•เธฒเธกเธ•เธณเนเธซเธเนเธ (Job Position)
+      // จัดกลุ่มตามตำแหน่ง (Job Position)
       const groupedRoles = {};
       allRoles.forEach(r => {
         if (!groupedRoles[r.Job_Position]) groupedRoles[r.Job_Position] = [];
@@ -531,16 +525,16 @@
         const items = groupedRoles[jobPos];
         html += `
         <tr class="group-row group-row-expand" onclick="toggleGroupRole('${jobPos}')">
-            <td class="p-3.5"><span id="toggle-role-${jobPos}" class="font-bold">โ–ผ</span></td>
+            <td class="p-3.5"><span id="toggle-role-${jobPos}" class="font-bold">▼</span></td>
             <td class="p-3.5 font-bold text-blue-700" colspan="6">
-              ๐‘ค ${jobPos}
+              👤 ${jobPos}
               <span class="text-xs text-gray-500 ml-2">(${items.length} items)</span>
             </td>
         </tr>`;
         
         html += `<tbody id="group-role-${jobPos}" class="divide-y divide-gray-100">`;
         items.forEach((r) => {
-          // เธเนเธเธซเธฒ Menu Name เธเธฒเธเธฃเธฒเธขเธเธฒเธฃเน€เธกเธเธนเธ”เนเธงเธข Menu ID
+          // ค้นหา Menu Name จากรายการเมนูด้วย Menu ID
           const menu = allMenus.find(m => String(m.menuId) === String(r.menuId));
           const menuName = menu ? menu.menuName : '-';
 
@@ -561,15 +555,15 @@
                 <div class="flex gap-1">${perms.join('')}</div>
               </td>
               <td class="p-3.5 text-xs text-gray-500">
-                <div>เธชเธฃเนเธฒเธ: ${r.createEmpId || '-'}</div>
+                <div>สร้าง: ${r.createEmpId || '-'}</div>
                 <div class="text-[10px]">${formatDateTime(r.createDate)}</div>
-                <div class="mt-1">เนเธเนเนเธ: ${r.updateEmpId || '-'}</div>
+                <div class="mt-1">แก้ไข: ${r.updateEmpId || '-'}</div>
                 <div class="text-[10px]">${formatDateTime(r.updateDate)}</div>
               </td>
               <td class="p-3.5 text-center">
                 <div class="inline-flex space-x-1.5">
-                  <button onclick="openForm('edit', 'role', '${r.Job_Position}', '${r.menuId}')" class="${editClass} bg-lineWarning text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">เนเธเนเนเธ</button>
-                  <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} bg-lineDanger text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">เธฅเธ</button>
+                  <button onclick="openForm('edit', 'role', '${r.Job_Position}', '${r.menuId}')" class="${editClass} bg-lineWarning text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">แก้ไข</button>
+                  <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} bg-lineDanger text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">ลบ</button>
                 </div>
               </td>
           </tr>`;
@@ -577,7 +571,7 @@
         html += `</tbody></tr>`;
       });
 
-      document.getElementById('tbody-role').innerHTML = html || '<tr><td colspan="7" class="text-center p-6 text-gray-400">เนเธกเนเธกเธตเธเนเธญเธกเธนเธฅ</td></tr>';
+      document.getElementById('tbody-role').innerHTML = html || '<tr><td colspan="7" class="text-center p-6 text-gray-400">ไม่มีข้อมูล</td></tr>';
     }
 
     function renderRoleMobile(editClass, deleteClass) {
@@ -595,10 +589,10 @@
           <!-- Group Header -->
           <div class="bg-blue-50 p-3 border-b border-blue-200 cursor-pointer hover:bg-blue-100 transition" onclick="this.parentElement.querySelector('[id^=mobile-role-items]').classList.toggle('hidden')">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-lg">โ–ผ</span>
+              <span class="font-bold text-lg">▼</span>
               <div>
-                <p class="font-bold text-blue-700 text-base">๐‘ค ${jobPos}</p>
-                <p class="text-xs text-gray-600">${items.length} เธฃเธฒเธขเธเธฒเธฃ</p>
+                <p class="font-bold text-blue-700 text-base">👤 ${jobPos}</p>
+                <p class="text-xs text-gray-600">${items.length} รายการ</p>
               </div>
             </div>
           </div>
@@ -606,7 +600,7 @@
           <!-- Group Items -->
           <div id="mobile-role-items-${jobPos}" class="divide-y divide-gray-200">
             ${items.map((r) => {
-              // เธเนเธเธซเธฒ Menu Name เธเธฒเธเธฃเธฒเธขเธเธฒเธฃเน€เธกเธเธนเธ”เนเธงเธข Menu ID
+              // ค้นหา Menu Name จากรายการเมนูด้วย Menu ID
               const menu = allMenus.find(m => String(m.menuId) === String(r.menuId));
               const menuName = menu ? menu.menuName : '-';
 
@@ -625,7 +619,7 @@
                     <p class="font-bold text-gray-800">${r.menuId}</p>
                   </div>
                   <div class="text-right">
-                    <p class="text-xs text-gray-500">เธชเธดเธ—เธเธดเน</p>
+                    <p class="text-xs text-gray-500">สิทธิ์</p>
                     <div class="flex gap-1 justify-end">${perms.join('')}</div>
                   </div>
                 </div>
@@ -642,13 +636,13 @@
                 
                 <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded">
                   <p class="font-bold">Audit Trail:</p>
-                  <p>เธชเธฃเนเธฒเธ: ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</p>
-                  <p>เนเธเนเนเธ: ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</p>
+                  <p>สร้าง: ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</p>
+                  <p>แก้ไข: ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</p>
                 </div>
                 
                 <div class="flex gap-2 pt-2">
-                  <button onclick="openForm('edit', 'role', '${r.Job_Position}', '${r.menuId}')" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">โ๏ธ เนเธเนเนเธ</button>
-                  <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">๐—‘๏ธ เธฅเธ</button>
+                  <button onclick="openForm('edit', 'role', '${r.Job_Position}', '${r.menuId}')" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">✏️ แก้ไข</button>
+                  <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">🗑️ ลบ</button>
                 </div>
               </div>
             `}).join('')}
@@ -657,21 +651,20 @@
       });
 
       const mobileList = document.getElementById('adminListMobile');
-      if (mobileList) mobileList.innerHTML = html || '<div class="col-span-full text-center py-8 text-gray-400">เนเธกเนเธกเธตเธเนเธญเธกเธนเธฅ</div>';
+      if (mobileList) mobileList.innerHTML = html || '<div class="col-span-full text-center py-8 text-gray-400">ไม่มีข้อมูล</div>';
     }
 
     function openForm(mode, tabType, pk1, pk2) {
       document.getElementById('formModal').classList.remove('hidden');
       document.getElementById('formMode').value = mode;
       
-      const isMenu = (tabType || currentTab) === 'menu';
+      const isMenu = tabType === 'menu';
       document.getElementById('fields-menu').classList.toggle('hidden', !isMenu);
       document.getElementById('fields-role').classList.toggle('hidden', isMenu);
-      const entityLabel = isMenu ? 'เธฃเธฒเธขเธเธฒเธฃเน€เธกเธเธนเธฃเธฐเธเธ' : 'เธชเธดเธ—เธเธดเนเธเธฒเธฃเนเธเนเธเธฒเธเธ•เธฒเธกเธ•เธณเนเธซเธเนเธ';
-      document.getElementById('modalTitle').textContent = mode === 'add' ? `โ• เน€เธเธดเนเธก${entityLabel}` : `โ๏ธ เนเธเนเนเธ${entityLabel}`;
+      document.getElementById('modalTitle').textContent = mode === 'add' ? '➕ เพิ่มข้อมูล' : '✏️ แก้ไขข้อมูล';
 
       if (mode === 'add') {
-        document.getElementById('auditInfo').innerHTML = `เธชเธฃเนเธฒเธเธฃเธฒเธขเธเธฒเธฃเนเธซเธกเนเนเธ”เธข Admin ID: <b>${currentActionEmpId}</b>`;
+        document.getElementById('auditInfo').innerHTML = `สร้างรายการใหม่โดย Admin ID: <b>${currentActionEmpId}</b>`;
         if (isMenu) {
           ['m_group', 'm_menuGroup', 'm_menuId', 'm_menuName'].forEach(id => document.getElementById(id).value = '');
           document.getElementById('m_group').readOnly = false;
@@ -693,7 +686,7 @@
             document.getElementById('m_menuId').readOnly = true;
             document.getElementById('m_menuName').value = m.menuName;
             
-            document.getElementById('auditInfo').innerHTML = `<div>โ€ข <b>เธชเธฃเนเธฒเธเนเธ”เธข:</b> ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</div><div>โ€ข <b>เนเธเนเนเธเธฅเนเธฒเธชเธธเธ”เนเธ”เธข:</b> ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</div>`;
+            document.getElementById('auditInfo').innerHTML = `<div>• <b>สร้างโดย:</b> ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</div><div>• <b>แก้ไขล่าสุดโดย:</b> ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</div>`;
           }
         } else {
           const r = allRoles.find(x => x.Job_Position === pk1 && x.menuId === pk2);
@@ -710,7 +703,7 @@
             document.getElementById('r_canDelete').checked = String(r.canDelete).toUpperCase() === 'TRUE';
             document.getElementById('r_canApprove').checked = String(r.canApprove).toUpperCase() === 'TRUE';
 
-            document.getElementById('auditInfo').innerHTML = `<div>โ€ข <b>เธชเธฃเนเธฒเธเนเธ”เธข:</b> ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</div><div>โ€ข <b>เนเธเนเนเธเธฅเนเธฒเธชเธธเธ”เนเธ”เธข:</b> ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</div>`;
+            document.getElementById('auditInfo').innerHTML = `<div>• <b>สร้างโดย:</b> ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</div><div>• <b>แก้ไขล่าสุดโดย:</b> ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</div>`;
           }
         }
       }
@@ -730,7 +723,7 @@
           menuId: document.getElementById('m_menuId').value.trim(),
           menuName: document.getElementById('m_menuName').value.trim()
         };
-        if(!payload.menuData.group || !payload.menuData.menuId) { alert("เธเธฃเธธเธ“เธฒเธเธฃเธญเธ Group เนเธฅเธฐ Menu ID เนเธซเนเธเธฃเธเธ–เนเธงเธ"); return; }
+        if(!payload.menuData.group || !payload.menuData.menuId) { alert("กรุณากรอก Group และ Menu ID ให้ครบถ้วน"); return; }
       } else {
         payload.action = 'manageRole';
         payload.roleData = {
@@ -743,10 +736,10 @@
           canDelete: document.getElementById('r_canDelete').checked,
           canApprove: document.getElementById('r_canApprove').checked
         };
-        if(!payload.roleData.Job_Position || !payload.roleData.menuId) { alert("เธเธฃเธธเธ“เธฒเธเธฃเธญเธ Job Position เนเธฅเธฐ Menu ID เนเธซเนเธเธฃเธเธ–เนเธงเธ"); return; }
+        if(!payload.roleData.Job_Position || !payload.roleData.menuId) { alert("กรุณากรอก Job Position และ Menu ID ให้ครบถ้วน"); return; }
       }
 
-      document.getElementById('modalTitle').textContent = 'เธเธณเธฅเธฑเธเธเธฑเธเธ—เธถเธ...';
+      document.getElementById('modalTitle').textContent = 'กำลังบันทึก...';
       const res = await fetch(RESOURCE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
       const result = await res.json();
       
@@ -755,12 +748,12 @@
         loadAllData();
       } else {
         alert(result.message);
-        document.getElementById('modalTitle').textContent = 'เธเธญเธฃเนเธกเธเธฑเธ”เธเธฒเธฃเธเนเธญเธกเธนเธฅ';
+        document.getElementById('modalTitle').textContent = 'ฟอร์มจัดการข้อมูล';
       }
     }
 
     async function deleteData(pk1, pk2) {
-      if(!confirm(`เธขเธทเธเธขเธฑเธเธเธฒเธฃเธฅเธเธเนเธญเธกเธนเธฅ [${pk1}] - [${pk2}] เธญเธขเนเธฒเธเธ–เธฒเธงเธฃ?`)) return;
+      if(!confirm(`ยืนยันการลบข้อมูล [${pk1}] - [${pk2}] อย่างถาวร?`)) return;
       
       const payload = { mode: 'delete' };
       if(currentTab === 'menu') {
@@ -779,11 +772,12 @@
     }
 
     function goToHome() { window.location.href = "index.html"; }
-    function logoutApp() { if (liff.isLoggedIn()) { liff.logout(); window.location.reload(); } }
-    window.onload = initApp;
+    function logoutApp() {
+      try { fetch(AUTH_API_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', sessionId: portalSessionId }) }); } catch(e) {}
+      sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem('PORTAL_PERMISSIONS_ROLE');
+      goToHome();
+    }
   </script>
 </body>
 </html>
-
-
-
