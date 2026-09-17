@@ -1,0 +1,788 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Permission & Menu Management</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+  <!-- LINE Template Colors -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            linePrimary: '#0084FF',
+            lineSuccess: '#17C950',
+            lineDanger: '#FF4458',
+            lineWarning: '#FFC300',
+            lineLightBg: '#F7F7F7',
+            lineDarkGray: '#6C757D'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .perm-hide { display: none !important; }
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab-active { border-bottom-width: 2px; border-color: #0084FF; color: #0084FF; font-weight: bold; }
+    .tab-inactive { color: #6C757D; font-weight: 500; }
+    .group-row { background-color: #f0f7ff; font-weight: bold; }
+    .group-row-expand { cursor: pointer; user-select: none; }
+    .group-row-expand:hover { background-color: #e6f2ff; }
+    .sub-row { background-color: #fff; }
+    .sub-row:hover { background-color: #f9f9f9; }
+  </style>
+</head>
+<body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
+
+  <script>
+    const AUTH_API_URL = "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22cE9ph1eYPscyrxdw29T44DaUT9/exec";
+    const RESOURCE_API_URL = "https://script.google.com/macros/s/AKfycbwT92lC6xrr0MuDUNdjJKjL_jvkMZb7AjbOmA81uWKONXOf9dG2U-_6Y8qqW8bGsvoY/exec";
+    const SESSION_KEY = "portalSessionId";
+    const CURRENT_MENU_ID = "902";
+  </script>
+
+    <div class="topbar sticky top-0 z-50 bg-white border-b border-gray-200 min-h-[76px] px-6 py-2.5 flex justify-between items-center max-sm:min-h-[72px] max-sm:px-3 max-sm:gap-2 max-[390px]:justify-end">
+    <!-- BRAND -->
+    <div class="brand-area flex items-center gap-3 max-sm:gap-2 max-[390px]:hidden">
+      <div class="brand-logo w-11 h-11 flex-none rounded-[13px] bg-gradient-to-br from-green-800 to-green-600 text-white flex items-center justify-center max-sm:w-[38px] max-sm:h-[38px] max-sm:basis-[38px] max-sm:rounded-[11px]">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+      </div>
+      <div class="brand-text flex flex-col justify-center leading-tight">
+        <div class="brand flex items-center text-[18px] font-extrabold text-gray-900 tracking-[-0.3px] max-sm:text-[16px]">
+          Permission & Menu
+        </div>
+      </div>
+    </div>
+
+    <!-- USER + LINE + SESSION -->
+    <div class="user-info flex items-center gap-3 max-sm:gap-[7px]">
+      <img id="profile-img" class="line-avatar hidden w-12 h-12 rounded-full object-cover border-2 border-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] max-sm:w-[42px] max-sm:h-[42px]" src="" alt="Profile">
+
+      <div class="user-detail flex flex-col items-end justify-center leading-tight max-sm:min-w-0">
+        <div id="user-name-display" class="user-name text-[14px] font-bold text-gray-900 max-sm:text-[13px] max-[390px]:max-w-[85px] max-[390px]:truncate">เธเธณเธฅเธฑเธเธ•เธฃเธงเธเธชเธญเธ...</div>
+        <div class="flex items-center gap-[6px] mt-1">
+          <div id="user-role-display" class="user-role text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-[10px]">-</div>
+          <span class="session-dot w-[6px] h-[6px] rounded-full bg-green-500 shadow-[0_0_0_2px_rgba(34,197,94,0.13)]"></span>
+        </div>
+        <div id="sessionStatus" class="session-time text-[10px] text-gray-400 mt-0.5 max-sm:hidden">
+           <span id="timer-display">60:00</span>
+        </div>
+      </div>
+
+      <!-- BACK TO PORTAL -->
+
+
+  <main class="max-w-7xl mx-auto p-3 sm:p-4 flex-grow w-full">
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="flex flex-col items-center justify-center py-20">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-4 border-linePrimary mb-4"></div>
+      <p class="text-lineDarkGray text-sm font-medium">เธเธณเธฅเธฑเธเธ•เธฃเธงเธเธชเธญเธเธชเธดเธ—เธเธดเนเนเธฅเธฐเนเธซเธฅเธ”เธเนเธญเธกเธนเธฅ...</p>
+    </div>
+
+    <!-- Main System Area -->
+    <div id="management-screen" class="hidden">
+      
+      <!-- Tabs (Mobile-friendly) -->
+      <div class="flex border-b border-gray-200 mb-4 overflow-x-auto">
+        <button onclick="switchTab('menu')" id="tab-menu" class="tab-active px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base">๐“ เน€เธกเธเธน</button>
+        <button onclick="switchTab('role')" id="tab-role" class="tab-inactive px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base">๐” เธชเธดเธ—เธเธดเน</button>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200">
+        <div class="flex-1">
+          <h2 id="section-title" class="text-base sm:text-lg font-bold text-gray-800">๐“ เธฃเธฒเธขเธเธฒเธฃเน€เธกเธเธนเธฃเธฐเธเธ</h2>
+        </div>
+        <button onclick="openForm('add', currentTab)" id="btn-add" class="perm-hide bg-linePrimary text-white font-bold py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg shadow-sm hover:bg-blue-600 transition text-xs sm:text-sm flex items-center gap-1 whitespace-nowrap">
+          <span>โ•</span> <span class="hidden sm:inline">เน€เธเธดเนเธกเธเนเธญเธกเธนเธฅ</span><span class="sm:hidden">เน€เธเธดเนเธก</span>
+        </button>
+      </div>
+
+      <!-- Desktop Table View (Hidden on Mobile) -->
+      <div class="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden table-container">
+        
+        <!-- Menu Table -->
+        <table id="table-menu" class="w-full text-left text-sm text-gray-600 hidden">
+            <thead class="bg-gray-50 text-gray-700 border-b sticky top-0">
+                <tr>
+                    <th class="p-3.5 font-bold w-12">โ•</th>
+                    <th class="p-3.5 font-bold">Group / MenuGroup</th>
+                    <th class="p-3.5 font-bold">Menu ID</th>
+                    <th class="p-3.5 font-bold">Menu Name</th>
+                    <th class="p-3.5 font-bold">Audit Trail</th>
+                    <th class="p-3.5 font-bold text-center">เธเธฑเธ”เธเธฒเธฃ</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-menu" class="divide-y divide-gray-100"></tbody>
+        </table>
+
+        <!-- Role Table -->
+        <table id="table-role" class="w-full text-left text-sm text-gray-600 hidden">
+          <thead class="bg-gray-50 text-gray-700 border-b sticky top-0">
+              <tr>
+                  <th class="p-3.5 font-bold w-12">โ•</th>
+                  <th class="p-3.5 font-bold">Job Position</th>
+                  <th class="p-3.5 font-bold">Menu ID</th>
+                  <th class="p-3.5 font-bold">Menu Name</th>
+                  <th class="p-3.5 font-bold">เธชเธดเธ—เธเธดเน (R/C/E/D/A)</th>
+                  <th class="p-3.5 font-bold">Audit Trail</th>
+                  <th class="p-3.5 font-bold text-center">เธเธฑเธ”เธเธฒเธฃ</th>
+              </tr>
+          </thead>
+          <tbody id="tbody-role" class="divide-y divide-gray-100"></tbody>
+        </table>
+
+      </div>
+
+      <!-- Mobile Card View (Visible on Mobile Only) -->
+      <div id="adminListMobile" class="lg:hidden grid gap-3 grid-cols-1 sm:grid-cols-2"></div>
+
+    </div>
+  </main>
+
+  <!-- FORM MODAL (Dynamic for both Menu and Role) -->
+  <div id="formModal" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-white w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col my-auto">
+          <div class="bg-linePrimary p-4 text-white font-bold text-base flex justify-between items-center sticky top-0">
+              <span id="modalTitle">เธเธญเธฃเนเธกเธเธฑเธ”เธเธฒเธฃเธเนเธญเธกเธนเธฅ</span>
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="text-white text-lg font-bold">โ•</button>
+          </div>
+          <div class="p-4 sm:p-6 space-y-4 text-sm overflow-y-auto flex-1">
+              <input type="hidden" id="formMode">
+              
+              <!-- Audit Trail Info -->
+              <div class="text-xs bg-gray-50 p-3 rounded-lg border border-gray-200 text-gray-700 space-y-1 mb-4">
+                <div class="font-bold text-linePrimary">๐“ เธเนเธญเธกเธนเธฅเธเธนเนเธเธฑเธเธ—เธถเธ/เนเธเนเนเธ (Audit Trail):</div>
+                <div id="auditInfo" class="font-mono text-xs text-gray-600">--</div>
+              </div>
+              
+              <!-- Menu Form Fields -->
+              <div id="fields-menu" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                <div><label class="block font-bold mb-1">Group *</label><input type="text" id="m_group" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                <div><label class="block font-bold mb-1">Menu Group</label><input type="text" id="m_menuGroup" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                <div><label class="block font-bold mb-1">Menu ID (PK) *</label><input type="text" id="m_menuId" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                <div><label class="block font-bold mb-1">Menu Name *</label><input type="text" id="m_menuName" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+              </div>
+
+              <!-- Role Form Fields -->
+              <div id="fields-role" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                <div><label class="block font-bold mb-1">Job Position (PK) *</label><input type="text" id="r_jobPosition" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                <div><label class="block font-bold mb-1">Menu ID (PK) *</label><input type="text" id="r_menuId" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                <div class="md:col-span-2"><label class="block font-bold mb-1">Menu URL</label><input type="text" id="r_menuUrl" autocomplete="off" class="w-full border rounded-lg p-2.5 focus:border-linePrimary outline-none text-base"></div>
+                
+                <div class="md:col-span-2 grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2 p-3 bg-gray-50 rounded border">
+                  <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="r_canRead" class="cursor-pointer"> <span class="text-xs">Read</span></label>
+                  <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="r_canCreate" class="cursor-pointer"> <span class="text-xs">Create</span></label>
+                  <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="r_canEdit" class="cursor-pointer"> <span class="text-xs">Edit</span></label>
+                  <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="r_canDelete" class="cursor-pointer"> <span class="text-xs">Delete</span></label>
+                  <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="r_canApprove" class="cursor-pointer"> <span class="text-xs">Approve</span></label>
+                </div>
+              </div>
+
+          </div>
+          <div class="p-3 sm:p-4 border-t flex justify-end gap-2 sm:gap-3 bg-gray-50 sticky bottom-0">
+              <button onclick="document.getElementById('formModal').classList.add('hidden')" class="px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-xl transition hover:bg-gray-300 text-sm">เธขเธเน€เธฅเธดเธ</button>
+              <button onclick="saveData()" class="px-4 sm:px-5 py-2 bg-lineSuccess text-white font-bold rounded-xl shadow-md transition hover:bg-green-600 text-sm">เธเธฑเธเธ—เธถเธ</button>
+          </div>
+      </div>
+  </div>
+
+  <script>
+        let portalSessionId = sessionStorage.getItem(SESSION_KEY);
+    let currentUser = null;
+    let currentPermissions = { read: false, create: false, edit: false, delete: false, approve: false };
+    
+    let allMenus = [];
+    let allRoles = [];
+    let currentTab = 'menu';
+    let currentActionEmpId = '';
+    
+    let timeoutLimit = 3600; 
+    let timeRemaining = timeoutLimit;
+    let timerInterval;
+
+    window.onload = startApplication;
+
+    async function startApplication() {
+      const params = new URLSearchParams(window.location.search);
+      const launchToken = params.get('launchToken');
+      
+      if (launchToken) {
+        await exchangeLaunchToken(launchToken);
+        return;
+      }
+      
+      if (portalSessionId) {
+        await verifySession();
+        return;
+      }
+      
+      alert('ไม่พบสิทธิ์การใช้งาน กรุณาเข้าสู่ระบบผ่าน Portal');
+      goToHome();
+    }
+
+    async function exchangeLaunchToken(launchToken) {
+      try {
+        const res = await fetch(AUTH_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'validateLaunch', launchToken: launchToken, menuId: CURRENT_MENU_ID })
+        });
+        const result = await res.json();
+        
+        if (result.status === 'success') {
+          handleAuthSuccess(result);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+          alert(result.message || 'Token ไม่ถูกต้องหรือหมดอายุ');
+          goToHome();
+        }
+      } catch (err) {
+        alert('เชื่อมต่อ API ล้มเหลว');
+        goToHome();
+      }
+    }
+
+    async function verifySession() {
+      try {
+        const res = await fetch(AUTH_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'verifySession', sessionId: portalSessionId })
+        });
+        const result = await res.json();
+        
+        if (result.status === 'success') {
+          handleAuthSuccess(result);
+        } else {
+          sessionStorage.removeItem(SESSION_KEY);
+          alert('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+          goToHome();
+        }
+      } catch (err) {
+        alert('เชื่อมต่อ API ล้มเหลว');
+        goToHome();
+      }
+    }
+
+    function handleAuthSuccess(result) {
+      portalSessionId = result.sessionId || portalSessionId;
+      sessionStorage.setItem(SESSION_KEY, portalSessionId);
+      
+      currentUser = result.user || result.session || currentUser;
+      
+      let perm = result.permission;
+      if (perm) {
+        sessionStorage.setItem('PORTAL_PERMISSIONS_ROLE', JSON.stringify(perm));
+      } else {
+        const stored = sessionStorage.getItem('PORTAL_PERMISSIONS_ROLE');
+        if (stored) perm = JSON.parse(stored);
+        else perm = {};
+      }
+
+      currentPermissions = {
+        read: perm.canRead || perm.read || false,
+        create: perm.canWrite || perm.create || perm.canRead || false,
+        edit: perm.canWrite || perm.edit || perm.canRead || false,
+        delete: perm.canDelete || perm.delete || perm.canRead || false
+      };
+      
+      currentActionEmpId = currentUser?.empId || currentUser?.userId || '';
+
+      if (!currentPermissions.read) {
+        alert('Access Denied: คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+        goToHome();
+        return;
+      }
+
+      document.getElementById('loading-screen').classList.add('hidden');
+      document.getElementById('management-screen').classList.remove('hidden');
+      
+      if(document.getElementById('user-name-display')) document.getElementById('user-name-display').textContent = currentUser.displayName || currentUser.name || currentUser.userId;
+      if(document.getElementById('user-role-display')) document.getElementById('user-role-display').textContent = currentUser.Job_Position || currentUser.role || 'User';
+
+      startActivityTracker();
+      applyPermissions();
+      loadAllData();
+    }
+    
+    function goToHome() {
+       window.location.href = 'index.html';
+    }
+    
+    function logoutApp() {
+      try {
+        fetch(AUTH_API_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', sessionId: portalSessionId }) });
+      } catch(e) {}
+      sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem('PORTAL_PERMISSIONS_ROLE');
+      goToHome();
+    }
+
+    function applyPermissions() {
+      const btnAdd = document.getElementById('btn-add');
+      if (currentPermissions.create) btnAdd.classList.remove('perm-hide');
+      else btnAdd.classList.add('perm-hide');
+    }
+
+    async function loadAllData() {
+      const res = await fetch(RESOURCE_API_URL, {
+          method: 'POST', body: JSON.stringify({ action: 'getManageData' })
+      });
+      const result = await res.json();
+      if(result.status === 'success'){
+        allMenus = result.menus;
+        allRoles = result.roles;
+
+        // เน€เธเธดเนเธกเธเธฒเธฃเน€เธฃเธตเธขเธเธฅเธณเธ”เธฑเธ (Sort) allRoles เธ•เธฒเธก menuId เธเธฒเธเธเนเธญเธขเนเธเธซเธฒเธกเธฒเธ
+        allRoles.sort((a, b) => String(a.menuId).localeCompare(String(b.menuId), undefined, { numeric: true }));
+
+        renderData();
+      }
+    }
+
+    function switchTab(tabName) {
+      currentTab = tabName;
+      document.getElementById('tab-menu').className = tabName === 'menu' ? 'tab-active px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base' : 'tab-inactive px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base';
+      document.getElementById('tab-role').className = tabName === 'role' ? 'tab-active px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base' : 'tab-inactive px-3 sm:px-4 py-3 whitespace-nowrap transition text-sm sm:text-base';
+      
+      document.getElementById('section-title').innerHTML = tabName === 'menu' ? '๐“ เธฃเธฒเธขเธเธฒเธฃเน€เธกเธเธนเธฃเธฐเธเธ' : '๐” เธชเธดเธ—เธเธดเนเธเธฒเธฃเนเธเนเธเธฒเธเธ•เธฒเธกเธ•เธณเนเธซเธเนเธ';
+      
+      renderData();
+    }
+
+    function formatDateTime(isoString) {
+      if(!isoString) return '-';
+      return new Date(isoString).toLocaleString('th-TH');
+    }
+
+    function toggleGroupMenu(groupKey) {
+      const groupEl = document.getElementById(`group-menu-${groupKey}`);
+      if (groupEl) {
+        groupEl.classList.toggle('hidden');
+        document.getElementById(`toggle-menu-${groupKey}`).textContent = 
+          groupEl.classList.contains('hidden') ? 'โ–ถ' : 'โ–ผ';
+      }
+    }
+
+    function toggleGroupRole(jobPos) {
+      const groupEl = document.getElementById(`group-role-${jobPos}`);
+      if (groupEl) {
+        groupEl.classList.toggle('hidden');
+        document.getElementById(`toggle-role-${jobPos}`).textContent = 
+          groupEl.classList.contains('hidden') ? 'โ–ถ' : 'โ–ผ';
+      }
+    }
+
+    function renderData() {
+      const editClass = currentPermissions.edit ? '' : 'perm-hide';
+      const deleteClass = currentPermissions.delete ? '' : 'perm-hide';
+
+      if(currentTab === 'menu') {
+        document.getElementById('table-menu').classList.remove('hidden');
+        document.getElementById('table-role').classList.add('hidden');
+        renderMenuDesktop(editClass, deleteClass);
+        renderMenuMobile(editClass, deleteClass);
+      } else {
+        document.getElementById('table-role').classList.remove('hidden');
+        document.getElementById('table-menu').classList.add('hidden');
+        renderRoleDesktop(editClass, deleteClass);
+        renderRoleMobile(editClass, deleteClass);
+      }
+    }
+
+    function renderMenuDesktop(editClass, deleteClass) {
+      // เธเธฑเธ”เธเธฅเธธเนเธกเธ•เธฒเธกเธซเธเนเธงเธขเธกเธฑเธ’เธเธฒ (Group)
+      const groupedMenus = {};
+      allMenus.forEach(m => {
+        if (!groupedMenus[m.group]) groupedMenus[m.group] = [];
+        groupedMenus[m.group].push(m);
+      });
+
+      let html = '';
+        Object.keys(groupedMenus).forEach(group => {
+        const items = groupedMenus[group];
+        
+        // เธ”เธถเธเธเธทเนเธญ MenuGroup เธเธฒเธเธฃเธฒเธขเธเธฒเธฃเนเธฃเธเธเธญเธเธเธฅเธธเนเธก (เธ–เนเธฒเธกเธต)
+        const menuGroupName = items[0].menuGroup ? items[0].menuGroup : '';
+        const displayGroupTitle = menuGroupName ? `${group} : ${menuGroupName}` : group;
+
+        html += `
+        <tr class="group-row group-row-expand" onclick="toggleGroupMenu('${group}')">
+            <td class="p-3.5"><span id="toggle-menu-${group}" class="font-bold">โ–ผ</span></td>
+            <td class="p-3.5 font-bold text-linePrimary" colspan="5">
+              ๐“ ${displayGroupTitle}
+              <span class="text-xs text-gray-500 ml-2">(${items.length} items)</span>
+            </td>
+        </tr>`;
+        
+        html += `<tbody id="group-menu-${group}" class="divide-y divide-gray-100">`;
+        items.forEach((m, idx) => {
+          html += `
+          <tr class="sub-row hover:bg-gray-50 transition">
+              <td class="p-3.5"></td>
+              <td class="p-3.5 text-xs text-gray-600">${m.menuGroup || '-'}</td>
+              <td class="p-3.5 font-bold text-sm">${m.menuId}</td>
+              <td class="p-3.5">${m.menuName}</td>
+              <td class="p-3.5 text-xs text-gray-500">
+                <div>เธชเธฃเนเธฒเธ: ${m.createEmpId || '-'}</div>
+                <div class="text-[10px]">${formatDateTime(m.createDate)}</div>
+                <div class="mt-1">เนเธเนเนเธ: ${m.updateEmpId || '-'}</div>
+                <div class="text-[10px]">${formatDateTime(m.updateDate)}</div>
+              </td>
+              <td class="p-3.5 text-center">
+                <div class="inline-flex space-x-1.5">
+                  <button onclick="openForm('edit', 'menu', '${m.group}', '${m.menuId}')" class="${editClass} bg-lineWarning text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">เนเธเนเนเธ</button>
+                  <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} bg-lineDanger text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">เธฅเธ</button>
+                </div>
+              </td>
+          </tr>`;
+        });
+        html += `</tbody></tr>`;
+      });
+
+      document.getElementById('tbody-menu').innerHTML = html || '<tr><td colspan="6" class="text-center p-6 text-gray-400">เนเธกเนเธกเธตเธเนเธญเธกเธนเธฅ</td></tr>';
+    }
+
+    function renderMenuMobile(editClass, deleteClass) {
+      const groupedMenus = {};
+      allMenus.forEach(m => {
+        if (!groupedMenus[m.group]) groupedMenus[m.group] = [];
+        groupedMenus[m.group].push(m);
+      });
+
+      let html = '';
+     Object.keys(groupedMenus).forEach(group => {
+        const items = groupedMenus[group];
+        
+        // เธ”เธถเธเธเธทเนเธญ MenuGroup เธเธฒเธเธฃเธฒเธขเธเธฒเธฃเนเธฃเธเธเธญเธเธเธฅเธธเนเธก (เธ–เนเธฒเธกเธต)
+        const menuGroupName = items[0].menuGroup ? items[0].menuGroup : '';
+        const displayGroupTitle = menuGroupName ? `${group} : ${menuGroupName}` : group;
+
+        html += `
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <!-- Group Header -->
+          <div class="bg-blue-50 p-3 border-b border-blue-200 cursor-pointer hover:bg-blue-100 transition" onclick="this.parentElement.querySelector('[id^=mobile-group-items]').classList.toggle('hidden')">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-lg">โ–ผ</span>
+              <div>
+                <p class="font-bold text-linePrimary text-base">๐“ ${displayGroupTitle}</p>
+                <p class="text-xs text-gray-600">${items.length} เธฃเธฒเธขเธเธฒเธฃ</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Group Items -->
+          <div id="mobile-group-items-${group}" class="divide-y divide-gray-200">
+        
+            ${items.map((m, idx) => `
+              <div class="p-3 space-y-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="text-xs text-gray-500">Menu ID</p>
+                    <p class="font-bold text-gray-800">${m.menuId}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500">Menu Group</p>
+                    <p class="text-xs font-semibold text-gray-700">${m.menuGroup || '-'}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <p class="text-xs text-gray-500">Menu Name</p>
+                  <p class="text-sm font-semibold text-gray-700">${m.menuName}</p>
+                </div>
+                
+                <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                  <p class="font-bold">Audit Trail:</p>
+                  <p>เธชเธฃเนเธฒเธ: ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</p>
+                  <p>เนเธเนเนเธ: ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</p>
+                </div>
+                
+                <div class="flex gap-2 pt-2">
+                  <button onclick="openForm('edit', 'menu', '${m.group}', '${m.menuId}')" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">โ๏ธ เนเธเนเนเธ</button>
+                  <button onclick="deleteData('${m.group}', '${m.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">๐—‘๏ธ เธฅเธ</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+      });
+
+      const mobileList = document.getElementById('adminListMobile');
+      if (mobileList) mobileList.innerHTML = html || '<div class="col-span-full text-center py-8 text-gray-400">เนเธกเนเธกเธตเธเนเธญเธกเธนเธฅ</div>';
+    }
+
+    function renderRoleDesktop(editClass, deleteClass) {
+      // เธเธฑเธ”เธเธฅเธธเนเธกเธ•เธฒเธกเธ•เธณเนเธซเธเนเธ (Job Position)
+      const groupedRoles = {};
+      allRoles.forEach(r => {
+        if (!groupedRoles[r.Job_Position]) groupedRoles[r.Job_Position] = [];
+        groupedRoles[r.Job_Position].push(r);
+      });
+
+      let html = '';
+      Object.keys(groupedRoles).forEach(jobPos => {
+        const items = groupedRoles[jobPos];
+        html += `
+        <tr class="group-row group-row-expand" onclick="toggleGroupRole('${jobPos}')">
+            <td class="p-3.5"><span id="toggle-role-${jobPos}" class="font-bold">โ–ผ</span></td>
+            <td class="p-3.5 font-bold text-blue-700" colspan="6">
+              ๐‘ค ${jobPos}
+              <span class="text-xs text-gray-500 ml-2">(${items.length} items)</span>
+            </td>
+        </tr>`;
+        
+        html += `<tbody id="group-role-${jobPos}" class="divide-y divide-gray-100">`;
+        items.forEach((r) => {
+          // เธเนเธเธซเธฒ Menu Name เธเธฒเธเธฃเธฒเธขเธเธฒเธฃเน€เธกเธเธนเธ”เนเธงเธข Menu ID
+          const menu = allMenus.find(m => String(m.menuId) === String(r.menuId));
+          const menuName = menu ? menu.menuName : '-';
+
+          const perms = [];
+          if (String(r.canRead).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">R</span>');
+          if (String(r.canCreate).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">C</span>');
+          if (String(r.canEdit).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">E</span>');
+          if (String(r.canDelete).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">D</span>');
+          if (String(r.canApprove).toUpperCase() === 'TRUE') perms.push('<span class="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded text-xs font-bold">A</span>');
+          
+          html += `
+          <tr class="sub-row hover:bg-gray-50 transition">
+              <td class="p-3.5"></td>
+              <td class="p-3.5"></td>
+              <td class="p-3.5 font-bold text-sm">${r.menuId}</td>
+              <td class="p-3.5">${menuName}</td>
+              <td class="p-3.5">
+                <div class="flex gap-1">${perms.join('')}</div>
+              </td>
+              <td class="p-3.5 text-xs text-gray-500">
+                <div>เธชเธฃเนเธฒเธ: ${r.createEmpId || '-'}</div>
+                <div class="text-[10px]">${formatDateTime(r.createDate)}</div>
+                <div class="mt-1">เนเธเนเนเธ: ${r.updateEmpId || '-'}</div>
+                <div class="text-[10px]">${formatDateTime(r.updateDate)}</div>
+              </td>
+              <td class="p-3.5 text-center">
+                <div class="inline-flex space-x-1.5">
+                  <button onclick="openForm('edit', 'role', '${r.Job_Position}', '${r.menuId}')" class="${editClass} bg-lineWarning text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">เนเธเนเนเธ</button>
+                  <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} bg-lineDanger text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80 transition">เธฅเธ</button>
+                </div>
+              </td>
+          </tr>`;
+        });
+        html += `</tbody></tr>`;
+      });
+
+      document.getElementById('tbody-role').innerHTML = html || '<tr><td colspan="7" class="text-center p-6 text-gray-400">เนเธกเนเธกเธตเธเนเธญเธกเธนเธฅ</td></tr>';
+    }
+
+    function renderRoleMobile(editClass, deleteClass) {
+      const groupedRoles = {};
+      allRoles.forEach(r => {
+        if (!groupedRoles[r.Job_Position]) groupedRoles[r.Job_Position] = [];
+        groupedRoles[r.Job_Position].push(r);
+      });
+
+      let html = '';
+      Object.keys(groupedRoles).forEach(jobPos => {
+        const items = groupedRoles[jobPos];
+        html += `
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <!-- Group Header -->
+          <div class="bg-blue-50 p-3 border-b border-blue-200 cursor-pointer hover:bg-blue-100 transition" onclick="this.parentElement.querySelector('[id^=mobile-role-items]').classList.toggle('hidden')">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-lg">โ–ผ</span>
+              <div>
+                <p class="font-bold text-blue-700 text-base">๐‘ค ${jobPos}</p>
+                <p class="text-xs text-gray-600">${items.length} เธฃเธฒเธขเธเธฒเธฃ</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Group Items -->
+          <div id="mobile-role-items-${jobPos}" class="divide-y divide-gray-200">
+            ${items.map((r) => {
+              // เธเนเธเธซเธฒ Menu Name เธเธฒเธเธฃเธฒเธขเธเธฒเธฃเน€เธกเธเธนเธ”เนเธงเธข Menu ID
+              const menu = allMenus.find(m => String(m.menuId) === String(r.menuId));
+              const menuName = menu ? menu.menuName : '-';
+
+              const perms = [];
+              if (String(r.canRead).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">R</span>');
+              if (String(r.canCreate).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">C</span>');
+              if (String(r.canEdit).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">E</span>');
+              if (String(r.canDelete).toUpperCase() === 'TRUE') perms.push('<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-bold">D</span>');
+              if (String(r.canApprove).toUpperCase() === 'TRUE') perms.push('<span class="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded text-xs font-bold">A</span>');
+              
+              return `
+              <div class="p-3 space-y-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="text-xs text-gray-500">Menu ID</p>
+                    <p class="font-bold text-gray-800">${r.menuId}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500">เธชเธดเธ—เธเธดเน</p>
+                    <div class="flex gap-1 justify-end">${perms.join('')}</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <p class="text-xs text-gray-500">Menu Name</p>
+                  <p class="text-sm font-semibold text-gray-700">${menuName}</p>
+                </div>
+
+                <div>
+                  <p class="text-xs text-gray-500">Menu URL</p>
+                  <p class="text-xs text-gray-600 break-all">${r.menuUrl || '-'}</p>
+                </div>
+                
+                <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                  <p class="font-bold">Audit Trail:</p>
+                  <p>เธชเธฃเนเธฒเธ: ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</p>
+                  <p>เนเธเนเนเธ: ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</p>
+                </div>
+                
+                <div class="flex gap-2 pt-2">
+                  <button onclick="openForm('edit', 'role', '${r.Job_Position}', '${r.menuId}')" class="${editClass} flex-1 bg-lineWarning text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">โ๏ธ เนเธเนเนเธ</button>
+                  <button onclick="deleteData('${r.Job_Position}', '${r.menuId}')" class="${deleteClass} flex-1 bg-lineDanger text-white px-2 py-1.5 rounded text-xs font-bold hover:opacity-80 transition">๐—‘๏ธ เธฅเธ</button>
+                </div>
+              </div>
+            `}).join('')}
+          </div>
+        </div>`;
+      });
+
+      const mobileList = document.getElementById('adminListMobile');
+      if (mobileList) mobileList.innerHTML = html || '<div class="col-span-full text-center py-8 text-gray-400">เนเธกเนเธกเธตเธเนเธญเธกเธนเธฅ</div>';
+    }
+
+    function openForm(mode, tabType, pk1, pk2) {
+      document.getElementById('formModal').classList.remove('hidden');
+      document.getElementById('formMode').value = mode;
+      
+      const isMenu = (tabType || currentTab) === 'menu';
+      document.getElementById('fields-menu').classList.toggle('hidden', !isMenu);
+      document.getElementById('fields-role').classList.toggle('hidden', isMenu);
+      const entityLabel = isMenu ? 'เธฃเธฒเธขเธเธฒเธฃเน€เธกเธเธนเธฃเธฐเธเธ' : 'เธชเธดเธ—เธเธดเนเธเธฒเธฃเนเธเนเธเธฒเธเธ•เธฒเธกเธ•เธณเนเธซเธเนเธ';
+      document.getElementById('modalTitle').textContent = mode === 'add' ? `โ• เน€เธเธดเนเธก${entityLabel}` : `โ๏ธ เนเธเนเนเธ${entityLabel}`;
+
+      if (mode === 'add') {
+        document.getElementById('auditInfo').innerHTML = `เธชเธฃเนเธฒเธเธฃเธฒเธขเธเธฒเธฃเนเธซเธกเนเนเธ”เธข Admin ID: <b>${currentActionEmpId}</b>`;
+        if (isMenu) {
+          ['m_group', 'm_menuGroup', 'm_menuId', 'm_menuName'].forEach(id => document.getElementById(id).value = '');
+          document.getElementById('m_group').readOnly = false;
+          document.getElementById('m_menuId').readOnly = false;
+        } else {
+          ['r_jobPosition', 'r_menuId', 'r_menuUrl'].forEach(id => document.getElementById(id).value = '');
+          ['r_canRead', 'r_canCreate', 'r_canEdit', 'r_canDelete', 'r_canApprove'].forEach(id => document.getElementById(id).checked = false);
+          document.getElementById('r_jobPosition').readOnly = false;
+          document.getElementById('r_menuId').readOnly = false;
+        }
+      } else {
+        if (isMenu) {
+          const m = allMenus.find(x => x.group === pk1 && x.menuId === pk2);
+          if (m) {
+            document.getElementById('m_group').value = m.group;
+            document.getElementById('m_group').readOnly = true;
+            document.getElementById('m_menuGroup').value = m.menuGroup;
+            document.getElementById('m_menuId').value = m.menuId;
+            document.getElementById('m_menuId').readOnly = true;
+            document.getElementById('m_menuName').value = m.menuName;
+            
+            document.getElementById('auditInfo').innerHTML = `<div>โ€ข <b>เธชเธฃเนเธฒเธเนเธ”เธข:</b> ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</div><div>โ€ข <b>เนเธเนเนเธเธฅเนเธฒเธชเธธเธ”เนเธ”เธข:</b> ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</div>`;
+          }
+        } else {
+          const r = allRoles.find(x => x.Job_Position === pk1 && x.menuId === pk2);
+          if (r) {
+            document.getElementById('r_jobPosition').value = r.Job_Position;
+            document.getElementById('r_jobPosition').readOnly = true;
+            document.getElementById('r_menuId').value = r.menuId;
+            document.getElementById('r_menuId').readOnly = true;
+            document.getElementById('r_menuUrl').value = r.menuUrl;
+            
+            document.getElementById('r_canRead').checked = String(r.canRead).toUpperCase() === 'TRUE';
+            document.getElementById('r_canCreate').checked = String(r.canCreate).toUpperCase() === 'TRUE';
+            document.getElementById('r_canEdit').checked = String(r.canEdit).toUpperCase() === 'TRUE';
+            document.getElementById('r_canDelete').checked = String(r.canDelete).toUpperCase() === 'TRUE';
+            document.getElementById('r_canApprove').checked = String(r.canApprove).toUpperCase() === 'TRUE';
+
+            document.getElementById('auditInfo').innerHTML = `<div>โ€ข <b>เธชเธฃเนเธฒเธเนเธ”เธข:</b> ${r.createEmpId || '-'} (${formatDateTime(r.createDate)})</div><div>โ€ข <b>เนเธเนเนเธเธฅเนเธฒเธชเธธเธ”เนเธ”เธข:</b> ${r.updateEmpId || '-'} (${formatDateTime(r.updateDate)})</div>`;
+          }
+        }
+      }
+    }
+
+    async function saveData() {
+      const mode = document.getElementById('formMode').value;
+      const isMenu = currentTab === 'menu';
+      
+      let payload = { mode: mode, actionByEmpId: currentActionEmpId };
+
+      if (isMenu) {
+        payload.action = 'manageMenu';
+        payload.menuData = {
+          group: document.getElementById('m_group').value.trim(),
+          menuGroup: document.getElementById('m_menuGroup').value.trim(),
+          menuId: document.getElementById('m_menuId').value.trim(),
+          menuName: document.getElementById('m_menuName').value.trim()
+        };
+        if(!payload.menuData.group || !payload.menuData.menuId) { alert("เธเธฃเธธเธ“เธฒเธเธฃเธญเธ Group เนเธฅเธฐ Menu ID เนเธซเนเธเธฃเธเธ–เนเธงเธ"); return; }
+      } else {
+        payload.action = 'manageRole';
+        payload.roleData = {
+          Job_Position: document.getElementById('r_jobPosition').value.trim(),
+          menuId: document.getElementById('r_menuId').value.trim(),
+          menuUrl: document.getElementById('r_menuUrl').value.trim(),
+          canRead: document.getElementById('r_canRead').checked,
+          canCreate: document.getElementById('r_canCreate').checked,
+          canEdit: document.getElementById('r_canEdit').checked,
+          canDelete: document.getElementById('r_canDelete').checked,
+          canApprove: document.getElementById('r_canApprove').checked
+        };
+        if(!payload.roleData.Job_Position || !payload.roleData.menuId) { alert("เธเธฃเธธเธ“เธฒเธเธฃเธญเธ Job Position เนเธฅเธฐ Menu ID เนเธซเนเธเธฃเธเธ–เนเธงเธ"); return; }
+      }
+
+      document.getElementById('modalTitle').textContent = 'เธเธณเธฅเธฑเธเธเธฑเธเธ—เธถเธ...';
+      const res = await fetch(RESOURCE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const result = await res.json();
+      
+      if (result.status === 'success') {
+        document.getElementById('formModal').classList.add('hidden');
+        loadAllData();
+      } else {
+        alert(result.message);
+        document.getElementById('modalTitle').textContent = 'เธเธญเธฃเนเธกเธเธฑเธ”เธเธฒเธฃเธเนเธญเธกเธนเธฅ';
+      }
+    }
+
+    async function deleteData(pk1, pk2) {
+      if(!confirm(`เธขเธทเธเธขเธฑเธเธเธฒเธฃเธฅเธเธเนเธญเธกเธนเธฅ [${pk1}] - [${pk2}] เธญเธขเนเธฒเธเธ–เธฒเธงเธฃ?`)) return;
+      
+      const payload = { mode: 'delete' };
+      if(currentTab === 'menu') {
+        payload.action = 'manageMenu';
+        payload.menuData = { group: pk1, menuId: pk2 };
+      } else {
+        payload.action = 'manageRole';
+        payload.roleData = { Job_Position: pk1, menuId: pk2 };
+      }
+
+      const res = await fetch(RESOURCE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const result = await res.json();
+      
+      if(result.status === 'success') loadAllData();
+      else alert(result.message);
+    }
+
+    function goToHome() { window.location.href = "index.html"; }
+    function logoutApp() { if (liff.isLoggedIn()) { liff.logout(); window.location.reload(); } }
+    window.onload = initApp;
+  </script>
+</body>
+</html>
+
+
+
