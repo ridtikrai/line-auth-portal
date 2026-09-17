@@ -1357,12 +1357,8 @@ async function initApp() {
           } catch (_) { sessionStorage.removeItem('CURRENT_PROFILE'); }
         }
 
-        await loadMenu(true);
+        await loadMenu(); // ดึงเมนูจาก server เสมอ ไม่ใช้ menu cache
         startActivityTracker();
-        // Verify ในเบื้องหลัง ไม่ block UI
-        verifyPortalSession(savedSession).then(result => {
-          if (!result || result.status !== 'success') handleSessionExpired();
-        });
         return;
       }
     }
@@ -1884,21 +1880,6 @@ async function verifyPortalSession(
 async function loadMenu(useCache = false) {
   try {
     if (!currentSessionId) throw new Error("Session not found");
-    
-    if (useCache) {
-      const cachedMenu = sessionStorage.getItem('CURRENT_MENU');
-      if (cachedMenu) {
-        renderDashboard({ data: JSON.parse(cachedMenu) });
-        // Fetch in background to update
-        portalRequest({ action: "getMenu", sessionId: currentSessionId }).then(res => {
-          if (res && res.status === "success") {
-            sessionStorage.setItem('CURRENT_MENU', JSON.stringify(res.data));
-            renderDashboard(res);
-          }
-        });
-        return;
-      }
-    }
 
     const result = await portalRequest({ action: "getMenu", sessionId: currentSessionId });
     console.log("getMenu:", result);
@@ -1911,7 +1892,6 @@ async function loadMenu(useCache = false) {
       throw new Error(result?.message || "ไม่สามารถโหลดเมนูได้");
     }
 
-    sessionStorage.setItem('CURRENT_MENU', JSON.stringify(result.data));
     renderDashboard(result);
 
   } catch (err) {
@@ -1919,6 +1899,8 @@ async function loadMenu(useCache = false) {
     showLoginError(getFriendlyErrorMessage(err));
   }
 }
+
+
 
 
 /* =====================================================
