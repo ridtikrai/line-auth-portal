@@ -260,7 +260,13 @@
       sessionStorage.setItem(SESSION_KEY, portalSessionId);
       
       currentUser = result.user;
-      currentPermissions = result.permission || { read: false };
+      const perm = result.permission || {};
+      currentPermissions = {
+        read: perm.canRead || perm.read || false,
+        create: perm.canWrite || perm.create || perm.canRead || false,
+        edit: perm.canWrite || perm.edit || perm.canRead || false,
+        delete: perm.canDelete || perm.delete || perm.canRead || false
+      };
       currentActionEmpId = currentUser.empId || currentUser.userId;
 
       if (!currentPermissions.read) {
