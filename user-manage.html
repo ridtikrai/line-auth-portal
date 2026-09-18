@@ -182,9 +182,10 @@
   </div>
 
   <script>
-    const AUTH_API_URL = "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22cE9ph1eYPscyrxdw29T44DaUT9/exec";
     const RESOURCE_API_URL = "https://script.google.com/macros/s/AKfycbyhkjQPwFOVw1v9tYcDBS4UV1JdtVagw62aBMl0Hqa6wymbqpgx9lUPZRRxyFnEXX8NzA/exec";
     const SESSION_KEY = 'portalSessionId';
+    const USER_KEY = 'PORTAL_USER';
+    const PERM_KEY = 'PORTAL_PERMISSIONS';
     
     let portalSessionId = sessionStorage.getItem(SESSION_KEY);
     let currentUser = null;
@@ -197,6 +198,26 @@
     let timeRemaining = timeoutLimit;
     let timerInterval;
 
+    // ========================================================
+    // 🚀 ถอดรหัส JWT ในเบราว์เซอร์ทันที (0ms, ไม่เรียก API)
+    // ========================================================
+    function decodeJwtPayload(token) {
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+        // Base64url → Base64 standard
+        let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) b64 += '=';
+        const jsonStr = atob(b64);
+        return JSON.parse(jsonStr);
+      } catch(e) {
+        return null;
+      }
+    }
+
+    // ========================================================
+    // เริ่มต้นแอปพลิเคชัน
+    // ========================================================
     window.onload = startApplication;
 
     async function startApplication() {
@@ -204,131 +225,83 @@
       const params = new URLSearchParams(window.location.search);
       const launchToken = params.get('launchToken');
       
+      // ━━━ กรณี 1: มี launchToken (เปิดจาก Portal) ━━━
       if (launchToken) {
-        await exchangeLaunchToken(launchToken);
+        const payload = decodeJwtPayload(launchToken);
+        
+        if (!payload || !payload.empId) {
+          showError('Token ไม่ถูกต้อง กรุณาเข้าสู่ระบบผ่าน Portal');
+          return;
+        }
+
+        // บันทึกข้อมูลผู้ใช้จาก JWT ลง sessionStorage ทันที
+        currentUser = { 
+          userId: payload.userId || '', 
+          empId: payload.empId, 
+          role: payload.role || '' 
+        };
+        const rbac = payload.rbac || {};
+        currentPermissions = {
+          read: rbac.read === true,
+          create: rbac.create === true,
+          edit: rbac.edit === true,
+          delete: rbac.delete === true,
+          approve: rbac.approve === true
+        };
+        currentActionEmpId = payload.empId;
+        portalSessionId = payload.sessionId || payload.jti || 'jwt-session';
+
+        // Cache ทุกอย่างลง sessionStorage
+        sessionStorage.setItem(SESSION_KEY, portalSessionId);
+        sessionStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+        sessionStorage.setItem(PERM_KEY, JSON.stringify(currentPermissions));
+
+        // ลบ Token จาก URL ทันที (ป้องกัน Copy URL)
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        // แสดงหน้าจอ + โหลดข้อมูล
+        initUI();
+        await loadUsers();
         return;
       }
-      
-      if (portalSessionId) {
-        await verifySession();
+
+      // ━━━ กรณี 2: มี cache ใน sessionStorage (กลับมาหน้านี้ซ้ำ) ━━━
+      const storedUser = sessionStorage.getItem(USER_KEY);
+      const storedPerm = sessionStorage.getItem(PERM_KEY);
+
+      if (storedUser && storedPerm && portalSessionId) {
+        currentUser = JSON.parse(storedUser);
+        currentPermissions = JSON.parse(storedPerm);
+        currentActionEmpId = currentUser.empId || '';
+
+        initUI();
+        await loadUsers();
         return;
       }
-      
+
+      // ━━━ กรณี 3: ไม่มีอะไรเลย ━━━
       showError('ไม่พบสิทธิ์การใช้งาน กรุณาเข้าสู่ระบบผ่าน Portal');
     }
 
-    async function exchangeLaunchToken(launchToken) {
-      try {
-        // 🚀 เรียก API ของตัวเองเพื่อแกะ JWT
-        const res = await fetch(RESOURCE_API_URL, {
-          method: 'POST',
-          redirect: 'follow',
-          body: JSON.stringify({ action: 'exchangeLaunchToken', launchToken: launchToken })
-        });
-
-        // DEBUG: ดึง response text ก่อนเพื่อตรวจสอบ
-        const rawText = await res.text();
-        let result;
-        try {
-          result = JSON.parse(rawText);
-        } catch (parseErr) {
-          // ถ้า JSON parse ล้มเหลว แสดง raw response ให้ดู
-          alert('DEBUG: Response ไม่ใช่ JSON\nStatus: ' + res.status + '\nBody: ' + rawText.substring(0, 300));
-          showError('API ส่งข้อมูลกลับมาผิดรูปแบบ');
-          return;
-        }
-        
-        if (result.success || result.authorized || result.status === 'success') {
-          portalSessionId = result.sessionId || result.session?.sessionId;
-          sessionStorage.setItem(SESSION_KEY, portalSessionId);
-
-          currentUser = result.user || result.session || null;
-          let perm = result.permission || {};
-          currentPermissions = {
-            read: perm.canRead || perm.read || false,
-            create: perm.canWrite || perm.create || false,
-            edit: perm.canWrite || perm.edit || false,
-            delete: perm.canDelete || perm.delete || false
-          };
-          currentActionEmpId = currentUser?.empId || currentUser?.userId || '';
-
-          showLoading(false);
-          applyPermissions();
-          startActivityTracker();
-          window.history.replaceState({}, document.title, window.location.pathname);
-          await loadUsers();
-        } else {
-          // แสดง error จริงจาก API
-          alert('DEBUG exchangeLaunchToken failed:\n' + JSON.stringify(result, null, 2));
-          showError(result.message || 'Token ไม่ถูกต้องหรือหมดอายุ');
-        }
-      } catch (err) {
-        alert('DEBUG catch error:\n' + err.message + '\n\nStack:\n' + err.stack);
-        showError('เชื่อมต่อ API ล้มเหลว: ' + err.message);
-      }
-    }
-
-    async function verifySession() {
-      try {
-        const res = await fetch(AUTH_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'verifySession', sessionId: portalSessionId })
-        });
-        const result = await res.json();
-        
-        if (result.status === 'success') {
-          handleAuthSuccess(result);
-        } else {
-          sessionStorage.removeItem(SESSION_KEY);
-          showError('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
-        }
-      } catch (err) {
-        showError('เชื่อมต่อ API ล้มเหลว');
-      }
-    }
-
-    function handleAuthSuccess(result) {
-      portalSessionId = result.sessionId || portalSessionId;
-      sessionStorage.setItem(SESSION_KEY, portalSessionId);
-      
-      currentUser = result.user || result.session || currentUser;
-      
-      let perm = result.permission;
-      if (perm) {
-        sessionStorage.setItem('PORTAL_PERMISSIONS', JSON.stringify(perm));
-      } else {
-        const stored = sessionStorage.getItem('PORTAL_PERMISSIONS');
-        if (stored) perm = JSON.parse(stored);
-        else perm = {};
-      }
-
-      currentPermissions = {
-        read: perm.canRead || perm.read || false,
-        create: perm.canWrite || perm.create || perm.canRead || false,
-        edit: perm.canWrite || perm.edit || perm.canRead || false,
-        delete: perm.canDelete || perm.delete || perm.canRead || false
-      };
-      
-      currentActionEmpId = currentUser?.empId || currentUser?.userId || '';
-
+    // ========================================================
+    // แสดง UI หลังยืนยันตัวตนสำเร็จ
+    // ========================================================
+    function initUI() {
       if (!currentPermissions.read) {
         showError('Access Denied: คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         return;
       }
 
       showLoading(false);
-      
-      document.getElementById('user-name-display').textContent = currentUser.displayName || currentUser.name || '-';
-      document.getElementById('user-role-display').textContent = currentUser.role || '-';
-      if (currentUser.pictureUrl) {
-        const img = document.getElementById('profile-img');
-        img.src = currentUser.pictureUrl;
-        img.classList.remove('hidden');
-      }
+
+      // แสดงข้อมูลผู้ใช้
+      const nameEl = document.getElementById('user-name-display');
+      const roleEl = document.getElementById('user-role-display');
+      if (nameEl) nameEl.textContent = currentUser.empId || '-';
+      if (roleEl) roleEl.textContent = currentUser.role || '-';
 
       applyPermissions();
       startActivityTracker();
-      loadUsers();
     }
 
     function showLoading(isLoading) {
@@ -586,12 +559,9 @@
     }
 
     async function logoutApp() {
-      if(portalSessionId) {
-        try {
-          await fetch(AUTH_API_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', sessionId: portalSessionId }) });
-        } catch(e) {}
-      }
       sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(USER_KEY);
+      sessionStorage.removeItem(PERM_KEY);
       window.location.href = "index.html";
     }
   </script>
