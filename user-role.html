@@ -240,6 +240,7 @@
       try {
         const res = await fetch(AUTH_API_URL, {
           method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'validateLaunch', launchToken: launchToken, menuId: CURRENT_MENU_ID })
         });
         const result = await res.json();
@@ -261,6 +262,7 @@
       try {
         const res = await fetch(AUTH_API_URL, {
           method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'verifySession', sessionId: portalSessionId })
         });
         const result = await res.json();
@@ -340,7 +342,9 @@
 
     async function loadAllData() {
       const res = await fetch(RESOURCE_API_URL, {
-          method: 'POST', body: JSON.stringify({ action: 'getManageData' })
+          method: 'POST', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'getManageData' })
       });
       const result = await res.json();
       if(result.status === 'success'){
@@ -740,7 +744,11 @@
       }
 
       document.getElementById('modalTitle').textContent = 'กำลังบันทึก...';
-      const res = await fetch(RESOURCE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const res = await fetch(RESOURCE_API_URL, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload) 
+      });
       const result = await res.json();
       
       if (result.status === 'success') {
@@ -764,7 +772,11 @@
         payload.roleData = { Job_Position: pk1, menuId: pk2 };
       }
 
-      const res = await fetch(RESOURCE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const res = await fetch(RESOURCE_API_URL, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload) 
+      });
       const result = await res.json();
       
       if(result.status === 'success') loadAllData();
@@ -773,7 +785,7 @@
 
     function goToHome() { window.location.href = "index.html"; }
     function logoutApp() {
-      try { fetch(AUTH_API_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', sessionId: portalSessionId }) }); } catch(e) {}
+      try { fetch(AUTH_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'logout', sessionId: portalSessionId }) }); } catch(e) {}
       sessionStorage.removeItem(SESSION_KEY);
       sessionStorage.removeItem('PORTAL_PERMISSIONS_ROLE');
       goToHome();
