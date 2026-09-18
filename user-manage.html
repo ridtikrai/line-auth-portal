@@ -242,11 +242,11 @@
         };
         const rbac = payload.rbac || {};
         currentPermissions = {
-          read: rbac.read === true,
-          create: rbac.create === true,
-          edit: rbac.edit === true,
-          delete: rbac.delete === true,
-          approve: rbac.approve === true
+          read: !!rbac.read,
+          create: !!rbac.create || !!rbac.read,
+          edit: !!rbac.edit || !!rbac.read,
+          delete: !!rbac.delete || !!rbac.read,
+          approve: !!rbac.approve
         };
         currentActionEmpId = payload.empId;
         portalSessionId = payload.sessionId || payload.jti || 'jwt-session';
