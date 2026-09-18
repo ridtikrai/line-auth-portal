@@ -709,7 +709,7 @@
         }
       } else {
         if (isMenu) {
-          const m = allMenus.find(x => x.group === pk1 && x.menuId === pk2);
+          const m = allMenus.find(x => String(x.group) === String(pk1) && String(x.menuId) === String(pk2));
           if (m) {
             document.getElementById('m_group').value = m.group;
             document.getElementById('m_group').readOnly = true;
@@ -721,7 +721,7 @@
             document.getElementById('auditInfo').innerHTML = `<div>• <b>สร้างโดย:</b> ${m.createEmpId || '-'} (${formatDateTime(m.createDate)})</div><div>• <b>แก้ไขล่าสุดโดย:</b> ${m.updateEmpId || '-'} (${formatDateTime(m.updateDate)})</div>`;
           }
         } else {
-          const r = allRoles.find(x => x.Job_Position === pk1 && x.menuId === pk2);
+          const r = allRoles.find(x => String(x.Job_Position) === String(pk1) && String(x.menuId) === String(pk2));
           if (r) {
             document.getElementById('r_jobPosition').value = r.Job_Position;
             document.getElementById('r_jobPosition').readOnly = true;
