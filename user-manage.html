@@ -219,20 +219,26 @@
 
     async function exchangeLaunchToken(launchToken) {
       try {
-        const res = await fetch(AUTH_API_URL, {
+        // 🚀 เปลี่ยนมาเรียก API ของตัวเองเพื่อแกะ JWT (ความเร็วแสง)
+        const res = await fetch(RESOURCE_API_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'validateLaunch', launchToken: launchToken, menuId: '901' })
+          body: JSON.stringify({ action: 'exchangeLaunchToken', launchToken: launchToken })
         });
         const result = await res.json();
         
-        if (result.status === 'success') {
-          handleAuthSuccess(result);
-          window.history.replaceState({}, document.title, window.location.pathname);
+        if (result.success || result.authorized || result.status === 'success') {
+          portalSessionId = result.sessionId || result.session?.sessionId;
+          sessionStorage.setItem(SESSION_KEY, portalSessionId);
+          await loadUsers();
+          
+          // เปลี่ยนปุ่มเป็น Logout
+          document.getElementById('loginBtn').innerHTML = '<span>ออกจากระบบ</span>';
+          document.getElementById('loginBtn').onclick = () => logoutApp();
         } else {
           showError(result.message || 'Token ไม่ถูกต้องหรือหมดอายุ');
         }
       } catch (err) {
-        showError('เชื่อมต่อ API ล้มเหลว');
+        showError('เชื่อมต่อ API ล้มเหลว: exchangeLaunchToken');
       }
     }
 
@@ -355,9 +361,7 @@
       
       try {
         const res = await fetch(RESOURCE_API_URL, {
-            method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'getUsers', sessionId: portalSessionId })
+            method: 'POST', body: JSON.stringify({ action: 'getUsers', sessionId: portalSessionId })
         });
         const result = await res.json();
         if (result.status === 'success') {
@@ -519,11 +523,7 @@
       
       document.getElementById('modalTitle').textContent = 'กำลังบันทึกข้อมูล...';
       try {
-        const res = await fetch(RESOURCE_API_URL, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload) 
-        });
+        const res = await fetch(RESOURCE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
         const result = await res.json();
         
         if (result.status === 'success') {
@@ -542,9 +542,7 @@
       if(!confirm("คุณต้องการลบผู้ใช้งานรหัส " + empId + " นี้ออกจากระบบอย่างถาวรหรือไม่?")) return;
       try {
         const res = await fetch(RESOURCE_API_URL, {
-            method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'manageUser', sessionId: portalSessionId, mode: 'delete', user: { Emp_ID: empId } })
+            method: 'POST', body: JSON.stringify({ action: 'manageUser', sessionId: portalSessionId, mode: 'delete', user: { Emp_ID: empId } })
         });
         const result = await res.json();
         if(result.status === 'success') {
