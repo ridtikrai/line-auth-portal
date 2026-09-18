@@ -219,29 +219,52 @@
 
     async function exchangeLaunchToken(launchToken) {
       try {
-        // 🚀 เปลี่ยนมาเรียก API ของตัวเองเพื่อแกะ JWT (ความเร็วแสง)
+        // 🚀 เรียก API ของตัวเองเพื่อแกะ JWT
         const res = await fetch(RESOURCE_API_URL, {
           method: 'POST',
+          redirect: 'follow',
           body: JSON.stringify({ action: 'exchangeLaunchToken', launchToken: launchToken })
         });
-        const result = await res.json();
+
+        // DEBUG: ดึง response text ก่อนเพื่อตรวจสอบ
+        const rawText = await res.text();
+        let result;
+        try {
+          result = JSON.parse(rawText);
+        } catch (parseErr) {
+          // ถ้า JSON parse ล้มเหลว แสดง raw response ให้ดู
+          alert('DEBUG: Response ไม่ใช่ JSON\nStatus: ' + res.status + '\nBody: ' + rawText.substring(0, 300));
+          showError('API ส่งข้อมูลกลับมาผิดรูปแบบ');
+          return;
+        }
         
         if (result.success || result.authorized || result.status === 'success') {
           portalSessionId = result.sessionId || result.session?.sessionId;
           sessionStorage.setItem(SESSION_KEY, portalSessionId);
+
+          currentUser = result.user || result.session || null;
+          let perm = result.permission || {};
+          currentPermissions = {
+            read: perm.canRead || perm.read || false,
+            create: perm.canWrite || perm.create || false,
+            edit: perm.canWrite || perm.edit || false,
+            delete: perm.canDelete || perm.delete || false
+          };
+          currentActionEmpId = currentUser?.empId || currentUser?.userId || '';
+
+          showLoading(false);
+          applyPermissions();
+          startActivityTracker();
+          window.history.replaceState({}, document.title, window.location.pathname);
           await loadUsers();
-          
-          // เปลี่ยนปุ่มเป็น Logout (ถ้ามี)
-          const loginBtn = document.getElementById('loginBtn');
-          if (loginBtn) {
-            loginBtn.innerHTML = '<span>ออกจากระบบ</span>';
-            loginBtn.onclick = () => logoutApp();
-          }
         } else {
+          // แสดง error จริงจาก API
+          alert('DEBUG exchangeLaunchToken failed:\n' + JSON.stringify(result, null, 2));
           showError(result.message || 'Token ไม่ถูกต้องหรือหมดอายุ');
         }
       } catch (err) {
-        showError('เชื่อมต่อ API ล้มเหลว: exchangeLaunchToken');
+        alert('DEBUG catch error:\n' + err.message + '\n\nStack:\n' + err.stack);
+        showError('เชื่อมต่อ API ล้มเหลว: ' + err.message);
       }
     }
 
