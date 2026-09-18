@@ -231,9 +231,12 @@
           sessionStorage.setItem(SESSION_KEY, portalSessionId);
           await loadUsers();
           
-          // เปลี่ยนปุ่มเป็น Logout
-          document.getElementById('loginBtn').innerHTML = '<span>ออกจากระบบ</span>';
-          document.getElementById('loginBtn').onclick = () => logoutApp();
+          // เปลี่ยนปุ่มเป็น Logout (ถ้ามี)
+          const loginBtn = document.getElementById('loginBtn');
+          if (loginBtn) {
+            loginBtn.innerHTML = '<span>ออกจากระบบ</span>';
+            loginBtn.onclick = () => logoutApp();
+          }
         } else {
           showError(result.message || 'Token ไม่ถูกต้องหรือหมดอายุ');
         }
