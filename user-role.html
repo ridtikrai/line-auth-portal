@@ -44,9 +44,10 @@
 <body class="bg-lineLightBg font-sans text-gray-800 antialiased min-h-screen flex flex-col">
 
   <script>
-    const AUTH_API_URL = "https://script.google.com/macros/s/AKfycbwphhIdSMHpTWHuFrRFTC3lEZe-QQCaZr2cebxb22cE9ph1eYPscyrxdw29T44DaUT9/exec";
     const RESOURCE_API_URL = "https://script.google.com/macros/s/AKfycbwT92lC6xrr0MuDUNdjJKjL_jvkMZb7AjbOmA81uWKONXOf9dG2U-_6Y8qqW8bGsvoY/exec";
     const SESSION_KEY = 'portalSessionId';
+    const USER_KEY = 'PORTAL_USER_ROLE';
+    const PERM_KEY = 'PORTAL_PERM_ROLE';
     const CURRENT_MENU_ID = "902";
   </script>
 
@@ -222,10 +223,28 @@
     let timeRemaining = timeoutLimit;
     let timerInterval;
 
+    // ========================================================
+    // 🚀 ถอดรหัส JWT ในเบราว์เซอร์ทันที (0ms, ไม่เรียก API)
+    // ========================================================
+    function decodeJwtPayload(token) {
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+        let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) b64 += '=';
+        return JSON.parse(atob(b64));
+      } catch(e) {
+        return null;
+      }
+    }
+
+    // ========================================================
+    // เริ่มต้นแอปพลิเคชัน
+    // ========================================================
     window.onload = startApplication;
 
     async function startApplication() {
-      // เริ่มดึงข้อมูลล่วงหน้า (Prefetch) ทันทีที่เปิดเว็บ เพื่อลดเวลารอ
+      // เริ่มดึงข้อมูลล่วงหน้า (Prefetch) ทันทีที่เปิดเว็บ
       prefetchDataPromise = fetch(RESOURCE_API_URL, {
           method: 'POST', 
           body: JSON.stringify({ action: 'getManageData' })
@@ -234,86 +253,58 @@
       const params = new URLSearchParams(window.location.search);
       const launchToken = params.get('launchToken');
       
+      // ━━━ กรณี 1: มี launchToken (เปิดจาก Portal) ━━━
       if (launchToken) {
-        await exchangeLaunchToken(launchToken);
+        const payload = decodeJwtPayload(launchToken);
+        
+        if (!payload || !payload.empId) {
+          alert('Token ไม่ถูกต้อง กรุณาเข้าสู่ระบบผ่าน Portal');
+          goToHome();
+          return;
+        }
+
+        currentUser = { userId: payload.userId || '', empId: payload.empId, role: payload.role || '' };
+        const rbac = payload.rbac || {};
+        currentPermissions = {
+          read: !!rbac.read,
+          create: !!rbac.create || !!rbac.read,
+          edit: !!rbac.edit || !!rbac.read,
+          delete: !!rbac.delete || !!rbac.read,
+          approve: !!rbac.approve
+        };
+        currentActionEmpId = payload.empId;
+        portalSessionId = payload.sessionId || payload.jti || 'jwt-session';
+
+        sessionStorage.setItem(SESSION_KEY, portalSessionId);
+        sessionStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+        sessionStorage.setItem(PERM_KEY, JSON.stringify(currentPermissions));
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+        initUI();
         return;
       }
-      
-      if (portalSessionId) {
-        await verifySession();
+
+      // ━━━ กรณี 2: มี cache ใน sessionStorage ━━━
+      const storedUser = sessionStorage.getItem(USER_KEY);
+      const storedPerm = sessionStorage.getItem(PERM_KEY);
+
+      if (storedUser && storedPerm && portalSessionId) {
+        currentUser = JSON.parse(storedUser);
+        currentPermissions = JSON.parse(storedPerm);
+        currentActionEmpId = currentUser.empId || '';
+        initUI();
         return;
       }
-      
+
+      // ━━━ กรณี 3: ไม่มีอะไรเลย ━━━
       alert('ไม่พบสิทธิ์การใช้งาน กรุณาเข้าสู่ระบบผ่าน Portal');
       goToHome();
     }
 
-    async function exchangeLaunchToken(launchToken) {
-      try {
-        const res = await fetch(AUTH_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'validateLaunch', launchToken: launchToken, menuId: CURRENT_MENU_ID })
-        });
-        const result = await res.json();
-        
-        if (result.status === 'success') {
-          handleAuthSuccess(result);
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else {
-          alert(result.message || 'Token ไม่ถูกต้องหรือหมดอายุ');
-          goToHome();
-        }
-      } catch (err) {
-        alert('เชื่อมต่อ API ล้มเหลว');
-        goToHome();
-      }
-    }
-
-    async function verifySession() {
-      try {
-        const res = await fetch(AUTH_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'verifySession', sessionId: portalSessionId })
-        });
-        const result = await res.json();
-        
-        if (result.status === 'success') {
-          handleAuthSuccess(result);
-        } else {
-          sessionStorage.removeItem(SESSION_KEY);
-          alert('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
-          goToHome();
-        }
-      } catch (err) {
-        alert('เชื่อมต่อ API ล้มเหลว');
-        goToHome();
-      }
-    }
-
-    function handleAuthSuccess(result) {
-      portalSessionId = result.sessionId || portalSessionId;
-      sessionStorage.setItem(SESSION_KEY, portalSessionId);
-      
-      currentUser = result.user || result.session || currentUser;
-      
-      let perm = result.permission;
-      if (perm) {
-        sessionStorage.setItem('PORTAL_PERMISSIONS_ROLE', JSON.stringify(perm));
-      } else {
-        const stored = sessionStorage.getItem('PORTAL_PERMISSIONS_ROLE');
-        if (stored) perm = JSON.parse(stored);
-        else perm = {};
-      }
-
-      currentPermissions = {
-        read: perm.canRead || perm.read || false,
-        create: perm.canWrite || perm.create || perm.canRead || false,
-        edit: perm.canWrite || perm.edit || perm.canRead || false,
-        delete: perm.canDelete || perm.delete || perm.canRead || false
-      };
-      
-      currentActionEmpId = currentUser?.empId || currentUser?.userId || '';
-
+    // ========================================================
+    // แสดง UI หลังยืนยันตัวตนสำเร็จ
+    // ========================================================
+    function initUI() {
       if (!currentPermissions.read) {
         alert('Access Denied: คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         goToHome();
@@ -323,8 +314,10 @@
       document.getElementById('loading-screen').classList.add('hidden');
       document.getElementById('management-screen').classList.remove('hidden');
       
-      if(document.getElementById('user-name-display')) document.getElementById('user-name-display').textContent = currentUser.displayName || currentUser.name || currentUser.userId || currentUser.Emp_ID;
-      if(document.getElementById('user-role-display')) document.getElementById('user-role-display').textContent = currentUser.Job_Position || currentUser.role || 'User';
+      const nameEl = document.getElementById('user-name-display');
+      const roleEl = document.getElementById('user-role-display');
+      if (nameEl) nameEl.textContent = currentUser.empId || '-';
+      if (roleEl) roleEl.textContent = currentUser.role || '-';
 
       startActivityTracker();
       applyPermissions();
@@ -811,9 +804,9 @@
 
     function goToHome() { window.location.href = "index.html"; }
     function logoutApp() {
-      try { fetch(AUTH_API_URL, { method: 'POST', body: JSON.stringify({ action: 'logout', sessionId: portalSessionId }) }); } catch(e) {}
       sessionStorage.removeItem(SESSION_KEY);
-      sessionStorage.removeItem('PORTAL_PERMISSIONS_ROLE');
+      sessionStorage.removeItem(USER_KEY);
+      sessionStorage.removeItem(PERM_KEY);
       goToHome();
     }
   </script>
